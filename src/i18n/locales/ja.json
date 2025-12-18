@@ -1,0 +1,117 @@
+{
+  "app": {
+    "title": "WireMock JP",
+    "subtitle": "WireMock 日本語UI"
+  },
+  "nav": {
+    "projects": "プロジェクト",
+    "mappings": "スタブマッピング",
+    "requests": "リクエストログ",
+    "settings": "設定"
+  },
+  "projects": {
+    "title": "プロジェクト一覧",
+    "add": "プロジェクト追加",
+    "name": "プロジェクト名",
+    "baseUrl": "WireMock URL",
+    "edit": "編集",
+    "delete": "削除",
+    "select": "選択",
+    "noProjects": "プロジェクトがありません",
+    "addFirst": "最初のプロジェクトを追加してください",
+    "placeholder": {
+      "name": "例: 開発環境",
+      "baseUrl": "例: http://localhost:8080"
+    },
+    "validation": {
+      "nameRequired": "プロジェクト名を入力してください",
+      "urlRequired": "URLを入力してください",
+      "urlInvalid": "有効なURLを入力してください"
+    },
+    "dialog": {
+      "addTitle": "プロジェクト追加",
+      "editTitle": "プロジェクト編集"
+    }
+  },
+  "mappings": {
+    "title": "スタブマッピング",
+    "add": "新規作成",
+    "edit": "編集",
+    "delete": "削除",
+    "copy": "複製",
+    "test": "テスト",
+    "search": "検索",
+    "reset": "すべてリセット",
+    "save": "保存",
+    "noMappings": "スタブがありません",
+    "method": "メソッド",
+    "url": "URL",
+    "status": "ステータス",
+    "priority": "優先度",
+    "scenario": "シナリオ",
+    "confirmReset": "すべてのマッピングをリセットしますか？"
+  },
+  "editor": {
+    "title": "スタブエディタ",
+    "newMapping": "新規スタブ",
+    "request": "リクエスト",
+    "response": "レスポンス",
+    "advanced": "詳細設定",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "requestMethod": "メソッド",
+    "requestUrl": "URL",
+    "requestUrlPattern": "URLパターン",
+    "requestHeaders": "ヘッダー",
+    "requestBody": "ボディ",
+    "responseStatus": "ステータスコード",
+    "responseBody": "レスポンスボディ",
+    "responseHeaders": "レスポンスヘッダー",
+    "responseDelay": "遅延（ミリ秒）",
+    "priority": "優先度",
+    "scenario": "シナリオ名",
+    "requiredState": "必要な状態",
+    "newState": "新しい状態"
+  },
+  "requests": {
+    "title": "リクエストログ",
+    "matched": "マッチング成功",
+    "unmatched": "マッチング失敗",
+    "all": "すべて",
+    "clear": "ログクリア",
+    "refresh": "更新",
+    "noRequests": "リクエストがありません",
+    "timestamp": "時刻",
+    "method": "メソッド",
+    "url": "URL",
+    "status": "ステータス",
+    "detail": "詳細",
+    "confirmClear": "すべてのリクエストログをクリアしますか？"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "about": "このアプリについて",
+    "version": "バージョン"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "confirm": "確認",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "yes": "はい",
+    "no": "いいえ",
+    "back": "戻る",
+    "next": "次へ",
+    "search": "検索",
+    "clear": "クリア",
+    "copy": "コピー",
+    "copied": "コピーしました"
+  }
+}

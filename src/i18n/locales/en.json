@@ -1,0 +1,117 @@
+{
+  "app": {
+    "title": "WireMock JP",
+    "subtitle": "WireMock Japanese UI"
+  },
+  "nav": {
+    "projects": "Projects",
+    "mappings": "Stub Mappings",
+    "requests": "Request Log",
+    "settings": "Settings"
+  },
+  "projects": {
+    "title": "Projects",
+    "add": "Add Project",
+    "name": "Project Name",
+    "baseUrl": "WireMock URL",
+    "edit": "Edit",
+    "delete": "Delete",
+    "select": "Select",
+    "noProjects": "No projects",
+    "addFirst": "Add your first project",
+    "placeholder": {
+      "name": "e.g. Development",
+      "baseUrl": "e.g. http://localhost:8080"
+    },
+    "validation": {
+      "nameRequired": "Project name is required",
+      "urlRequired": "URL is required",
+      "urlInvalid": "Please enter a valid URL"
+    },
+    "dialog": {
+      "addTitle": "Add Project",
+      "editTitle": "Edit Project"
+    }
+  },
+  "mappings": {
+    "title": "Stub Mappings",
+    "add": "Create New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "copy": "Duplicate",
+    "test": "Test",
+    "search": "Search",
+    "reset": "Reset All",
+    "save": "Save",
+    "noMappings": "No stubs",
+    "method": "Method",
+    "url": "URL",
+    "status": "Status",
+    "priority": "Priority",
+    "scenario": "Scenario",
+    "confirmReset": "Are you sure you want to reset all mappings?"
+  },
+  "editor": {
+    "title": "Stub Editor",
+    "newMapping": "New Stub",
+    "request": "Request",
+    "response": "Response",
+    "advanced": "Advanced",
+    "save": "Save",
+    "cancel": "Cancel",
+    "requestMethod": "Method",
+    "requestUrl": "URL",
+    "requestUrlPattern": "URL Pattern",
+    "requestHeaders": "Headers",
+    "requestBody": "Body",
+    "responseStatus": "Status Code",
+    "responseBody": "Response Body",
+    "responseHeaders": "Response Headers",
+    "responseDelay": "Delay (ms)",
+    "priority": "Priority",
+    "scenario": "Scenario Name",
+    "requiredState": "Required State",
+    "newState": "New State"
+  },
+  "requests": {
+    "title": "Request Log",
+    "matched": "Matched",
+    "unmatched": "Unmatched",
+    "all": "All",
+    "clear": "Clear Log",
+    "refresh": "Refresh",
+    "noRequests": "No requests",
+    "timestamp": "Timestamp",
+    "method": "Method",
+    "url": "URL",
+    "status": "Status",
+    "detail": "Detail",
+    "confirmClear": "Are you sure you want to clear all request logs?"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "about": "About",
+    "version": "Version"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "clear": "Clear",
+    "copy": "Copy",
+    "copied": "Copied"
+  }
+}
