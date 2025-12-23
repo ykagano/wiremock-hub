@@ -29,6 +29,7 @@
     "projects": "プロジェクト",
     "mappings": "スタブマッピング",
     "requests": "リクエストログ",
+    "instances": "インスタンス",
     "settings": "設定"
   },
   "projects": {
@@ -54,7 +55,15 @@
       "addTitle": "プロジェクト追加",
       "editTitle": "プロジェクト編集"
     },
-    "confirmDelete": "{name} を削除しますか？"
+    "confirmDelete": "{name} を削除しますか？",
+    "detail": "詳細"
+  },
+  "projectDetail": {
+    "info": "プロジェクト情報",
+    "instances": "インスタンス",
+    "stubs": "スタブ",
+    "createdAt": "作成日時",
+    "updatedAt": "更新日時"
   },
   "mappings": {
     "title": "スタブマッピング",
@@ -110,6 +119,42 @@
     "status": "ステータス",
     "detail": "詳細",
     "confirmClear": "すべてのリクエストログをクリアしますか？"
+  },
+  "instances": {
+    "title": "WireMockインスタンス",
+    "add": "インスタンス追加",
+    "edit": "編集",
+    "delete": "削除",
+    "sync": "同期",
+    "syncAll": "全インスタンスに同期",
+    "checkHealth": "ヘルスチェック",
+    "name": "インスタンス名",
+    "url": "URL",
+    "noInstances": "インスタンスがありません",
+    "addFirst": "最初のインスタンスを追加してください",
+    "statusHealthy": "接続OK",
+    "statusUnhealthy": "接続エラー",
+    "statusUnknown": "未確認",
+    "inactive": "無効",
+    "healthOk": "接続に成功しました",
+    "healthFailed": "接続に失敗しました",
+    "syncSuccess": "同期完了: 成功 {success} 件、失敗 {failed} 件",
+    "syncFailed": "同期に失敗しました",
+    "syncAllSuccess": "全インスタンス同期完了: 成功 {success} 件、失敗 {failed} 件",
+    "placeholder": {
+      "name": "例: 開発環境",
+      "url": "例: http://localhost:8080"
+    },
+    "validation": {
+      "nameRequired": "インスタンス名を入力してください",
+      "urlRequired": "URLを入力してください",
+      "urlInvalid": "有効なURLを入力してください"
+    },
+    "dialog": {
+      "addTitle": "インスタンス追加",
+      "editTitle": "インスタンス編集"
+    },
+    "confirmDelete": "{name} を削除しますか？"
   },
   "settings": {
     "title": "設定",

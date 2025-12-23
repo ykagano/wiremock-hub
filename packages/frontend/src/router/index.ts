@@ -14,6 +14,11 @@ const router = createRouter({
       component: () => import('@/views/ProjectsView.vue')
     },
     {
+      path: '/projects/:id',
+      name: 'project-detail',
+      component: () => import('@/views/ProjectDetailView.vue')
+    },
+    {
       path: '/mappings',
       name: 'mappings',
       component: () => import('@/views/MappingsView.vue'),
@@ -35,6 +40,12 @@ const router = createRouter({
       path: '/requests',
       name: 'requests',
       component: () => import('@/views/RequestsView.vue'),
+      meta: { requiresProject: true }
+    },
+    {
+      path: '/instances',
+      name: 'instances',
+      component: () => import('@/views/InstancesView.vue'),
       meta: { requiresProject: true }
     },
     {

@@ -29,6 +29,7 @@
     "projects": "Projects",
     "mappings": "Stub Mappings",
     "requests": "Request Log",
+    "instances": "Instances",
     "settings": "Settings"
   },
   "projects": {
@@ -54,7 +55,15 @@
       "addTitle": "Add Project",
       "editTitle": "Edit Project"
     },
-    "confirmDelete": "Delete {name}?"
+    "confirmDelete": "Delete {name}?",
+    "detail": "Detail"
+  },
+  "projectDetail": {
+    "info": "Project Info",
+    "instances": "Instances",
+    "stubs": "Stubs",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At"
   },
   "mappings": {
     "title": "Stub Mappings",
@@ -110,6 +119,42 @@
     "status": "Status",
     "detail": "Detail",
     "confirmClear": "Are you sure you want to clear all request logs?"
+  },
+  "instances": {
+    "title": "WireMock Instances",
+    "add": "Add Instance",
+    "edit": "Edit",
+    "delete": "Delete",
+    "sync": "Sync",
+    "syncAll": "Sync All Instances",
+    "checkHealth": "Health Check",
+    "name": "Instance Name",
+    "url": "URL",
+    "noInstances": "No instances",
+    "addFirst": "Add your first instance",
+    "statusHealthy": "Connected",
+    "statusUnhealthy": "Connection Error",
+    "statusUnknown": "Unknown",
+    "inactive": "Inactive",
+    "healthOk": "Connection successful",
+    "healthFailed": "Connection failed",
+    "syncSuccess": "Sync completed: {success} succeeded, {failed} failed",
+    "syncFailed": "Sync failed",
+    "syncAllSuccess": "All instances synced: {success} succeeded, {failed} failed",
+    "placeholder": {
+      "name": "e.g. Development",
+      "url": "e.g. http://localhost:8080"
+    },
+    "validation": {
+      "nameRequired": "Instance name is required",
+      "urlRequired": "URL is required",
+      "urlInvalid": "Please enter a valid URL"
+    },
+    "dialog": {
+      "addTitle": "Add Instance",
+      "editTitle": "Edit Instance"
+    },
+    "confirmDelete": "Delete {name}?"
   },
   "settings": {
     "title": "Settings",

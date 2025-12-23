@@ -24,7 +24,6 @@
         v-for="project in projects"
         :key="project.id"
         class="project-card"
-        :class="{ active: currentProjectId === project.id }"
         shadow="hover"
       >
         <template #header>
@@ -34,10 +33,9 @@
               <el-button
                 type="primary"
                 size="small"
-                :disabled="currentProjectId === project.id"
-                @click="selectProject(project.id)"
+                @click="goToProjectDetail(project.id)"
               >
-                {{ t('projects.select') }}
+                {{ t('projects.detail') }}
               </el-button>
               <el-dropdown trigger="click">
                 <el-button type="default" size="small" circle>
@@ -70,9 +68,6 @@
           <span>{{ formatDate(project.createdAt) }}</span>
         </div>
 
-        <div v-if="currentProjectId === project.id" class="active-badge">
-          <el-tag type="success" size="small">{{ t('common.selected') }}</el-tag>
-        </div>
       </el-card>
     </div>
 
@@ -125,7 +120,7 @@ import dayjs from 'dayjs'
 const { t } = useI18n()
 const router = useRouter()
 const projectStore = useProjectStore()
-const { projects, currentProjectId, loading } = storeToRefs(projectStore)
+const { projects } = storeToRefs(projectStore)
 
 const showAddDialog = ref(false)
 const editingProject = ref<Project | null>(null)
@@ -160,9 +155,8 @@ function formatDate(dateString: string) {
   return dayjs(dateString).format('YYYY/MM/DD HH:mm')
 }
 
-async function selectProject(id: string) {
-  await projectStore.setCurrentProject(id)
-  router.push('/mappings')
+function goToProjectDetail(id: string) {
+  router.push(`/projects/${id}`)
 }
 
 function editProject(project: Project) {
@@ -242,11 +236,6 @@ function closeDialog() {
   transition: all 0.3s ease;
 }
 
-.project-card.active {
-  border-color: #67c23a;
-  box-shadow: 0 2px 12px rgba(103, 194, 58, 0.3);
-}
-
 .project-card:hover {
   transform: translateY(-4px);
 }
@@ -293,9 +282,4 @@ function closeDialog() {
   color: #909399;
 }
 
-.active-badge {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-}
 </style>
