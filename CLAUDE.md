@@ -44,6 +44,18 @@ src/
 - WireMock: http://localhost:8080（デフォルト）
 - プロキシ設定: `/__admin` → WireMock Admin API
 
+### WireMockサーバー起動
+
+```bash
+# Dockerを使う場合（推奨）
+docker run -it --rm -p 8080:8080 wiremock/wiremock
+
+# JARファイルを使う場合
+java -jar wiremock-standalone.jar --port 8080
+```
+
+WireMockが起動していないとNetwork Errorになります。
+
 ## 注意事項
 
 - Node.js 20.19.0以上または22.12.0以上が必要
