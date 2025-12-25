@@ -99,9 +99,25 @@ function handleLocaleChange() {
 </script>
 
 <style>
-#app {
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+:root {
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', 'Yu Gothic UI',
+    'Yu Gothic', sans-serif;
+}
+
+body,
+#app,
+.el-button,
+.el-input__inner,
+.el-select__wrapper,
+.el-dialog,
+.el-message,
+.el-message-box,
+.el-table,
+.el-tabs,
+.el-card,
+.el-menu {
+  font-family: var(--font-family-base) !important;
 }
 </style>
 
