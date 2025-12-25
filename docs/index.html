@@ -366,7 +366,7 @@
   <section class="screenshot">
     <div class="container">
       <figure class="screenshot-figure">
-        <img src="images/wiremock-jp.png" alt="WireMock JP スクリーンショット" class="screenshot-img">
+        <img id="screenshot-img" src="images/wiremock-jp.png" alt="WireMock JP スクリーンショット" class="screenshot-img">
         <figcaption class="screenshot-caption" data-i18n="screenshot.caption">プロジェクト一覧画面 - 複数のWireMock環境をプロジェクトとして管理</figcaption>
       </figure>
     </div>
@@ -585,6 +585,13 @@
       applyTranslations();
       document.querySelector('.lang-switch').textContent = currentLang === 'ja' ? 'English' : 'Japanese';
       document.documentElement.lang = currentLang;
+
+      // Switch screenshot image
+      const screenshotImg = document.getElementById('screenshot-img');
+      if (screenshotImg) {
+        screenshotImg.src = currentLang === 'ja' ? 'images/wiremock-jp.png' : 'images/wiremock-en.png';
+        screenshotImg.alt = currentLang === 'ja' ? 'WireMock JP スクリーンショット' : 'WireMock JP Screenshot';
+      }
     }
 
     function applyTranslations() {
