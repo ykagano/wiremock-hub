@@ -272,7 +272,8 @@ export async function stubRoutes(fastify: FastifyInstance) {
     try {
       const body = z.object({
         projectId: z.string().uuid(),
-        instanceId: z.string().uuid()
+        instanceId: z.string().uuid(),
+        resetBeforeSync: z.boolean().optional().default(true)
       }).parse(request.body)
 
       const project = await checkProjectExists(body.projectId)
@@ -297,6 +298,21 @@ export async function stubRoutes(fastify: FastifyInstance) {
         })
       }
 
+      // Reset WireMock mappings before sync if requested
+      if (body.resetBeforeSync) {
+        try {
+          await axios.post(`${instance.url}/__admin/mappings/reset`, {}, {
+            timeout: 10000
+          })
+        } catch (error: any) {
+          return reply.status(502).send({
+            success: false,
+            error: 'Failed to reset WireMock mappings',
+            details: error.message
+          })
+        }
+      }
+
       const stubs = await fastify.prisma.stub.findMany({
         where: {
           projectId: body.projectId,
@@ -310,20 +326,27 @@ export async function stubRoutes(fastify: FastifyInstance) {
         errors: [] as string[]
       }
 
-      for (const stub of stubs) {
-        try {
-          const mapping = stub.mapping as unknown as Mapping
-          const wiremockUrl = `${instance.url}/__admin/mappings`
-
-          if (mapping.id || mapping.uuid) {
-            await axios.put(`${wiremockUrl}/${mapping.id || mapping.uuid}`, mapping)
-          } else {
+      // Sync stubs in chunks for better performance
+      const chunkSize = 10
+      for (let i = 0; i < stubs.length; i += chunkSize) {
+        const chunk = stubs.slice(i, i + chunkSize)
+        const chunkResults = await Promise.allSettled(
+          chunk.map(async (stub) => {
+            const mapping = stub.mapping as unknown as Mapping
+            const wiremockUrl = `${instance.url}/__admin/mappings`
+            // Always POST since we reset mappings
             await axios.post(wiremockUrl, mapping)
+            return stub.id
+          })
+        )
+
+        for (const result of chunkResults) {
+          if (result.status === 'fulfilled') {
+            results.success++
+          } else {
+            results.failed++
+            results.errors.push(result.reason?.message || 'Unknown error')
           }
-          results.success++
-        } catch (error: any) {
-          results.failed++
-          results.errors.push(`Stub ${stub.id}: ${error.message}`)
         }
       }
 

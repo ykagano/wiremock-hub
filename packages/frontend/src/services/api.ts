@@ -205,10 +205,11 @@ export const stubApi = {
     await apiClient.post(`/api/stubs/${id}/sync`, { instanceId })
   },
 
-  async syncAll(projectId: string, instanceId: string): Promise<{ success: number; failed: number; errors: string[] }> {
+  async syncAll(projectId: string, instanceId: string, resetBeforeSync: boolean = true): Promise<{ success: number; failed: number; errors: string[] }> {
     const response = await apiClient.post<ApiResponse<{ success: number; failed: number; errors: string[] }>>('/api/stubs/sync-all', {
       projectId,
-      instanceId
+      instanceId,
+      resetBeforeSync
     })
     return response.data.data!
   }
