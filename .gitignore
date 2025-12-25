@@ -34,3 +34,6 @@ coverage
 
 # Vitest
 __screenshots__/
+
+# SQLite database
+packages/backend/data/

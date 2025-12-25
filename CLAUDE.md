@@ -5,8 +5,8 @@
 ## 主な機能
 
 - **分散WireMock対応**: 複数のWireMockインスタンスにスタブを一括同期
-- **データ永続化**: PostgreSQLに保存するためWireMock再起動後もデータが残る
-- **チーム共有**: 同じDBを参照すれば全員が同じスタブを利用可能
+- **データ永続化**: SQLiteファイルに保存、外部DB不要でシンプル
+- **チーム共有**: DBファイルを共有またはDockerボリュームでマウント
 - **日本語/英語UI**: Element Plusによる多言語対応インターフェース
 
 ## クイックスタート
@@ -15,22 +15,9 @@
 
 - Node.js 20.19.0以上 または 22.12.0以上
 - pnpm（`npm install -g pnpm`）
-- PostgreSQL（Docker推奨）
 - WireMock（オプション：スタブ同期時に必要）
 
-### 2. PostgreSQL起動（Docker）
-
-```bash
-docker run -d \
-  --name wiremock-jp-db \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=wiremock_jp \
-  -p 5432:5432 \
-  postgres:16
-```
-
-### 3. 初期セットアップ
+### 2. 初期セットアップ
 
 ```bash
 # 依存パッケージインストール
@@ -39,18 +26,18 @@ pnpm install
 # 環境変数設定
 cp packages/backend/.env.example packages/backend/.env
 
-# DBマイグレーション実行
-cd packages/backend
-pnpm run db:migrate
-
 # Prismaクライアント生成
 pnpm run db:generate
+
+# DBマイグレーション実行
+cd packages/backend
+npx prisma migrate dev
 
 # ルートに戻る
 cd ../..
 ```
 
-### 4. 開発サーバー起動
+### 3. 開発サーバー起動
 
 ```bash
 # 全サービス同時起動（推奨）
@@ -61,7 +48,7 @@ pnpm run dev
 - フロントエンド: http://localhost:5173
 - バックエンドAPI: http://localhost:3000
 
-### 5. 初回利用
+### 4. 初回利用
 
 1. http://localhost:5173 にアクセス
 2. プロジェクトを作成（WireMock URL = ロードバランサーURL）
@@ -75,7 +62,7 @@ pnpm run dev
 ┌─────────────────────────────────────────────────────────────────┐
 │                        WireMock JP                              │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │   Frontend   │ -> │   Backend    │ -> │  PostgreSQL  │      │
+│  │   Frontend   │ -> │   Backend    │ -> │    SQLite    │      │
 │  │   (Vue 3)    │    │  (Fastify)   │    │   (永続化)    │      │
 │  └──────────────┘    └──────────────┘    └──────────────┘      │
 └─────────────────────────────────────────────────────────────────┘
@@ -90,6 +77,24 @@ pnpm run dev
    │ Instance │         │ Instance │         │ Instance │
    │    #1    │         │    #2    │         │    #3    │
    └──────────┘         └──────────┘         └──────────┘
+```
+
+## データ永続化
+
+SQLiteファイルは `packages/backend/data/wiremock-jp.db` に保存されます。
+
+### ローカル開発
+- ファイルは自動生成されます
+- バックアップはファイルをコピーするだけ
+
+### Docker運用
+```yaml
+services:
+  wiremock-jp:
+    volumes:
+      - ./data:/app/packages/backend/data  # SQLiteファイルを永続化
+    environment:
+      - DATABASE_URL=file:./data/wiremock-jp.db
 ```
 
 ## プロジェクト構成
@@ -124,7 +129,7 @@ pnpm run dev
 cd packages/backend
 
 # DBマイグレーション
-pnpm run db:migrate
+npx prisma migrate dev
 
 # Prismaクライアント生成
 pnpm run db:generate
@@ -150,7 +155,7 @@ pnpm run db:studio
 ### バックエンド
 - Fastify（Webフレームワーク）
 - Prisma（ORM）
-- PostgreSQL（データベース）
+- SQLite（データベース）
 - Zod（バリデーション）
 
 ## ディレクトリ構成
@@ -166,6 +171,7 @@ packages/
 │       ├── types/          # TypeScript型定義
 │       └── views/          # ページコンポーネント
 ├── backend/
+│   ├── data/               # SQLiteデータベースファイル
 │   ├── prisma/             # DBスキーマ・マイグレーション
 │   └── src/
 │       ├── routes/         # APIルート（projects, stubs, wiremock-instances）
@@ -189,7 +195,7 @@ packages/
 - `PUT /api/stubs/:id` - スタブ更新
 - `DELETE /api/stubs/:id` - スタブ削除
 - `POST /api/stubs/:id/sync` - WireMockに同期
-- `POST /api/stubs/sync-all` - 全スタブをWireMockに同期
+- `POST /api/stubs/sync-all` - 全スタブをWireMockに同期（リセット後に登録）
 
 ### WireMockインスタンス
 - `GET /api/wiremock-instances?projectId=` - インスタンス一覧
@@ -222,8 +228,17 @@ java -jar wiremock-standalone.jar --port 8080
 
 単一サーバー構成の場合は、両方同じURLで問題ありません。
 
+### 同期の動作
+
+「全インスタンスに同期」ボタンをクリックすると:
+1. WireMockのマッピングを全削除（reset）
+2. SQLiteのスタブを全て登録
+
+これにより、SQLiteとWireMockの状態が常に一致します。
+
 ## 注意事項
 
 - Node.js 20.19.0以上または22.12.0以上が必要
 - 認証なし：全員が全データにアクセス可能
-- スタブはPostgreSQLに保存され、Admin API経由でWireMockに同期される
+- スタブはSQLiteに保存され、Admin API経由でWireMockに同期される
+- SQLiteファイルは `packages/backend/data/` に保存（.gitignoreで除外済み）

@@ -10,8 +10,9 @@ A Japanese GUI client for WireMock with centralized management support for distr
 - **Project-based management**: Organize stubs by environment (dev/staging/production)
 
 ### Data Persistence
-- **PostgreSQL stub storage**: Data persists even after WireMock restarts
-- **Team sharing**: Share the same stubs across your team via shared database
+- **SQLite storage**: Simple file-based persistence, no external database required
+- **Team sharing**: Share the database file or mount it via Docker volumes
+- **Easy backup**: Just copy the SQLite file
 
 ### Ease of Use
 - **Japanese UI**: Switch between Japanese and English
@@ -24,7 +25,7 @@ A Japanese GUI client for WireMock with centralized management support for distr
 ┌─────────────────────────────────────────────────────────────────┐
 │                        WireMock JP                              │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │   Frontend   │ -> │   Backend    │ -> │  PostgreSQL  │      │
+│  │   Frontend   │ -> │   Backend    │ -> │    SQLite    │      │
 │  │   (Vue 3)    │    │  (Fastify)   │    │ (Persistence)│      │
 │  └──────────────┘    └──────────────┘    └──────────────┘      │
 └─────────────────────────────────────────────────────────────────┘
@@ -47,14 +48,13 @@ A Japanese GUI client for WireMock with centralized management support for distr
 |-------|------------|
 | Frontend | Vue 3 + TypeScript + Element Plus |
 | Backend | Node.js + Fastify + Prisma |
-| Database | PostgreSQL |
+| Database | SQLite |
 | Build | Vite + pnpm workspace |
 
 ## Setup
 
 ### Prerequisites
 - Node.js 20.19+ or 22.12+
-- PostgreSQL
 - pnpm
 
 ### Installation
@@ -63,8 +63,11 @@ A Japanese GUI client for WireMock with centralized management support for distr
 # Install dependencies
 pnpm install
 
-# Generate Prisma client
+# Generate Prisma client and create database
 pnpm run db:generate
+
+# Run database migration
+cd packages/backend && npx prisma migrate dev
 
 # Start development server
 pnpm run dev
@@ -74,7 +77,19 @@ pnpm run dev
 
 ```bash
 # packages/backend/.env
-DATABASE_URL="postgresql://user:password@localhost:5432/wiremock_jp"
+DATABASE_URL="file:./data/wiremock-jp.db"
+```
+
+### Docker
+
+```yaml
+services:
+  wiremock-jp:
+    image: wiremock-jp
+    volumes:
+      - ./data:/app/packages/backend/data  # Persist SQLite database
+    environment:
+      - DATABASE_URL=file:./data/wiremock-jp.db
 ```
 
 ## Usage
@@ -89,10 +104,11 @@ Use health check to verify connection status.
 
 ### 3. Create Stubs
 Create stub mappings in the Stub Mappings screen.
-Stubs are saved to PostgreSQL.
+Stubs are saved to the SQLite database.
 
 ### 4. Sync
 Click "Sync All Instances" to deploy stubs to all WireMock instances at once.
+Sync performs a full reset before deploying to ensure consistency.
 
 ## License
 
