@@ -11,7 +11,11 @@
     "dev:frontend": "pnpm --filter @wiremock-jp/frontend dev",
     "dev:backend": "pnpm --filter @wiremock-jp/backend dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "db:generate": "pnpm --filter @wiremock-jp/backend db:generate",
+    "test:e2e": "pnpm --filter @wiremock-jp/e2e test",
+    "test:e2e:ui": "pnpm --filter @wiremock-jp/e2e test:ui",
+    "test:e2e:headed": "pnpm --filter @wiremock-jp/e2e test:headed"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

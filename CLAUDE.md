@@ -103,6 +103,7 @@ services:
 - `packages/frontend` - Vue 3フロントエンド
 - `packages/backend` - Fastify + Prisma APIサーバー
 - `packages/shared` - 共通型定義
+- `e2e` - Playwright E2Eテスト
 
 ## コマンド一覧
 
@@ -235,6 +236,40 @@ java -jar wiremock-standalone.jar --port 8080
 2. SQLiteのスタブを全て登録
 
 これにより、SQLiteとWireMockの状態が常に一致します。
+
+## E2Eテスト
+
+Playwrightを使用したE2Eテスト。デモ用Dockerコンテナに対してテストを実行します。
+
+### テスト実行
+
+```bash
+# デモ用Docker環境を起動
+docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+
+# E2Eテスト実行
+pnpm test:e2e
+
+# UIモードでテスト（デバッグ向け）
+pnpm test:e2e:ui
+
+# ブラウザ表示ありでテスト
+pnpm test:e2e:headed
+```
+
+### テスト内容
+
+- プロジェクト作成・編集・削除
+- WireMockインスタンスの追加・ヘルスチェック
+- スタブ作成・編集
+- 全インスタンスへの同期
+- フォームバリデーション
+- 言語切り替え
+
+### デモ用インスタンス
+
+- WireMock 1: http://localhost:8081
+- WireMock 2: http://localhost:8082
 
 ## 注意事項
 

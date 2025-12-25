@@ -1,6 +1,10 @@
 # Demo setup with sample WireMock instances
 # For testing/demo purposes only - NOT for production
 # Usage: docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+#
+# WireMock URLs:
+#   - From host machine: http://localhost:8081, http://localhost:8082
+#   - From wiremock-jp container: http://wiremock-1:8080, http://wiremock-2:8080
 services:
   wiremock-1:
     image: wiremock/wiremock:latest
