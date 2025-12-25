@@ -438,16 +438,16 @@
     <div class="container">
       <h2 class="section-title" data-i18n="nav.quickstart">クイックスタート</h2>
       <div class="code-block">
-<span class="comment"># WireMock JP を起動</span><br>
+<span class="comment" data-i18n="quickstart.start"># WireMock JP を起動</span><br>
 <span class="command">docker compose up -d</span><br>
 <br>
-<span class="comment"># デモ用WireMockインスタンス付きで起動</span><br>
+<span class="comment" data-i18n="quickstart.demo"># デモ用WireMockインスタンス付きで起動</span><br>
 <span class="command">docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d</span><br>
 <br>
-<span class="comment"># ブラウザでアクセス</span><br>
+<span class="comment" data-i18n="quickstart.browser"># ブラウザでアクセス</span><br>
 <span class="command">open http://localhost:3000</span><br>
 <br>
-<span class="comment"># デモ用インスタンスのURL（プロジェクト作成後に登録）</span><br>
+<span class="comment" data-i18n="quickstart.demourl"># デモ用インスタンスのURL（プロジェクト作成後に登録）</span><br>
 <span class="command">http://localhost:8081</span><br>
 <span class="command">http://localhost:8082</span>
       </div>
@@ -546,7 +546,11 @@
         'comparison.opensource': 'オープンソース',
         'comparison.selfhost': 'セルフホスト',
         'comparison.nodb': '外部DB不要',
-        'screenshot.caption': 'プロジェクト一覧画面 - 複数のWireMock環境をプロジェクトとして管理'
+        'screenshot.caption': 'プロジェクト一覧画面 - 複数のWireMock環境をプロジェクトとして管理',
+        'quickstart.start': '# WireMock JP を起動',
+        'quickstart.demo': '# デモ用WireMockインスタンス付きで起動',
+        'quickstart.browser': '# ブラウザでアクセス',
+        'quickstart.demourl': '# デモ用インスタンスのURL（プロジェクト作成後に登録）'
       },
       en: {
         'nav.features': 'Features',
@@ -574,7 +578,11 @@
         'comparison.opensource': 'Open Source',
         'comparison.selfhost': 'Self-hosted',
         'comparison.nodb': 'No External DB Required',
-        'screenshot.caption': 'Projects List - Manage multiple WireMock environments as projects'
+        'screenshot.caption': 'Projects List - Manage multiple WireMock environments as projects',
+        'quickstart.start': '# Start WireMock JP',
+        'quickstart.demo': '# Start with demo WireMock instances',
+        'quickstart.browser': '# Open in browser',
+        'quickstart.demourl': '# Demo instance URLs (register after creating a project)'
       }
     };
 
