@@ -1,0 +1,78 @@
+# Build stage
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/backend/package.json ./packages/backend/
+COPY packages/frontend/package.json ./packages/frontend/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Approve build scripts for Prisma
+RUN pnpm approve-builds @prisma/client @prisma/engines prisma esbuild vue-demi
+
+# Copy source code
+COPY packages/shared ./packages/shared
+COPY packages/backend ./packages/backend
+COPY packages/frontend ./packages/frontend
+
+# Generate Prisma client first (required for TypeScript build)
+RUN cd packages/backend && npx prisma generate
+
+# Build all packages
+RUN pnpm run build
+
+# Production stage
+FROM node:22-alpine AS production
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/backend/package.json ./packages/backend/
+
+# Install all dependencies (prisma CLI needed for migrations)
+RUN pnpm install --frozen-lockfile
+
+# Approve Prisma build scripts
+RUN pnpm approve-builds @prisma/client @prisma/engines prisma
+
+# Copy built files
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
+COPY --from=builder /app/packages/backend/prisma ./packages/backend/prisma
+COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
+
+# Generate Prisma client
+RUN cd packages/backend && pnpm exec prisma generate
+
+# Create data directory for SQLite
+RUN mkdir -p /app/packages/backend/data
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV DATABASE_URL=file:./data/wiremock-jp.db
+ENV PORT=3000
+ENV HOST=0.0.0.0
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/projects || exit 1
+
+# Start the application
+WORKDIR /app/packages/backend
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]

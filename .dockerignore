@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+packages/*/dist
+
+# Database
+packages/backend/data
+
+# Development
+.git
+.gitignore
+.vscode
+.idea
+*.md
+!README.md
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+packages/backend/.env
+
+# Test files
+coverage
+__tests__
+*.test.ts
+*.spec.ts
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore

@@ -51,7 +51,42 @@ A Japanese GUI client for WireMock with centralized management support for distr
 | Database | SQLite |
 | Build | Vite + pnpm workspace |
 
-## Setup
+## Quick Start with Docker
+
+```bash
+# Run WireMock JP (management UI only)
+docker compose up -d
+
+# Or with demo WireMock instances for testing
+docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+```
+
+Access the UI at http://localhost:3000
+
+> **Note**: WireMock JP is a management UI only. WireMock instances should be deployed separately (on different servers, Kubernetes pods, etc.) to achieve scalability. The `docker-compose.demo.yml` includes sample WireMock instances for testing purposes only.
+
+### Production Deployment
+
+```yaml
+# docker-compose.yml - Deploy WireMock JP
+services:
+  wiremock-jp:
+    image: wiremock-jp:latest  # or build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - wiremock-jp-data:/app/packages/backend/data
+    environment:
+      - DATABASE_URL=file:./data/wiremock-jp.db
+    restart: unless-stopped
+
+volumes:
+  wiremock-jp-data:
+```
+
+Then register your existing WireMock instances (running on different servers) via the UI.
+
+## Local Development
 
 ### Prerequisites
 - Node.js 20.19+ or 22.12+
@@ -78,18 +113,6 @@ pnpm run dev
 ```bash
 # packages/backend/.env
 DATABASE_URL="file:./data/wiremock-jp.db"
-```
-
-### Docker
-
-```yaml
-services:
-  wiremock-jp:
-    image: wiremock-jp
-    volumes:
-      - ./data:/app/packages/backend/data  # Persist SQLite database
-    environment:
-      - DATABASE_URL=file:./data/wiremock-jp.db
 ```
 
 ## Usage
