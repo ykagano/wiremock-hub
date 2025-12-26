@@ -287,6 +287,55 @@
       font-size: 20px;
     }
 
+    /* Usage */
+    .usage {
+      background: var(--white);
+      padding: 80px 0;
+    }
+
+    .usage-step {
+      margin-bottom: 80px;
+    }
+
+    .usage-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .usage-step h3 {
+      font-size: 24px;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .usage-step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .usage-step p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.8;
+    }
+
+    .usage-image {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
     /* Footer */
     footer {
       background: var(--text);
@@ -348,6 +397,8 @@
         <a href="#features" data-i18n="nav.features">機能</a>
         <a href="#architecture" data-i18n="nav.architecture">アーキテクチャ</a>
         <a href="#quickstart" data-i18n="nav.quickstart">クイックスタート</a>
+        <a href="#comparison" data-i18n="nav.comparison">ツール比較</a>
+        <a href="#usage" data-i18n="nav.usage">使い方</a>
         <a href="https://github.com/ykagano/wiremock-hub">GitHub</a>
         <button class="lang-switch" onclick="toggleLanguage()">English</button>
       </nav>
@@ -508,6 +559,46 @@
     </div>
   </section>
 
+  <section id="usage" class="usage">
+    <div class="container">
+      <h2 class="section-title" data-i18n="usage.title">使い方</h2>
+
+      <div class="usage-step">
+        <h3>
+          <span class="usage-step-number">1</span>
+          <span data-i18n="usage.step1.title">プロジェクトとインスタンスを登録</span>
+        </h3>
+        <p data-i18n="usage.step1.description">
+          プロジェクトを作成し、管理したいWireMockインスタンスを追加します。プロジェクトは環境（開発・ステージング・本番など）ごとに作成できます。各インスタンスのヘルスチェックで接続状態を確認できます。
+        </p>
+        <img id="usage-img-1" src="images/jp/project-detail.png" alt="プロジェクト詳細画面" class="usage-image">
+      </div>
+
+      <div class="usage-step">
+        <h3>
+          <span class="usage-step-number">2</span>
+          <span data-i18n="usage.step2.title">スタブマッピングを作成</span>
+        </h3>
+        <p data-i18n="usage.step2.description">
+          モックしたいAPIのリクエスト条件とレスポンスを定義します。URLパターン、HTTPメソッド、ヘッダー、ボディなど詳細な条件を設定できます。作成したスタブはSQLiteに保存され、チームで共有できます。
+        </p>
+        <img id="usage-img-2a" src="images/jp/create_stub.png" alt="スタブ作成画面" class="usage-image" style="margin-bottom: 24px;">
+        <img id="usage-img-2b" src="images/jp/stub-mapping.png" alt="スタブ一覧画面" class="usage-image">
+      </div>
+
+      <div class="usage-step">
+        <h3>
+          <span class="usage-step-number">3</span>
+          <span data-i18n="usage.step3.title">全インスタンスに同期</span>
+        </h3>
+        <p data-i18n="usage.step3.description">
+          「全インスタンスに同期」ボタンで、作成したスタブを登録済みの全WireMockインスタンスに一括デプロイします。同期前にインスタンスをリセットするため、SQLiteとWireMockの状態が常に一致します。モックを使用後に記録されたリクエストログを画面で確認できます。
+        </p>
+        <img id="usage-img-3" src="images/jp/request-log.png" alt="リクエストログ画面" class="usage-image">
+      </div>
+    </div>
+  </section>
+
   <footer>
     <div class="container">
       <p>WireMock Hub - Apache 2.0 License</p>
@@ -524,6 +615,8 @@
         'nav.features': '機能',
         'nav.architecture': 'アーキテクチャ',
         'nav.quickstart': 'クイックスタート',
+        'nav.usage': '使い方',
+        'nav.comparison': 'ツール比較',
         'hero.description': '複数のWireMockインスタンスを一元管理できる<br>日本語対応GUIクライアント',
         'hero.github': 'GitHub で見る',
         'features.distributed.title': '分散WireMock管理',
@@ -550,12 +643,21 @@
         'quickstart.start': '# WireMock Hub を起動',
         'quickstart.demo': '# デモ用WireMockインスタンス付きで起動',
         'quickstart.browser': '# ブラウザでアクセス',
-        'quickstart.demourl': '# デモ用インスタンスのURL（プロジェクト作成後に登録）'
+        'quickstart.demourl': '# デモ用インスタンスのURL（プロジェクト作成後に登録）',
+        'usage.title': '使い方',
+        'usage.step1.title': 'プロジェクトとインスタンスを登録',
+        'usage.step1.description': 'プロジェクトを作成し、管理したいWireMockインスタンスを追加します。プロジェクトは環境（開発・ステージング・本番など）ごとに作成できます。各インスタンスのヘルスチェックで接続状態を確認できます。',
+        'usage.step2.title': 'スタブマッピングを作成',
+        'usage.step2.description': 'モックしたいAPIのリクエスト条件とレスポンスを定義します。URLパターン、HTTPメソッド、ヘッダー、ボディなど詳細な条件を設定できます。作成したスタブはSQLiteに保存され、チームで共有できます。',
+        'usage.step3.title': '全インスタンスに同期',
+        'usage.step3.description': '「全インスタンスに同期」ボタンで、作成したスタブを登録済みの全WireMockインスタンスに一括デプロイします。同期前にインスタンスをリセットするため、SQLiteとWireMockの状態が常に一致します。モックを使用後に記録されたリクエストログを画面で確認できます。'
       },
       en: {
         'nav.features': 'Features',
         'nav.architecture': 'Architecture',
         'nav.quickstart': 'Quick Start',
+        'nav.usage': 'How to Use',
+        'nav.comparison': 'Tool Comparison',
         'hero.description': 'A Japanese-friendly GUI client for<br>centralized management of multiple WireMock instances',
         'hero.github': 'View on GitHub',
         'features.distributed.title': 'Distributed WireMock Management',
@@ -582,7 +684,14 @@
         'quickstart.start': '# Start WireMock Hub',
         'quickstart.demo': '# Start with demo WireMock instances',
         'quickstart.browser': '# Open in browser',
-        'quickstart.demourl': '# Demo instance URLs (register after creating a project)'
+        'quickstart.demourl': '# Demo instance URLs (register after creating a project)',
+        'usage.title': 'How to Use',
+        'usage.step1.title': 'Register Projects and Instances',
+        'usage.step1.description': 'Create a project and add the WireMock instances you want to manage. Projects can be created for each environment (development, staging, production, etc.). Use health checks to verify the connection status of each instance.',
+        'usage.step2.title': 'Create Stub Mappings',
+        'usage.step2.description': 'Define request conditions and responses for the APIs you want to mock. You can configure detailed conditions such as URL patterns, HTTP methods, headers, and body. Created stubs are saved to SQLite and can be shared with your team.',
+        'usage.step3.title': 'Sync to All Instances',
+        'usage.step3.description': 'Click the "Sync All Instances" button to deploy created stubs to all registered WireMock instances at once. Instances are reset before syncing to ensure that SQLite and WireMock states are always consistent. You can view the recorded request logs on the screen after using the mock.'
       }
     };
 
@@ -594,11 +703,34 @@
       document.querySelector('.lang-switch').textContent = currentLang === 'ja' ? 'English' : 'Japanese';
       document.documentElement.lang = currentLang;
 
-      // Switch screenshot image
+      // Switch screenshot images
       const screenshotImg = document.getElementById('screenshot-img');
       if (screenshotImg) {
         screenshotImg.src = currentLang === 'ja' ? 'images/jp/wiremock-hub.png' : 'images/en/wiremock-hub.png';
         screenshotImg.alt = currentLang === 'ja' ? 'WireMock Hub スクリーンショット' : 'WireMock Hub Screenshot';
+      }
+
+      // Switch usage images
+      const usageImg1 = document.getElementById('usage-img-1');
+      const usageImg2a = document.getElementById('usage-img-2a');
+      const usageImg2b = document.getElementById('usage-img-2b');
+      const usageImg3 = document.getElementById('usage-img-3');
+
+      if (usageImg1) {
+        usageImg1.src = currentLang === 'ja' ? 'images/jp/project-detail.png' : 'images/en/project-detail.png';
+        usageImg1.alt = currentLang === 'ja' ? 'プロジェクト詳細画面' : 'Project Detail Screen';
+      }
+      if (usageImg2a) {
+        usageImg2a.src = currentLang === 'ja' ? 'images/jp/create_stub.png' : 'images/en/create_stub.png';
+        usageImg2a.alt = currentLang === 'ja' ? 'スタブ作成画面' : 'Create Stub Screen';
+      }
+      if (usageImg2b) {
+        usageImg2b.src = currentLang === 'ja' ? 'images/jp/stub-mapping.png' : 'images/en/stub-mapping.png';
+        usageImg2b.alt = currentLang === 'ja' ? 'スタブ一覧画面' : 'Stub List Screen';
+      }
+      if (usageImg3) {
+        usageImg3.src = currentLang === 'ja' ? 'images/jp/request-log.png' : 'images/en/request-log.png';
+        usageImg3.alt = currentLang === 'ja' ? 'リクエストログ画面' : 'Request Log Screen';
       }
     }
 
