@@ -53,25 +53,91 @@ A Japanese GUI client for WireMock with centralized management support for distr
 
 ## Quick Start with Docker
 
-```bash
-# Run WireMock Hub (management UI only)
-docker compose up -d
+### All-in-One Container (Recommended)
 
-# Or with demo WireMock instances for testing
-docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+The easiest way to get started. Single container with Hub + WireMock included.
+
+```bash
+docker run -d \
+  -p 80:80 \
+  -v $(pwd)/data:/app/packages/backend/data \
+  --name wiremock-hub \
+  ghcr.io/yourusername/wiremock-hub:latest
+```
+
+Access the UI at http://localhost/hub/
+
+> See [All-in-One README](./allinone/README.md) for detailed configuration and ECS deployment.
+
+**What's included:**
+- WireMock Hub UI and API (served at `/hub/`)
+- WireMock Server instance (Admin API at `/__admin/`, mock responses at `/`)
+- nginx reverse proxy
+- SQLite database
+
+**When to use:**
+- Testing and development
+- Single-instance deployments
+- Quick demos
+- Add more WireMock instances later as needed
+
+### Standalone Container (For Advanced Setup)
+
+Deploy Hub separately when you already have existing WireMock infrastructure.
+
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/packages/backend/data \
+  --name wiremock-hub \
+  ghcr.io/yourusername/wiremock-hub-standalone:latest
 ```
 
 Access the UI at http://localhost:3000
 
-> **Note**: WireMock Hub is a management UI only. WireMock instances should be deployed separately (on different servers, Kubernetes pods, etc.) to achieve scalability. The `docker-compose.demo.yml` includes sample WireMock instances for testing purposes only.
+Then register your existing WireMock instances via the UI.
+
+**When to use:**
+- You already have WireMock servers running
+- You need advanced networking configuration
+- You want to run Hub on a different host than WireMock
+
+### Docker Compose Examples
+
+```bash
+# Hub only
+docker compose up -d
+
+# Hub + demo WireMock instances (for testing)
+docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+```
 
 ### Production Deployment
 
+**All-in-One (Recommended):**
+
 ```yaml
-# docker-compose.yml - Deploy WireMock Hub
 services:
   wiremock-hub:
-    image: wiremock-hub:latest  # or build: .
+    image: ghcr.io/yourusername/wiremock-hub:latest
+    ports:
+      - "80:80"
+    volumes:
+      - wiremock-hub-data:/app/packages/backend/data
+    environment:
+      - DATABASE_URL=file:./data/wiremock-hub.db
+    restart: unless-stopped
+
+volumes:
+  wiremock-hub-data:
+```
+
+**Standalone (Advanced):**
+
+```yaml
+services:
+  wiremock-hub:
+    image: ghcr.io/yourusername/wiremock-hub-standalone:latest
     ports:
       - "3000:3000"
     volumes:
@@ -83,8 +149,6 @@ services:
 volumes:
   wiremock-hub-data:
 ```
-
-Then register your existing WireMock instances (running on different servers) via the UI.
 
 ## Local Development
 

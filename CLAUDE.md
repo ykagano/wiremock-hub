@@ -11,13 +11,34 @@
 
 ## クイックスタート
 
-### 1. 前提条件
+### Docker（推奨）
+
+最も簡単な方法は、All-in-One Dockerイメージを使用することです。
+
+```bash
+# All-in-One版（Hub + WireMock + nginx が同梱）
+docker run -d \
+  -p 80:80 \
+  -v $(pwd)/data:/app/packages/backend/data \
+  --name wiremock-hub \
+  ghcr.io/youruser/wiremock-hub:latest
+```
+
+- UI: http://localhost/hub/
+- WireMock Admin API: http://localhost/__admin/
+- モックレスポンス: http://localhost/
+
+詳細は [allinone/README.md](./allinone/README.md) を参照してください。
+
+### ローカル開発
+
+#### 1. 前提条件
 
 - Node.js 20.19.0以上 または 22.12.0以上
 - pnpm（`npm install -g pnpm`）
 - WireMock（オプション：スタブ同期時に必要）
 
-### 2. 初期セットアップ
+#### 2. 初期セットアップ
 
 ```bash
 # 依存パッケージインストール
@@ -37,7 +58,7 @@ npx prisma migrate dev
 cd ../..
 ```
 
-### 3. 開発サーバー起動
+#### 3. 開発サーバー起動
 
 ```bash
 # 全サービス同時起動（推奨）
@@ -48,7 +69,7 @@ pnpm run dev
 - フロントエンド: http://localhost:5173
 - バックエンドAPI: http://localhost:3000
 
-### 4. 初回利用
+#### 4. 初回利用
 
 1. http://localhost:5173 にアクセス
 2. プロジェクトを作成（WireMock URL = ロードバランサーURL）
@@ -79,6 +100,62 @@ pnpm run dev
    └──────────┘         └──────────┘         └──────────┘
 ```
 
+## デプロイ方法
+
+### All-in-One Docker（推奨）
+
+Hub + WireMock + nginx が同梱された単一コンテナです。
+
+**特徴:**
+- 1つのコンテナで完結（ポート80のみ公開）
+- ECS/Fargateなど単一ポート制約がある環境に最適
+- 簡単セットアップ
+
+**起動方法:**
+
+```bash
+docker run -d \
+  -p 80:80 \
+  -v $(pwd)/data:/app/packages/backend/data \
+  --name wiremock-hub \
+  ghcr.io/youruser/wiremock-hub:latest
+```
+
+**アクセスURL:**
+- Hub UI: `http://localhost/hub/`
+- WireMock Admin API: `http://localhost/__admin/`
+- モックレスポンス: `http://localhost/`
+
+**追加のWireMockインスタンスを登録:**
+All-in-One版にも、UI から追加のWireMockインスタンスを登録できます。
+1台目はコンテナ内蔵、2台目以降は別サーバーで動作させて登録する形です。
+
+詳細は [allinone/README.md](./allinone/README.md) を参照してください。
+
+### Standalone Docker（高度な用途）
+
+Hubのみを単体で起動し、既存のWireMockインフラと接続する場合に使用します。
+
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/packages/backend/data \
+  --name wiremock-hub \
+  ghcr.io/youruser/wiremock-hub-standalone:latest
+```
+
+その後、UIから既存のWireMockインスタンスを登録します。
+
+### Docker Compose
+
+```bash
+# All-in-One版
+docker compose -f docker-compose.allinone.yml up -d
+
+# Standalone版 + デモ用WireMock
+docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+```
+
 ## データ永続化
 
 SQLiteファイルは `packages/backend/data/wiremock-hub.db` に保存されます。
@@ -96,6 +173,8 @@ services:
     environment:
       - DATABASE_URL=file:./data/wiremock-hub.db
 ```
+
+**重要:** All-in-One版でも同様に、ボリュームマウントでデータを永続化できます。
 
 ## プロジェクト構成
 
