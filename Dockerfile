@@ -54,6 +54,9 @@ COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=builder /app/packages/backend/prisma ./packages/backend/prisma
 COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
 
+# Remove favicon.ico if exists (Vue default) - we use favicon.svg
+RUN rm -f ./packages/frontend/dist/favicon.ico
+
 # Generate Prisma client
 RUN cd packages/backend && pnpm exec prisma generate
 

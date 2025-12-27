@@ -70,6 +70,9 @@ COPY --from=backend-builder /app/package.json ./
 # Copy frontend build to backend's public directory
 COPY --from=frontend-builder /app/packages/frontend/dist ./packages/backend/public
 
+# Remove favicon.ico if exists (Vue default) - we use favicon.svg
+RUN rm -f ./packages/backend/public/favicon.ico
+
 # Download WireMock standalone (version pinned for API stability)
 RUN wget -O /app/wiremock-standalone.jar \
     https://repo1.maven.org/maven2/org/wiremock/wiremock-standalone/${WIREMOCK_VERSION}/wiremock-standalone-${WIREMOCK_VERSION}.jar
