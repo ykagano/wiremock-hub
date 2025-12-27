@@ -172,4 +172,4 @@ Sync performs a full reset before deploying to ensure consistency.
 
 ## License
 
-MIT
+Apache 2.0
