@@ -176,6 +176,47 @@ services:
 
 **重要:** All-in-One版でも同様に、ボリュームマウントでデータを永続化できます。
 
+## GitHub Container Registry へのリリース
+
+GitHub Actions で Docker イメージを自動ビルド・公開します。
+
+### リリース手順
+
+```bash
+# バージョンタグを作成してプッシュ
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+### 自動公開されるイメージ
+
+| イメージ | 説明 |
+|---------|------|
+| `ghcr.io/ykagano/wiremock-hub:latest` | All-in-One版（推奨） |
+| `ghcr.io/ykagano/wiremock-hub:0.1.0` | バージョン指定 |
+| `ghcr.io/ykagano/wiremock-hub-standalone:latest` | Hub単体版 |
+
+### 手動実行
+
+GitHub の Actions タブから `workflow_dispatch` で手動実行も可能です。
+
+### リリース後の動作確認
+
+```bash
+# イメージをpullして起動
+docker run -d -p 80:80 --name wiremock-hub-test ghcr.io/ykagano/wiremock-hub:latest
+
+# ブラウザで確認
+open http://localhost/hub/
+
+# 確認後にクリーンアップ
+docker stop wiremock-hub-test && docker rm wiremock-hub-test
+```
+
+### ワークフロー設定
+
+`.github/workflows/docker-publish.yml` で定義されています。
+
 ## プロジェクト構成
 
 モノレポ構成（pnpm workspace）：

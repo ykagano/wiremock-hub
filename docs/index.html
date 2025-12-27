@@ -243,7 +243,7 @@
       font-family: 'Monaco', 'Menlo', monospace;
       font-size: 14px;
       overflow-x: auto;
-      margin-top: 24px;
+      margin-top: 16px;
     }
 
     .code-block .comment {
@@ -490,18 +490,18 @@
     <div class="container">
       <h2 class="section-title" data-i18n="nav.quickstart">クイックスタート</h2>
       <div class="code-block">
-<span class="comment" data-i18n="quickstart.start"># WireMock Hub を起動</span><br>
-<span class="command">docker compose up -d</span><br>
+<span class="comment" data-i18n="quickstart.allinone.title"># WireMock Hub + WireMock 同梱イメージで試す（推奨）</span><br>
+<span class="command">docker run -d -p 8080:80 ghcr.io/ykagano/wiremock-hub:latest</span><br>
+<span class="command">open http://localhost:8080/hub/</span><br>
 <br>
-<span class="comment" data-i18n="quickstart.demo"># デモ用WireMockインスタンス付きで起動</span><br>
-<span class="command">docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d</span><br>
-<br>
-<span class="comment" data-i18n="quickstart.browser"># ブラウザでアクセス</span><br>
-<span class="command">open http://localhost:3000</span><br>
-<br>
-<span class="comment" data-i18n="quickstart.demourl"># デモ用インスタンスのURL（プロジェクト作成後に登録）</span><br>
-<span class="command">http://localhost:8081</span><br>
-<span class="command">http://localhost:8082</span>
+<span class="comment" data-i18n="quickstart.allinone.url"># WireMockインスタンスのURL（プロジェクト作成後に登録）</span><br>
+<span class="command">http://localhost:8080</span>
+      </div>
+
+      <div class="code-block">
+<span class="comment" data-i18n="quickstart.standalone.title"># WireMock Hub 単体イメージで試す（既存のWireMockに接続）</span><br>
+<span class="command">docker run -d -p 3000:3000 ghcr.io/ykagano/wiremock-hub-standalone:latest</span><br>
+<span class="command">open http://localhost:3000</span>
       </div>
     </div>
   </section>
@@ -641,10 +641,9 @@
         'comparison.selfhost': 'セルフホスト',
         'comparison.nodb': '外部DB不要',
         'screenshot.caption': 'プロジェクト一覧画面 - 複数のWireMock環境をプロジェクトとして管理',
-        'quickstart.start': '# WireMock Hub を起動',
-        'quickstart.demo': '# デモ用WireMockインスタンス付きで起動',
-        'quickstart.browser': '# ブラウザでアクセス',
-        'quickstart.demourl': '# デモ用インスタンスのURL（プロジェクト作成後に登録）',
+        'quickstart.allinone.title': '# WireMock Hub + WireMock 同梱イメージで試す（推奨）',
+        'quickstart.allinone.url': '# WireMockインスタンスのURL（プロジェクト作成後に登録）',
+        'quickstart.standalone.title': '# WireMock Hub 単体イメージで試す（既存のWireMockに接続）',
         'usage.title': '使い方',
         'usage.step1.title': 'プロジェクトとインスタンスを登録',
         'usage.step1.description': 'プロジェクトを作成し、管理したいWireMockインスタンスを追加します。プロジェクトは環境（開発・ステージング・本番など）ごとに作成できます。各インスタンスのヘルスチェックで接続状態を確認できます。',
@@ -682,10 +681,9 @@
         'comparison.selfhost': 'Self-hosted',
         'comparison.nodb': 'No External DB Required',
         'screenshot.caption': 'Projects List - Manage multiple WireMock environments as projects',
-        'quickstart.start': '# Start WireMock Hub',
-        'quickstart.demo': '# Start with demo WireMock instances',
-        'quickstart.browser': '# Open in browser',
-        'quickstart.demourl': '# Demo instance URLs (register after creating a project)',
+        'quickstart.allinone.title': '# Try with WireMock Hub + WireMock bundled image (Recommended)',
+        'quickstart.allinone.url': '# WireMock instance URL (register after creating a project)',
+        'quickstart.standalone.title': '# Try with WireMock Hub standalone image (connect to existing WireMock)',
         'usage.title': 'How to Use',
         'usage.step1.title': 'Register Projects and Instances',
         'usage.step1.description': 'Create a project and add the WireMock instances you want to manage. Projects can be created for each environment (development, staging, production, etc.). Use health checks to verify the connection status of each instance.',

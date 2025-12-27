@@ -51,56 +51,29 @@ A Japanese GUI client for WireMock with centralized management support for distr
 | Database | SQLite |
 | Build | Vite + pnpm workspace |
 
-## Quick Start with Docker
+## Quick Start
 
-### All-in-One Container (Recommended)
-
-The easiest way to get started. Single container with Hub + WireMock included.
+### WireMock Hub + WireMock bundled image (Recommended)
 
 ```bash
-docker run -d \
-  -p 80:80 \
-  -v $(pwd)/data:/app/packages/backend/data \
-  --name wiremock-hub \
-  ghcr.io/yourusername/wiremock-hub:latest
-```
+# WireMock Hub + WireMock bundled image
+docker run -d -p 8080:80 ghcr.io/ykagano/wiremock-hub:latest
+open http://localhost:8080/hub/
 
-Access the UI at http://localhost/hub/
+# WireMock instance URL (register after creating a project)
+http://localhost:8080
+```
 
 > See [All-in-One README](./allinone/README.md) for detailed configuration and ECS deployment.
 
-**What's included:**
-- WireMock Hub UI and API (served at `/hub/`)
-- WireMock Server instance (Admin API at `/__admin/`, mock responses at `/`)
-- nginx reverse proxy
-- SQLite database
-
-**When to use:**
-- Testing and development
-- Single-instance deployments
-- Quick demos
-- Add more WireMock instances later as needed
-
-### Standalone Container (For Advanced Setup)
-
-Deploy Hub separately when you already have existing WireMock infrastructure.
+### WireMock Hub standalone image (connect to existing WireMock)
 
 ```bash
-docker run -d \
-  -p 3000:3000 \
-  -v $(pwd)/data:/app/packages/backend/data \
-  --name wiremock-hub \
-  ghcr.io/yourusername/wiremock-hub-standalone:latest
+docker run -d -p 3000:3000 ghcr.io/ykagano/wiremock-hub-standalone:latest
+open http://localhost:3000
 ```
 
-Access the UI at http://localhost:3000
-
 Then register your existing WireMock instances via the UI.
-
-**When to use:**
-- You already have WireMock servers running
-- You need advanced networking configuration
-- You want to run Hub on a different host than WireMock
 
 ### Docker Compose Examples
 
