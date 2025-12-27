@@ -6,9 +6,9 @@
       <template #header>
         <span>{{ t('settings.language') }}</span>
       </template>
-      <el-radio-group v-model="currentLocale" @change="handleLocaleChange">
-        <el-radio value="ja">日本語</el-radio>
-        <el-radio value="en">English</el-radio>
+      <el-radio-group v-model="currentLocale">
+        <el-radio value="ja">{{ t('settings.languageJa') }}</el-radio>
+        <el-radio value="en">{{ t('settings.languageEn') }}</el-radio>
       </el-radio-group>
     </el-card>
 
@@ -38,7 +38,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { saveLocale } from '@/i18n'
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n({ useScope: 'global' })
 
 const currentLocale = computed({
   get: () => locale.value,

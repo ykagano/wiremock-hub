@@ -16,8 +16,8 @@
               size="small"
               style="width: 120px"
             >
-              <el-option label="日本語" value="ja" />
-              <el-option label="English" value="en" />
+              <el-option :label="t('settings.languageJa')" value="ja" />
+              <el-option :label="t('settings.languageEn')" value="en" />
             </el-select>
           </div>
         </div>
@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
@@ -80,7 +80,7 @@ import jaLocale from 'element-plus/es/locale/lang/ja'
 import enLocale from 'element-plus/es/locale/lang/en'
 
 const route = useRoute()
-const { t, locale } = useI18n()
+const { t, locale } = useI18n({ useScope: 'global' })
 const projectStore = useProjectStore()
 const { currentProject } = storeToRefs(projectStore)
 
