@@ -16,8 +16,8 @@
               size="small"
               style="width: 120px"
             >
-              <el-option :label="t('settings.languageJa')" value="ja" />
-              <el-option :label="t('settings.languageEn')" value="en" />
+              <el-option label="日本語" value="ja" />
+              <el-option label="English" value="en" />
             </el-select>
           </div>
         </div>

@@ -161,8 +161,6 @@
   "settings": {
     "title": "設定",
     "language": "言語",
-    "languageJa": "日本語",
-    "languageEn": "英語",
     "theme": "テーマ",
     "about": "このアプリについて",
     "version": "バージョン"
