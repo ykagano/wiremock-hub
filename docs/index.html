@@ -94,6 +94,85 @@
       background: var(--primary-dark);
     }
 
+    /* Mobile menu */
+    .mobile-controls {
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 24px;
+      height: 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: var(--text);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        flex-direction: column;
+        padding: 16px 24px;
+        gap: 16px;
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .nav-links .lang-switch {
+        display: none;
+      }
+
+      .mobile-controls {
+        display: flex;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .btn {
+        display: block;
+        margin: 8px 0;
+      }
+
+      .btn-secondary {
+        margin-left: 0;
+      }
+
+      header {
+        position: relative;
+      }
+    }
+
     /* Hero */
     .hero {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -394,7 +473,7 @@
   <header>
     <div class="container header-content">
       <a href="#" class="logo">WireMock Hub</a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="nav-links">
         <a href="#features" data-i18n="nav.features">機能</a>
         <a href="#architecture" data-i18n="nav.architecture">アーキテクチャ</a>
         <a href="#quickstart" data-i18n="nav.quickstart">クイックスタート</a>
@@ -403,6 +482,14 @@
         <a href="https://github.com/ykagano/wiremock-hub">GitHub</a>
         <button class="lang-switch" onclick="toggleLanguage()">English</button>
       </nav>
+      <div class="mobile-controls">
+        <button class="lang-switch" onclick="toggleLanguage()">English</button>
+        <button class="hamburger" onclick="toggleMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -696,10 +783,26 @@
 
     let currentLang = 'ja';
 
+    function toggleMenu() {
+      const nav = document.getElementById('nav-links');
+      nav.classList.toggle('active');
+    }
+
+    // Close menu when clicking on a link
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        const nav = document.getElementById('nav-links');
+        nav.classList.remove('active');
+      });
+    });
+
     function toggleLanguage() {
       currentLang = currentLang === 'ja' ? 'en' : 'ja';
       applyTranslations();
-      document.querySelector('.lang-switch').textContent = currentLang === 'ja' ? 'English' : 'Japanese';
+      // Update all lang-switch buttons
+      document.querySelectorAll('.lang-switch').forEach(btn => {
+        btn.textContent = currentLang === 'ja' ? 'English' : 'Japanese';
+      });
       document.documentElement.lang = currentLang;
 
       // Switch screenshot images
