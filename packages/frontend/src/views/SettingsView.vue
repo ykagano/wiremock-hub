@@ -7,8 +7,8 @@
         <span>{{ t('settings.language') }}</span>
       </template>
       <el-radio-group v-model="currentLocale">
-        <el-radio value="ja">{{ t('settings.languageJa') }}</el-radio>
-        <el-radio value="en">{{ t('settings.languageEn') }}</el-radio>
+        <el-radio value="ja">日本語</el-radio>
+        <el-radio value="en">English</el-radio>
       </el-radio-group>
     </el-card>
 

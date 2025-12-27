@@ -161,8 +161,6 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
-    "languageJa": "Japanese",
-    "languageEn": "English",
     "theme": "Theme",
     "about": "About",
     "version": "Version"
