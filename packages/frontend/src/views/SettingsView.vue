@@ -34,17 +34,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { saveLocale } from '@/i18n'
 
 const { t, locale } = useI18n()
-const currentLocale = ref(locale.value)
 
-function handleLocaleChange() {
-  locale.value = currentLocale.value
-  saveLocale(currentLocale.value)
-}
+const currentLocale = computed({
+  get: () => locale.value,
+  set: (value: string) => {
+    locale.value = value
+    saveLocale(value)
+  }
+})
 </script>
 
 <style scoped>

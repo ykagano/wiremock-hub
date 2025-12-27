@@ -15,7 +15,6 @@
               v-model="currentLocale"
               size="small"
               style="width: 120px"
-              @change="handleLocaleChange"
             >
               <el-option label="日本語" value="ja" />
               <el-option label="English" value="en" />
@@ -86,16 +85,18 @@ const projectStore = useProjectStore()
 const { currentProject } = storeToRefs(projectStore)
 
 const currentRoute = computed(() => route.path)
-const currentLocale = ref(locale.value)
 
-const elementLocale = computed(() => {
-  return currentLocale.value === 'ja' ? jaLocale : enLocale
+const currentLocale = computed({
+  get: () => locale.value,
+  set: (value: string) => {
+    locale.value = value
+    saveLocale(value)
+  }
 })
 
-function handleLocaleChange() {
-  locale.value = currentLocale.value
-  saveLocale(currentLocale.value)
-}
+const elementLocale = computed(() => {
+  return locale.value === 'ja' ? jaLocale : enLocale
+})
 </script>
 
 <style>
