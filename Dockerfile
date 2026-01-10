@@ -3,6 +3,17 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Install CA certificates for SSL connections
+RUN apk add --no-cache ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
+# Users can place .crt files in custom-certs/ directory
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -33,6 +44,17 @@ RUN pnpm run build
 FROM node:22-alpine AS production
 
 WORKDIR /app
+
+# Install CA certificates for SSL connections
+RUN apk add --no-cache ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
+# Users can place .crt files in custom-certs/ directory
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate

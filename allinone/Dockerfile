@@ -31,8 +31,8 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
 # Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
-# Users can place .crt files in allinone/custom-certs/ directory
-COPY allinone/custom-certs/*.crt* /usr/local/share/ca-certificates/
+# Users can place .crt files in custom-certs/ directory
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
 RUN update-ca-certificates 2>/dev/null || true
 
 # Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
@@ -69,7 +69,7 @@ ARG WIREMOCK_VERSION=3.13.2
 RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates
 
 # Copy custom CA certificates for corporate proxy environments
-COPY allinone/custom-certs/*.crt* /usr/local/share/ca-certificates/
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
 RUN update-ca-certificates 2>/dev/null || true
 
 WORKDIR /app
