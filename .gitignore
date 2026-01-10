@@ -37,3 +37,9 @@ __screenshots__/
 
 # SQLite database
 packages/backend/data/
+
+# Custom CA certificates (for corporate proxy environments)
+allinone/custom-certs/*.crt
+allinone/custom-certs/*.pem
+!allinone/custom-certs/README.md
+!allinone/custom-certs/.gitkeep

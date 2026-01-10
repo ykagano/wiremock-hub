@@ -27,6 +27,17 @@ RUN pnpm run build:frontend
 FROM node:22-alpine AS backend-builder
 WORKDIR /app
 
+# Install CA certificates for SSL connections
+RUN apk add --no-cache ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
+# Users can place .crt files in allinone/custom-certs/ directory
+COPY allinone/custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
@@ -54,8 +65,12 @@ FROM node:22-alpine
 # Latest stable: 3.13.2 (as of 2025-11-14)
 ARG WIREMOCK_VERSION=3.13.2
 
-# Install nginx, OpenJDK (for WireMock), and supervisor
-RUN apk add --no-cache nginx openjdk17-jre supervisor
+# Install nginx, OpenJDK (for WireMock), supervisor, and CA certificates
+RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments
+COPY allinone/custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
 
 WORKDIR /app
 
