@@ -26,9 +26,6 @@ COPY packages/frontend/package.json ./packages/frontend/
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Approve build scripts for Prisma
-RUN pnpm approve-builds @prisma/client @prisma/engines prisma esbuild vue-demi
-
 # Copy source code
 COPY packages/shared ./packages/shared
 COPY packages/backend ./packages/backend
@@ -66,9 +63,6 @@ COPY packages/backend/package.json ./packages/backend/
 
 # Install all dependencies (prisma CLI needed for migrations)
 RUN pnpm install --frozen-lockfile
-
-# Approve Prisma build scripts
-RUN pnpm approve-builds @prisma/client @prisma/engines prisma
 
 # Copy built files
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
