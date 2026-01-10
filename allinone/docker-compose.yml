@@ -9,6 +9,8 @@
 
 services:
   wiremock-hub-allinone:
+    container_name: wiremock-hub-allinone
+    image: wiremock-hub-allinone
     build:
       context: ..
       dockerfile: allinone/Dockerfile
