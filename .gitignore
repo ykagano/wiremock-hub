@@ -39,7 +39,7 @@ __screenshots__/
 packages/backend/data/
 
 # Custom CA certificates (for corporate proxy environments)
-allinone/custom-certs/*.crt
-allinone/custom-certs/*.pem
-!allinone/custom-certs/README.md
-!allinone/custom-certs/.gitkeep
+custom-certs/*.crt
+custom-certs/*.pem
+!custom-certs/.dummy.crt
+!custom-certs/README.md
