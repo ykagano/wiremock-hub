@@ -1,6 +1,9 @@
 # Build stage
 FROM node:22-alpine AS builder
 
+# App version from CI/CD (git tag)
+ARG APP_VERSION=0.1.0
+
 WORKDIR /app
 
 # Install CA certificates for SSL connections
@@ -34,7 +37,8 @@ COPY packages/frontend ./packages/frontend
 # Generate Prisma client first (required for TypeScript build)
 RUN cd packages/backend && npx prisma generate
 
-# Build all packages
+# Build all packages with version from tag
+ENV VITE_APP_VERSION=${APP_VERSION}
 RUN pnpm run build
 
 # Production stage

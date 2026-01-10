@@ -4,6 +4,10 @@
 
 # Stage 1: Build frontend
 FROM node:22-alpine AS frontend-builder
+
+# App version from CI/CD (git tag)
+ARG APP_VERSION=0.1.0
+
 WORKDIR /app
 
 # Copy root package files
@@ -19,8 +23,9 @@ RUN corepack enable pnpm && \
 # Build shared package first (frontend depends on it)
 RUN pnpm --filter @wiremock-hub/shared build
 
-# Build frontend with /hub base path
+# Build frontend with /hub base path and version from tag
 ENV VITE_BASE_PATH=/hub/
+ENV VITE_APP_VERSION=${APP_VERSION}
 RUN pnpm run build:frontend
 
 # Stage 2: Build backend
