@@ -18,7 +18,7 @@
       </template>
       <el-descriptions :column="1" border>
         <el-descriptions-item label="Version">
-          0.1.0
+          {{ appVersion }}
         </el-descriptions-item>
         <el-descriptions-item label="License">
           Apache 2.0
@@ -39,6 +39,8 @@ import { useI18n } from 'vue-i18n'
 import { saveLocale } from '@/i18n'
 
 const { t, locale } = useI18n({ useScope: 'global' })
+
+const appVersion = __APP_VERSION__
 
 const currentLocale = computed({
   get: () => locale.value,
