@@ -46,7 +46,7 @@ watch(() => props.modelValue, (value) => {
   } else {
     jsonText.value = ''
   }
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 function handleBlur() {
   try {
