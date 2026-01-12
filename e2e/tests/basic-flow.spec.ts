@@ -244,6 +244,18 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Should show success message or redirect back to stubs list
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
+    // Verify that saved data is displayed correctly when reopening the stub
+    // Click on the stub row to reopen edit screen
+    await page.locator('.el-table__row', { hasText: '/api/e2e-test' }).click()
+
+    // Switch to JSON tab
+    await page.getByRole('tab', { name: 'JSON' }).click()
+
+    // Verify JSON contains saved values (use last() to get the JSON tab's textarea with rows=25)
+    const jsonTextarea = page.locator('.json-editor textarea').last()
+    await expect(jsonTextarea).toHaveValue(/\/api\/e2e-test/)
+    await expect(jsonTextarea).toHaveValue(/Hello from E2E test/)
+
     // Clean up - go back and delete project
     await cleanupProject(page, testProjectName)
   })
