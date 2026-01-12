@@ -207,6 +207,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMappingStore } from '@/stores/mapping'
+import { stubApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 import type { Mapping } from '@/types/wiremock'
 import JsonEditor from '@/components/mapping/JsonEditor.vue'
@@ -271,7 +272,10 @@ onMounted(async () => {
   if (!isNew.value) {
     const id = route.params.id as string
     try {
-      const mapping = mappingStore.mappings.find(m => m.id === id || m.uuid === id)
+      // APIから最新のスタブデータを取得
+      const stub = await stubApi.get(id)
+      const mapping = stub.mapping as unknown as Mapping
+
       if (mapping) {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
 
