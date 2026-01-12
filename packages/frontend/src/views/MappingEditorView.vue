@@ -92,28 +92,13 @@
 
             <!-- レスポンスボディ -->
             <el-form-item :label="t('editor.responseBody')">
-              <el-tabs type="border-card">
-                <el-tab-pane label="Text">
-                  <el-input
-                    v-model="formData.response.body"
-                    type="textarea"
-                    :rows="10"
-                    placeholder='{"message": "success"}'
-                  />
-                </el-tab-pane>
-                <el-tab-pane label="JSON">
-                  <JsonEditor
-                    v-model="formData.response.jsonBody"
-                    :rows="10"
-                  />
-                </el-tab-pane>
-                <el-tab-pane label="File">
-                  <el-input
-                    v-model="formData.response.bodyFileName"
-                    placeholder="response.json"
-                  />
-                </el-tab-pane>
-              </el-tabs>
+              <el-input
+                v-model="formData.response.body"
+                type="textarea"
+                :rows="10"
+                placeholder='{"message": "success"}'
+                class="full-width-textarea"
+              />
             </el-form-item>
 
             <!-- レスポンスヘッダー -->
@@ -207,6 +192,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMappingStore } from '@/stores/mapping'
+import { stubApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 import type { Mapping } from '@/types/wiremock'
 import JsonEditor from '@/components/mapping/JsonEditor.vue'
@@ -271,7 +257,10 @@ onMounted(async () => {
   if (!isNew.value) {
     const id = route.params.id as string
     try {
-      const mapping = mappingStore.mappings.find(m => m.id === id || m.uuid === id)
+      // APIから最新のスタブデータを取得
+      const stub = await stubApi.get(id)
+      const mapping = stub.mapping as unknown as Mapping
+
       if (mapping) {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
 
@@ -367,5 +356,15 @@ function goBack() {
 .header-actions {
   display: flex;
   gap: 12px;
+}
+
+.full-width-textarea {
+  width: 100%;
+}
+
+.full-width-textarea :deep(textarea) {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
 }
 </style>

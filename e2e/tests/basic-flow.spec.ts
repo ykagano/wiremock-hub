@@ -201,8 +201,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await cleanupProject(page, testProjectName)
   })
 
-  test('should create stub using form', async ({ page }) => {
-    const testProjectName = `Stub Test ${Date.now()}`
+  test('should create stub with all parameters', async ({ page }) => {
+    const testProjectName = `Stub Create Test ${Date.now()}`
 
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
@@ -224,27 +224,213 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Verify stub editor opened
     await expect(page.locator('h2')).toContainText(/スタブ|Mapping|新規/)
 
-    // Fill in stub using form (request tab is default)
-    // URL field should be visible and fill it
+    // ========== Request Tab ==========
+    // Method - use form item to find the correct select
+    const methodFormItem = page.locator('.el-form-item', { hasText: /メソッド|Method/ })
+    await methodFormItem.locator('.el-select').click()
+    await page.waitForTimeout(300)
+    await page.locator('.el-select-dropdown__item:visible', { hasText: 'POST' }).click()
+
+    // URL
     const urlInput = page.getByPlaceholder('/api/users')
     await expect(urlInput).toBeVisible()
-    await urlInput.fill('/api/e2e-test')
+    await urlInput.fill('/api/create-test')
 
-    // Go to response tab and fill in response body
+    // Request Headers - add header (label is "ヘッダー")
+    // Find the form item containing "ヘッダー" label but not "Query" or "レスポンス"
+    const headerSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' }).filter({ hasNotText: 'Query' }).filter({ hasNotText: 'レスポンス' })
+    await headerSection.getByRole('button', { name: /追加/ }).click()
+    await headerSection.getByPlaceholder('Key').fill('X-Request-ID')
+    await headerSection.getByPlaceholder('Value').fill('test-request-123')
+
+    // Query Parameters - add parameter
+    const queryParamSection = page.locator('.el-form-item', { hasText: 'Query Parameters' })
+    await queryParamSection.getByRole('button', { name: /追加/ }).click()
+    await queryParamSection.getByPlaceholder('Key').fill('page')
+    await queryParamSection.getByPlaceholder('Value').fill('1')
+
+    // ========== Response Tab ==========
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
 
-    // Fill response body textarea using placeholder
+    // Status code
+    await page.locator('.el-input-number').first().locator('input').fill('201')
+
+    // Response body
     const responseTextarea = page.getByPlaceholder('{"message": "success"}')
     await expect(responseTextarea).toBeVisible()
-    await responseTextarea.fill('{"message": "Hello from E2E test!"}')
+    await responseTextarea.fill('{"id": 123, "message": "Created successfully"}')
+
+    // Response Headers - add header (label is "ヘッダー" on response tab too)
+    // There's already a Content-Type header, so we add another one
+    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' })
+    await responseHeaderSection.getByRole('button', { name: /追加/ }).click()
+    // Fill the last (newly added) Key/Value pair
+    await responseHeaderSection.getByPlaceholder('Key').last().fill('X-Response-ID')
+    await responseHeaderSection.getByPlaceholder('Value').last().fill('resp-456')
+
+    // Delay
+    const delayInput = page.locator('.el-form-item', { hasText: /遅延|Delay/ }).locator('.el-input-number input')
+    await delayInput.fill('500')
+
+    // ========== Advanced Tab ==========
+    await page.getByRole('tab', { name: /詳細設定|Advanced/ }).click()
+
+    // Priority
+    const priorityInput = page.locator('.el-form-item', { hasText: /優先度|Priority/ }).locator('.el-input-number input')
+    await priorityInput.fill('10')
+
+    // Scenario
+    await page.getByPlaceholder('login-flow').fill('create-flow')
+    await page.getByPlaceholder('Started').fill('Initial')
+    await page.getByPlaceholder('LoggedIn').fill('Created')
 
     // Save the stub
     await page.getByRole('button', { name: /保存|Save/ }).click()
-
-    // Should show success message or redirect back to stubs list
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
-    // Clean up - go back and delete project
+    // ========== Verify saved data by reopening ==========
+    await page.locator('.el-table__row', { hasText: '/api/create-test' }).click()
+
+    // Verify JSON tab contains all saved values
+    await page.getByRole('tab', { name: 'JSON' }).click()
+    const jsonTextarea = page.locator('.json-editor textarea').last()
+    await expect(jsonTextarea).toHaveValue(/\/api\/create-test/)
+    await expect(jsonTextarea).toHaveValue(/POST/)
+    await expect(jsonTextarea).toHaveValue(/X-Request-ID/)
+    await expect(jsonTextarea).toHaveValue(/test-request-123/)
+    await expect(jsonTextarea).toHaveValue(/page/)
+    await expect(jsonTextarea).toHaveValue(/201/)
+    await expect(jsonTextarea).toHaveValue(/Created successfully/)
+    await expect(jsonTextarea).toHaveValue(/X-Response-ID/)
+    await expect(jsonTextarea).toHaveValue(/resp-456/)
+    await expect(jsonTextarea).toHaveValue(/500/)
+    await expect(jsonTextarea).toHaveValue(/10/)
+    await expect(jsonTextarea).toHaveValue(/create-flow/)
+    await expect(jsonTextarea).toHaveValue(/Initial/)
+    await expect(jsonTextarea).toHaveValue(/Created/)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should edit stub with all parameters', async ({ page }) => {
+    const testProjectName = `Stub Edit Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Navigate to stubs tab
+    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
+    await page.waitForTimeout(500)
+
+    // ========== Create simple stub first ==========
+    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+
+    const urlInput = page.getByPlaceholder('/api/users')
+    await urlInput.fill('/api/simple-stub')
+
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
+
+    // ========== Open stub for editing ==========
+    await page.locator('.el-table__row', { hasText: '/api/simple-stub' }).click()
+
+    // ========== Edit Request Tab ==========
+    // Change method - use form item to find the correct select
+    const methodFormItem = page.locator('.el-form-item', { hasText: /メソッド|Method/ })
+    await methodFormItem.locator('.el-select').click()
+    await page.waitForTimeout(300)
+    await page.locator('.el-select-dropdown__item:visible', { hasText: 'PUT' }).click()
+
+    // Change URL
+    const editUrlInput = page.getByPlaceholder('/api/users')
+    await editUrlInput.clear()
+    await editUrlInput.fill('/api/edited-stub')
+
+    // Add request header (label is "ヘッダー")
+    const requestHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' }).filter({ hasNotText: 'Query' }).filter({ hasNotText: 'レスポンス' })
+    await requestHeaderSection.getByRole('button', { name: /追加/ }).click()
+    await requestHeaderSection.getByPlaceholder('Key').fill('Authorization')
+    await requestHeaderSection.getByPlaceholder('Value').fill('Bearer token123')
+
+    // Add query parameter
+    const queryParamSection = page.locator('.el-form-item', { hasText: 'Query Parameters' })
+    await queryParamSection.getByRole('button', { name: /追加/ }).click()
+    await queryParamSection.getByPlaceholder('Key').fill('limit')
+    await queryParamSection.getByPlaceholder('Value').fill('50')
+
+    // ========== Edit Response Tab ==========
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+
+    // Change status code
+    const statusInput = page.locator('.el-input-number').first().locator('input')
+    await statusInput.clear()
+    await statusInput.fill('404')
+
+    // Change response body
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea.clear()
+    await responseTextarea.fill('{"error": "Not Found", "code": 404}')
+
+    // Add response header (label is "ヘッダー" on response tab too)
+    // There's already a Content-Type header, so we add another one
+    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' })
+    await responseHeaderSection.getByRole('button', { name: /追加/ }).click()
+    // Fill the last (newly added) Key/Value pair
+    await responseHeaderSection.getByPlaceholder('Key').last().fill('X-Error-Code')
+    await responseHeaderSection.getByPlaceholder('Value').last().fill('ERR-404')
+
+    // Set delay
+    const delayInput = page.locator('.el-form-item', { hasText: /遅延|Delay/ }).locator('.el-input-number input')
+    await delayInput.fill('1000')
+
+    // ========== Edit Advanced Tab ==========
+    await page.getByRole('tab', { name: /詳細設定|Advanced/ }).click()
+
+    // Change priority
+    const priorityInput = page.locator('.el-form-item', { hasText: /優先度|Priority/ }).locator('.el-input-number input')
+    await priorityInput.clear()
+    await priorityInput.fill('1')
+
+    // Set scenario
+    await page.getByPlaceholder('login-flow').fill('error-flow')
+    await page.getByPlaceholder('Started').fill('Running')
+    await page.getByPlaceholder('LoggedIn').fill('Error')
+
+    // Save the edited stub
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
+
+    // ========== Verify edited data by reopening ==========
+    await page.locator('.el-table__row', { hasText: '/api/edited-stub' }).click()
+
+    // Verify JSON tab contains all edited values
+    await page.getByRole('tab', { name: 'JSON' }).click()
+    const jsonTextarea = page.locator('.json-editor textarea').last()
+    await expect(jsonTextarea).toHaveValue(/\/api\/edited-stub/)
+    await expect(jsonTextarea).toHaveValue(/PUT/)
+    await expect(jsonTextarea).toHaveValue(/Authorization/)
+    await expect(jsonTextarea).toHaveValue(/Bearer token123/)
+    await expect(jsonTextarea).toHaveValue(/limit/)
+    await expect(jsonTextarea).toHaveValue(/50/)
+    await expect(jsonTextarea).toHaveValue(/404/)
+    await expect(jsonTextarea).toHaveValue(/Not Found/)
+    await expect(jsonTextarea).toHaveValue(/X-Error-Code/)
+    await expect(jsonTextarea).toHaveValue(/ERR-404/)
+    await expect(jsonTextarea).toHaveValue(/1000/)
+    await expect(jsonTextarea).toHaveValue(/"priority":\s*1/)
+    await expect(jsonTextarea).toHaveValue(/error-flow/)
+    await expect(jsonTextarea).toHaveValue(/Running/)
+    await expect(jsonTextarea).toHaveValue(/Error/)
+
+    // Clean up
     await cleanupProject(page, testProjectName)
   })
 
