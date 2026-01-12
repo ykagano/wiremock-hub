@@ -43,12 +43,6 @@ const router = createRouter({
       meta: { requiresProject: true }
     },
     {
-      path: '/instances',
-      name: 'instances',
-      component: () => import('@/views/InstancesView.vue'),
-      meta: { requiresProject: true }
-    },
-    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue')
