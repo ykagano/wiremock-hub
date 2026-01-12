@@ -92,28 +92,13 @@
 
             <!-- レスポンスボディ -->
             <el-form-item :label="t('editor.responseBody')">
-              <el-tabs type="border-card">
-                <el-tab-pane label="Text">
-                  <el-input
-                    v-model="formData.response.body"
-                    type="textarea"
-                    :rows="10"
-                    placeholder='{"message": "success"}'
-                  />
-                </el-tab-pane>
-                <el-tab-pane label="JSON">
-                  <JsonEditor
-                    v-model="formData.response.jsonBody"
-                    :rows="10"
-                  />
-                </el-tab-pane>
-                <el-tab-pane label="File">
-                  <el-input
-                    v-model="formData.response.bodyFileName"
-                    placeholder="response.json"
-                  />
-                </el-tab-pane>
-              </el-tabs>
+              <el-input
+                v-model="formData.response.body"
+                type="textarea"
+                :rows="10"
+                placeholder='{"message": "success"}'
+                class="full-width-textarea"
+              />
             </el-form-item>
 
             <!-- レスポンスヘッダー -->
@@ -371,5 +356,15 @@ function goBack() {
 .header-actions {
   display: flex;
   gap: 12px;
+}
+
+.full-width-textarea {
+  width: 100%;
+}
+
+.full-width-textarea :deep(textarea) {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
 }
 </style>
