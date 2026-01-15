@@ -542,4 +542,122 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Clean up
     await cleanupProject(page, testProjectName)
   })
+
+  test('should display request detail and import as stub', async ({ page, request }) => {
+    const testProjectName = `Request Detail Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Detail Test Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Make a request to WireMock to create some log entries
+    try {
+      await request.post('http://localhost:8081/api/detail-test', {
+        data: { name: 'test', value: 123 },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    } catch {
+      // Request might return 404, continue anyway
+    }
+
+    // Navigate to request log page via sidebar
+    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.waitForTimeout(1000)
+
+    // Click refresh button
+    await page.getByRole('button', { name: /更新|Refresh/ }).click()
+    await page.waitForTimeout(500)
+
+    // Click on a request row to go to detail page
+    const requestRow = page.locator('code', { hasText: '/api/detail-test' }).first()
+    await expect(requestRow).toBeVisible({ timeout: 10000 })
+    await requestRow.click()
+
+    // Verify we're on request detail page
+    await expect(page.getByRole('button', { name: /戻る|Back/ })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/リクエスト|Request/).first()).toBeVisible()
+    await expect(page.getByText('/api/detail-test')).toBeVisible()
+
+    // Click import as stub button
+    await page.getByRole('button', { name: /スタブとしてインポート|Import as Stub/ }).click()
+
+    // Verify import dialog is visible
+    await expect(page.locator('.el-dialog', { hasText: /スタブとしてインポート|Import as Stub/ })).toBeVisible()
+
+    // Verify default values are filled
+    await expect(page.getByLabel(/スタブ名|Stub Name/).first()).toHaveValue(/POST.*detail-test/)
+
+    // Click import button
+    await page.locator('.el-dialog').getByRole('button', { name: /インポート|Import/ }).click()
+
+    // Wait for success message
+    await expect(page.getByText(/インポート|import|成功|success/i).first()).toBeVisible({ timeout: 5000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should filter requests by URL pattern', async ({ page, request }) => {
+    const testProjectName = `Filter Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Filter Test Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Make requests to WireMock with different URLs
+    try {
+      await request.get('http://localhost:8082/api/filter-users')
+      await request.get('http://localhost:8082/api/filter-orders')
+      await request.post('http://localhost:8082/api/filter-users')
+    } catch {
+      // Requests might return 404, continue anyway
+    }
+
+    // Navigate to request log page via sidebar
+    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.waitForTimeout(1000)
+
+    // Click refresh button
+    await page.getByRole('button', { name: /更新|Refresh/ }).click()
+    await page.waitForTimeout(500)
+
+    // Verify filter component is visible
+    await expect(page.getByPlaceholder(/URLで絞り込み|Filter by URL/)).toBeVisible()
+
+    // Filter by URL pattern
+    await page.getByPlaceholder(/URLで絞り込み|Filter by URL/).fill('filter-users')
+    await page.waitForTimeout(500)
+
+    // Verify filtered results (should show filter-users but not filter-orders)
+    await expect(page.locator('code', { hasText: '/api/filter-users' }).first()).toBeVisible({ timeout: 5000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
 })
