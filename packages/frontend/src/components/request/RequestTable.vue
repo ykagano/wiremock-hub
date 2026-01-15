@@ -10,6 +10,8 @@
       :data="requests"
       stripe
       style="width: 100%"
+      :row-class-name="() => 'clickable-row'"
+      @row-click="onRowClick"
     >
       <el-table-column :label="t('requests.timestamp')" width="180">
         <template #default="{ row }">
@@ -33,9 +35,16 @@
 
       <el-table-column :label="t('requests.status')" width="100">
         <template #default="{ row }">
-          <el-tag v-if="row.responseDefinition" :type="getStatusTagType(row.responseDefinition.status)">
-            {{ row.responseDefinition.status }}
+          <el-tag v-if="getResponseStatus(row)" :type="getStatusTagType(getResponseStatus(row)!)">
+            {{ getResponseStatus(row) }}
           </el-tag>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column :label="t('requests.responseTime')" width="100">
+        <template #default="{ row }">
+          <span v-if="row.timing?.totalTime">{{ row.timing.totalTime }}ms</span>
           <span v-else>-</span>
         </template>
       </el-table-column>
@@ -50,6 +59,14 @@
           </el-tag>
         </template>
       </el-table-column>
+
+      <el-table-column :label="t('common.actions')" width="80" align="center">
+        <template #default="{ row }">
+          <el-button type="primary" link size="small" @click.stop="onRowClick(row)">
+            {{ t('requests.detail') }}
+          </el-button>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 </template>
@@ -61,6 +78,10 @@ import dayjs from 'dayjs'
 
 defineProps<{
   requests: LoggedRequest[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'row-click', request: LoggedRequest): void
 }>()
 
 const { t } = useI18n()
@@ -87,6 +108,14 @@ function getStatusTagType(status: number): string {
   if (status >= 500) return 'danger'
   return 'info'
 }
+
+function getResponseStatus(row: LoggedRequest): number | undefined {
+  return row.response?.status || row.responseDefinition?.status
+}
+
+function onRowClick(row: LoggedRequest) {
+  emit('row-click', row)
+}
 </script>
 
 <style scoped>
@@ -94,5 +123,13 @@ function getStatusTagType(status: number): string {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   color: #409eff;
+}
+
+:deep(.clickable-row) {
+  cursor: pointer;
+}
+
+:deep(.clickable-row:hover) {
+  background-color: var(--el-table-row-hover-bg-color);
 }
 </style>
