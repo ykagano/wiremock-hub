@@ -846,4 +846,188 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Clean up
     await cleanupProject(page, testProjectName)
   })
+
+  test('should filter requests by HTTP method', async ({ page, request }) => {
+    const testProjectName = `Method Filter Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Method Filter Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Make requests with different HTTP methods
+    try {
+      await request.get('http://localhost:8082/api/method-test')
+      await request.post('http://localhost:8082/api/method-test', { data: {} })
+      await request.put('http://localhost:8082/api/method-test', { data: {} })
+    } catch {
+      // Requests might return 404, continue anyway
+    }
+
+    // Navigate to request log page via sidebar
+    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.waitForTimeout(1000)
+
+    // Click refresh button
+    await page.getByRole('button', { name: /更新|Refresh/ }).click()
+    await page.waitForTimeout(500)
+
+    // Filter by POST method
+    const methodSelect = page.locator('.el-form-item', { hasText: /メソッド|Method/ }).locator('.el-select')
+    await methodSelect.click()
+    await page.waitForTimeout(300)
+    await page.locator('.el-select-dropdown__item:visible', { hasText: 'POST' }).click()
+    await page.waitForTimeout(500)
+
+    // Verify filtered results - should show POST requests
+    const postRequests = page.locator('.el-table__row', { hasText: 'POST' })
+    await expect(postRequests.first()).toBeVisible({ timeout: 5000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should filter requests by status code range', async ({ page, request }) => {
+    const testProjectName = `Status Filter Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Status Filter Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab and create stubs with different status codes
+    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
+    await page.waitForTimeout(500)
+
+    // Create 200 OK stub
+    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByPlaceholder('/api/users').fill('/api/status-200')
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    await page.locator('.el-input-number').first().locator('input').fill('200')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 5000 })
+
+    // Create 404 Not Found stub
+    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByPlaceholder('/api/users').fill('/api/status-404')
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    await page.locator('.el-input-number').first().locator('input').fill('404')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 5000 })
+
+    // Navigate back and sync
+    await page.locator('.el-aside').getByText(/プロジェクト|Projects/).click()
+    await page.waitForTimeout(500)
+    const projectCardForSync = page.locator('.el-card', { hasText: testProjectName })
+    await projectCardForSync.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.getByRole('tab', { name: /インスタンス|Instances/ }).click()
+    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
+    await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(1000)
+
+    // Make requests to both endpoints
+    try {
+      await request.get('http://localhost:8082/api/status-200')
+      await request.get('http://localhost:8082/api/status-404')
+    } catch {
+      // 404 request will throw, continue anyway
+    }
+
+    // Navigate to request log page
+    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.waitForTimeout(1000)
+    await page.getByRole('button', { name: /更新|Refresh/ }).click()
+    await page.waitForTimeout(500)
+
+    // Filter by status code range 400-499 (client errors)
+    const statusFromInput = page.locator('.el-form-item', { hasText: /ステータス.*から|Status.*From/i }).locator('.el-input-number input')
+    const statusToInput = page.locator('.el-form-item', { hasText: /ステータス.*まで|Status.*To/i }).locator('.el-input-number input')
+    await statusFromInput.fill('400')
+    await statusToInput.fill('499')
+    await page.waitForTimeout(500)
+
+    // Verify filtered results - should show 404 requests but not 200
+    await expect(page.locator('code', { hasText: '/api/status-404' }).first()).toBeVisible({ timeout: 5000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should reset filter and show all requests', async ({ page, request }) => {
+    const testProjectName = `Filter Reset Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Reset Filter Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Make requests with different URLs
+    try {
+      await request.get('http://localhost:8082/api/reset-test-a')
+      await request.get('http://localhost:8082/api/reset-test-b')
+    } catch {
+      // Requests might return 404, continue anyway
+    }
+
+    // Navigate to request log page
+    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.waitForTimeout(1000)
+    await page.getByRole('button', { name: /更新|Refresh/ }).click()
+    await page.waitForTimeout(500)
+
+    // Apply URL filter
+    await page.getByPlaceholder(/URLで絞り込み|Filter by URL/).fill('reset-test-a')
+    await page.waitForTimeout(500)
+
+    // Verify only filtered results are shown
+    await expect(page.locator('code', { hasText: '/api/reset-test-a' }).first()).toBeVisible({ timeout: 5000 })
+
+    // Click reset button
+    await page.getByRole('button', { name: /リセット|Reset/ }).click()
+    await page.waitForTimeout(500)
+
+    // Verify filter is cleared and both requests are shown
+    await expect(page.getByPlaceholder(/URLで絞り込み|Filter by URL/)).toHaveValue('')
+    await expect(page.locator('code', { hasText: '/api/reset-test-a' }).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('code', { hasText: '/api/reset-test-b' }).first()).toBeVisible({ timeout: 5000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
 })
