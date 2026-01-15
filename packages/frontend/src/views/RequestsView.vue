@@ -79,9 +79,14 @@ const filter = reactive<FilterState>({
 })
 
 function applyFilter(requestList: LoggedRequest[]): LoggedRequest[] {
+  if (!requestList) return []
   return requestList.filter(r => {
+    // Null check for request object
+    if (!r || !r.request) {
+      return false
+    }
     // URL filter
-    if (filter.urlPattern && !r.request.url.toLowerCase().includes(filter.urlPattern.toLowerCase())) {
+    if (filter.urlPattern && !r.request.url?.toLowerCase().includes(filter.urlPattern.toLowerCase())) {
       return false
     }
     // Method filter
