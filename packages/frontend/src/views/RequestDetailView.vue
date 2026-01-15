@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
@@ -144,8 +144,8 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 
-const instanceId = route.params.instanceId as string
-const requestId = route.params.requestId as string
+const instanceId = computed(() => route.params.instanceId as string)
+const requestId = computed(() => route.params.requestId as string)
 
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -230,11 +230,13 @@ function onStubImported() {
 }
 
 async function fetchRequestDetail() {
+  if (!instanceId.value || !requestId.value) return
+
   loading.value = true
   error.value = null
 
   try {
-    const response = await api.get(`/api/wiremock-instances/${instanceId}/requests/${requestId}`)
+    const response = await api.get(`/wiremock-instances/${instanceId.value}/requests/${requestId.value}`)
     if (response.data.success) {
       request.value = response.data.data
     } else {
@@ -248,9 +250,14 @@ async function fetchRequestDetail() {
   }
 }
 
-onMounted(() => {
-  fetchRequestDetail()
-})
+// Watch for route changes
+watch(
+  () => [route.params.instanceId, route.params.requestId],
+  () => {
+    fetchRequestDetail()
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
