@@ -15,21 +15,22 @@
     >
       <el-table-column :label="t('requests.timestamp')" width="180">
         <template #default="{ row }">
-          {{ formatDate(row.request.loggedDate) }}
+          {{ row.request ? formatDate(row.request.loggedDate) : '-' }}
         </template>
       </el-table-column>
 
       <el-table-column :label="t('requests.method')" width="100">
         <template #default="{ row }">
-          <el-tag :type="getMethodTagType(row.request.method)">
+          <el-tag v-if="row.request" :type="getMethodTagType(row.request.method)">
             {{ row.request.method }}
           </el-tag>
+          <span v-else>-</span>
         </template>
       </el-table-column>
 
       <el-table-column :label="t('requests.url')" min-width="300">
         <template #default="{ row }">
-          <code class="url-text">{{ row.request.url }}</code>
+          <code class="url-text">{{ row.request?.url || '-' }}</code>
         </template>
       </el-table-column>
 
