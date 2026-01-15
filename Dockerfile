@@ -1,7 +1,21 @@
 # Build stage
 FROM node:22-alpine AS builder
 
+# App version from CI/CD (git tag)
+ARG APP_VERSION=0.1.0
+
 WORKDIR /app
+
+# Install CA certificates for SSL connections
+RUN apk add --no-cache ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
+# Users can place .crt files in custom-certs/ directory
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -15,9 +29,6 @@ COPY packages/frontend/package.json ./packages/frontend/
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Approve build scripts for Prisma
-RUN pnpm approve-builds @prisma/client @prisma/engines prisma esbuild vue-demi
-
 # Copy source code
 COPY packages/shared ./packages/shared
 COPY packages/backend ./packages/backend
@@ -26,13 +37,25 @@ COPY packages/frontend ./packages/frontend
 # Generate Prisma client first (required for TypeScript build)
 RUN cd packages/backend && npx prisma generate
 
-# Build all packages
+# Build all packages with version from tag
+ENV VITE_APP_VERSION=${APP_VERSION}
 RUN pnpm run build
 
 # Production stage
 FROM node:22-alpine AS production
 
 WORKDIR /app
+
+# Install CA certificates for SSL connections
+RUN apk add --no-cache ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
+# Users can place .crt files in custom-certs/ directory
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -44,9 +67,6 @@ COPY packages/backend/package.json ./packages/backend/
 
 # Install all dependencies (prisma CLI needed for migrations)
 RUN pnpm install --frozen-lockfile
-
-# Approve Prisma build scripts
-RUN pnpm approve-builds @prisma/client @prisma/engines prisma
 
 # Copy built files
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
