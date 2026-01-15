@@ -218,7 +218,7 @@ async function handleImport() {
       enableTemplating: form.enableTemplating
     }
 
-    await api.post(`/api/wiremock-instances/${props.instanceId}/requests/${props.request.id}/import`, payload)
+    await api.post(`/wiremock-instances/${props.instanceId}/requests/${props.request.id}/import`, payload)
 
     emit('imported')
     emit('update:visible', false)
