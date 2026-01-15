@@ -176,9 +176,9 @@ services:
 
 **重要:** All-in-One版でも同様に、ボリュームマウントでデータを永続化できます。
 
-## GitHub Container Registry へのリリース
+## Docker イメージのリリース
 
-GitHub Actions で Docker イメージを自動ビルド・公開します。
+GitHub Actions で Docker イメージを自動ビルドし、GitHub Container Registry と Docker Hub に公開します。
 
 ### リリース手順
 
@@ -190,11 +190,28 @@ git push origin v0.1.0
 
 ### 自動公開されるイメージ
 
+#### GitHub Container Registry (ghcr.io)
+
 | イメージ | 説明 |
 |---------|------|
 | `ghcr.io/ykagano/wiremock-hub:latest` | All-in-One版（推奨） |
 | `ghcr.io/ykagano/wiremock-hub:0.1.0` | バージョン指定 |
 | `ghcr.io/ykagano/wiremock-hub-standalone:latest` | Hub単体版 |
+
+#### Docker Hub
+
+| イメージ | 説明 |
+|---------|------|
+| `ykagano/wiremock-hub:latest` | All-in-One版（推奨） |
+| `ykagano/wiremock-hub:0.1.0` | バージョン指定 |
+| `ykagano/wiremock-hub-standalone:latest` | Hub単体版 |
+
+### GitHub Secrets の設定
+
+Docker Hub への公開には以下の Secrets が必要です:
+
+- `DOCKERHUB_USERNAME`: Docker Hub のユーザー名
+- `DOCKERHUB_TOKEN`: Docker Hub のアクセストークン
 
 ### 手動実行
 
@@ -203,8 +220,11 @@ GitHub の Actions タブから `workflow_dispatch` で手動実行も可能で�
 ### リリース後の動作確認
 
 ```bash
-# イメージをpullして起動
+# GitHub Container Registry から起動
 docker run -d -p 80:80 --name wiremock-hub-test ghcr.io/ykagano/wiremock-hub:latest
+
+# または Docker Hub から起動
+docker run -d -p 80:80 --name wiremock-hub-test ykagano/wiremock-hub:latest
 
 # ブラウザで確認
 open http://localhost/hub/
