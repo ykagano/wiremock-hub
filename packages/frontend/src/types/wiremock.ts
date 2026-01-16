@@ -74,13 +74,28 @@ export interface LoggedRequest {
     bodyAsBase64?: string
     loggedDate: number
     loggedDateString: string
+    queryParams?: Record<string, string>
+    formParams?: Record<string, string>
   }
   responseDefinition?: {
     status: number
     body?: string
     headers?: Record<string, string>
   }
+  response?: {
+    status: number
+    headers?: Record<string, string>
+    body?: string
+    bodyAsBase64?: string
+  }
   wasMatched: boolean
+  timing?: {
+    addedDelay: number
+    processTime: number
+    responseSendTime: number
+    serveTime: number
+    totalTime: number
+  }
   stubMapping?: Mapping
 }
 

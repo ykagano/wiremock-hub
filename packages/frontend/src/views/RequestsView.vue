@@ -31,30 +31,38 @@
 
     <el-empty v-else-if="!selectedInstanceId" :description="t('requests.selectInstance')" />
 
-    <el-tabs v-else v-model="activeTab">
-      <el-tab-pane :label="t('requests.all')" name="all">
-        <RequestTable :requests="requests" />
-      </el-tab-pane>
-      <el-tab-pane :label="t('requests.matched')" name="matched">
-        <RequestTable :requests="matchedRequests" />
-      </el-tab-pane>
-      <el-tab-pane :label="t('requests.unmatched')" name="unmatched">
-        <RequestTable :requests="unmatchedOnlyRequests" />
-      </el-tab-pane>
-    </el-tabs>
+    <template v-else>
+      <RequestFilter @filter-change="onFilterChange" />
+
+      <el-tabs v-model="activeTab">
+        <el-tab-pane :label="`${t('requests.all')} (${filteredRequests.length})`" name="all">
+          <RequestTable :requests="filteredRequests" @row-click="onRequestClick" />
+        </el-tab-pane>
+        <el-tab-pane :label="`${t('requests.matched')} (${filteredMatchedRequests.length})`" name="matched">
+          <RequestTable :requests="filteredMatchedRequests" @row-click="onRequestClick" />
+        </el-tab-pane>
+        <el-tab-pane :label="`${t('requests.unmatched')} (${filteredUnmatchedRequests.length})`" name="unmatched">
+          <RequestTable :requests="filteredUnmatchedRequests" @row-click="onRequestClick" />
+        </el-tab-pane>
+      </el-tabs>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useRequestStore } from '@/stores/request'
 import { useProjectStore } from '@/stores/project'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import RequestTable from '@/components/request/RequestTable.vue'
+import RequestFilter, { type FilterState } from '@/components/request/RequestFilter.vue'
+import type { LoggedRequest } from '@/types/wiremock'
 
 const { t } = useI18n()
+const router = useRouter()
 const requestStore = useRequestStore()
 const projectStore = useProjectStore()
 const { requests, unmatchedRequests, loading } = storeToRefs(requestStore)
@@ -63,13 +71,67 @@ const { wiremockInstances } = storeToRefs(projectStore)
 const activeTab = ref('all')
 const selectedInstanceId = ref<string | null>(null)
 
-const matchedRequests = computed(() => {
-  return requests.value.filter(r => r.wasMatched)
+const filter = reactive<FilterState>({
+  urlPattern: '',
+  method: '',
+  statusFrom: undefined,
+  statusTo: undefined
 })
 
-const unmatchedOnlyRequests = computed(() => {
-  return unmatchedRequests.value
+function applyFilter(requestList: LoggedRequest[]): LoggedRequest[] {
+  if (!requestList) return []
+  return requestList.filter(r => {
+    // Null check for request object
+    if (!r || !r.request) {
+      return false
+    }
+    // URL filter
+    if (filter.urlPattern && !r.request.url?.toLowerCase().includes(filter.urlPattern.toLowerCase())) {
+      return false
+    }
+    // Method filter
+    if (filter.method && r.request.method !== filter.method) {
+      return false
+    }
+    // Status filter
+    const status = r.response?.status || r.responseDefinition?.status
+    if (filter.statusFrom && (!status || status < filter.statusFrom)) {
+      return false
+    }
+    if (filter.statusTo && (!status || status > filter.statusTo)) {
+      return false
+    }
+    return true
+  })
+}
+
+const filteredRequests = computed(() => {
+  return applyFilter(requests.value)
 })
+
+const filteredMatchedRequests = computed(() => {
+  return applyFilter(requests.value.filter(r => r.wasMatched))
+})
+
+const filteredUnmatchedRequests = computed(() => {
+  return applyFilter(unmatchedRequests.value)
+})
+
+function onFilterChange(newFilter: FilterState) {
+  Object.assign(filter, newFilter)
+}
+
+function onRequestClick(request: LoggedRequest) {
+  if (selectedInstanceId.value) {
+    router.push({
+      name: 'request-detail',
+      params: {
+        instanceId: selectedInstanceId.value,
+        requestId: request.id
+      }
+    })
+  }
+}
 
 function onInstanceChange(instanceId: string) {
   requestStore.setCurrentInstance(instanceId)
