@@ -213,10 +213,6 @@ Docker Hub への公開には以下の Secrets が必要です:
 - `DOCKERHUB_USERNAME`: Docker Hub のユーザー名
 - `DOCKERHUB_TOKEN`: Docker Hub のアクセストークン
 
-### 手動実行
-
-GitHub の Actions タブから `workflow_dispatch` で手動実行も可能です。
-
 ### リリース後の動作確認
 
 ```bash
