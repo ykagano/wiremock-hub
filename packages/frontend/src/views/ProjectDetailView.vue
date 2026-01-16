@@ -38,136 +38,89 @@
       </el-descriptions>
     </el-card>
 
-    <!-- タブ: インスタンス / スタブ -->
-    <el-tabs v-model="activeTab" class="detail-tabs">
-      <!-- インスタンス一覧 -->
-      <el-tab-pane :label="t('projectDetail.instances')" name="instances">
-        <div class="tab-header">
-          <el-button type="success" @click="syncAllInstances" :loading="syncing" :disabled="instances.length === 0">
-            <el-icon><Refresh /></el-icon>
-            {{ t('instances.syncAll') }}
-          </el-button>
-          <el-button type="primary" @click="showInstanceDialog = true">
-            <el-icon><Plus /></el-icon>
-            {{ t('instances.add') }}
-          </el-button>
-        </div>
+    <!-- インスタンス一覧 -->
+    <div class="instances-section">
+      <div class="section-header">
+        <el-button type="success" @click="syncAllInstances" :loading="syncing" :disabled="instances.length === 0">
+          <el-icon><Refresh /></el-icon>
+          {{ t('instances.syncAll') }}
+        </el-button>
+        <el-button type="primary" @click="showInstanceDialog = true">
+          <el-icon><Plus /></el-icon>
+          {{ t('instances.add') }}
+        </el-button>
+      </div>
 
-        <el-empty v-if="instances.length === 0" :description="t('instances.noInstances')">
-          <el-button type="primary" @click="showInstanceDialog = true">
-            {{ t('instances.addFirst') }}
-          </el-button>
-        </el-empty>
+      <el-empty v-if="instances.length === 0" :description="t('instances.noInstances')">
+        <el-button type="primary" @click="showInstanceDialog = true">
+          {{ t('instances.addFirst') }}
+        </el-button>
+      </el-empty>
 
-        <div v-else class="instances-grid">
-          <el-card
-            v-for="instance in instances"
-            :key="instance.id"
-            class="instance-card"
-            :class="{ healthy: instance.isHealthy, unhealthy: instance.isHealthy === false }"
-            shadow="hover"
-          >
-            <template #header>
-              <div class="card-header">
-                <div class="instance-name">
-                  <el-icon :class="getHealthClass(instance)">
-                    <component :is="getHealthIcon(instance)" />
-                  </el-icon>
-                  <span>{{ instance.name }}</span>
-                </div>
-                <div class="card-actions">
-                  <el-button
-                    type="primary"
-                    size="small"
-                    @click="syncInstance(instance)"
-                    :loading="syncingIds.has(instance.id)"
-                  >
-                    <el-icon><Upload /></el-icon>
-                    {{ t('instances.sync') }}
-                  </el-button>
-                  <el-dropdown trigger="click">
-                    <el-button type="default" size="small" circle>
-                      <el-icon><MoreFilled /></el-icon>
-                    </el-button>
-                    <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item @click="checkHealth(instance)">
-                          <el-icon><Connection /></el-icon>
-                          {{ t('instances.checkHealth') }}
-                        </el-dropdown-item>
-                        <el-dropdown-item @click="editInstance(instance)">
-                          <el-icon><Edit /></el-icon>
-                          {{ t('instances.edit') }}
-                        </el-dropdown-item>
-                        <el-dropdown-item @click="confirmDeleteInstance(instance)">
-                          <el-icon><Delete /></el-icon>
-                          {{ t('instances.delete') }}
-                        </el-dropdown-item>
-                      </el-dropdown-menu>
-                    </template>
-                  </el-dropdown>
-                </div>
+      <div v-else class="instances-grid">
+        <el-card
+          v-for="instance in instances"
+          :key="instance.id"
+          class="instance-card"
+          :class="{ healthy: instance.isHealthy, unhealthy: instance.isHealthy === false }"
+          shadow="hover"
+        >
+          <template #header>
+            <div class="card-header">
+              <div class="instance-name">
+                <el-icon :class="getHealthClass(instance)">
+                  <component :is="getHealthIcon(instance)" />
+                </el-icon>
+                <span>{{ instance.name }}</span>
               </div>
-            </template>
-
-            <div class="instance-info">
-              <el-icon class="info-icon"><Link /></el-icon>
-              <span class="instance-url">{{ instance.url }}</span>
+              <div class="card-actions">
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="syncInstance(instance)"
+                  :loading="syncingIds.has(instance.id)"
+                >
+                  <el-icon><Upload /></el-icon>
+                  {{ t('instances.sync') }}
+                </el-button>
+                <el-dropdown trigger="click">
+                  <el-button type="default" size="small" circle>
+                    <el-icon><MoreFilled /></el-icon>
+                  </el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item @click="checkHealth(instance)">
+                        <el-icon><Connection /></el-icon>
+                        {{ t('instances.checkHealth') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item @click="editInstance(instance)">
+                        <el-icon><Edit /></el-icon>
+                        {{ t('instances.edit') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item @click="confirmDeleteInstance(instance)">
+                        <el-icon><Delete /></el-icon>
+                        {{ t('instances.delete') }}
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
             </div>
+          </template>
 
-            <div class="instance-status">
-              <el-tag :type="getHealthTagType(instance)" size="small">
-                {{ getHealthText(instance) }}
-              </el-tag>
-            </div>
-          </el-card>
-        </div>
-      </el-tab-pane>
+          <div class="instance-info">
+            <el-icon class="info-icon"><Link /></el-icon>
+            <span class="instance-url">{{ instance.url }}</span>
+          </div>
 
-      <!-- スタブ一覧 -->
-      <el-tab-pane :label="t('projectDetail.stubs')" name="stubs">
-        <div class="tab-header">
-          <el-button type="primary" @click="goToNewStub">
-            <el-icon><Plus /></el-icon>
-            {{ t('mappings.add') }}
-          </el-button>
-        </div>
-
-        <el-empty v-if="stubs.length === 0" :description="t('mappings.noMappings')">
-          <el-button type="primary" @click="goToNewStub">
-            {{ t('mappings.add') }}
-          </el-button>
-        </el-empty>
-
-        <el-table v-else :data="stubs" stripe>
-          <el-table-column prop="name" :label="t('mappings.url')" min-width="200">
-            <template #default="{ row }">
-              <span v-if="row.name">{{ row.name }}</span>
-              <span v-else class="url-path">{{ getStubUrl(row) }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('mappings.method')" width="100">
-            <template #default="{ row }">
-              <el-tag :type="getMethodTagType(row)" size="small">
-                {{ getStubMethod(row) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('mappings.status')" width="100">
-            <template #default="{ row }">
-              {{ getStubStatus(row) }}
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('common.actions')" width="150">
-            <template #default="{ row }">
-              <el-button size="small" @click="goToEditStub(row.id)">
-                {{ t('common.edit') }}
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-    </el-tabs>
+          <div class="instance-status">
+            <el-tag :type="getHealthTagType(instance)" size="small">
+              {{ getHealthText(instance) }}
+            </el-tag>
+          </div>
+        </el-card>
+      </div>
+    </div>
 
     <!-- インスタンス追加/編集ダイアログ -->
     <el-dialog
@@ -238,7 +191,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/project'
-import { projectApi, wiremockInstanceApi, stubApi, type Project, type WiremockInstance, type Stub } from '@/services/api'
+import { projectApi, wiremockInstanceApi, stubApi, type Project, type WiremockInstance } from '@/services/api'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import dayjs from 'dayjs'
 
@@ -249,8 +202,6 @@ const projectStore = useProjectStore()
 
 const project = ref<Project | null>(null)
 const instances = ref<WiremockInstance[]>([])
-const stubs = ref<Stub[]>([])
-const activeTab = ref('instances')
 const syncing = ref(false)
 const syncingIds = ref(new Set<string>())
 
@@ -292,7 +243,7 @@ async function loadProject(projectId: string) {
   try {
     project.value = await projectApi.get(projectId)
     projectStore.setCurrentProject(projectId)
-    await Promise.all([loadInstances(projectId), loadStubs(projectId)])
+    await loadInstances(projectId)
   } catch (error: any) {
     ElMessage.error(error.message || t('common.error'))
     router.push('/projects')
@@ -310,10 +261,6 @@ async function loadInstances(projectId: string) {
       }
     })
   )
-}
-
-async function loadStubs(projectId: string) {
-  stubs.value = await stubApi.list(projectId)
 }
 
 function formatDate(dateString: string) {
@@ -460,36 +407,6 @@ function closeInstanceDialog() {
   instanceFormData.url = ''
   instanceFormRef.value?.resetFields()
 }
-
-// Stubs
-function getStubUrl(stub: Stub): string {
-  const mapping = stub.mapping as any
-  return mapping?.request?.url || mapping?.request?.urlPattern || mapping?.request?.urlPathPattern || '-'
-}
-
-function getStubMethod(stub: Stub): string {
-  const mapping = stub.mapping as any
-  return mapping?.request?.method || 'ANY'
-}
-
-function getStubStatus(stub: Stub): string {
-  const mapping = stub.mapping as any
-  return mapping?.response?.status?.toString() || '-'
-}
-
-function getMethodTagType(stub: Stub): string {
-  const method = getStubMethod(stub)
-  const types: Record<string, string> = { GET: 'success', POST: 'primary', PUT: 'warning', DELETE: 'danger' }
-  return types[method] || 'info'
-}
-
-function goToNewStub() {
-  router.push('/mappings/new')
-}
-
-function goToEditStub(id: string) {
-  router.push(`/mappings/${id}`)
-}
 </script>
 
 <style scoped>
@@ -522,14 +439,14 @@ function goToEditStub(id: string) {
 
 .url-text {
   font-family: monospace;
-  color: #409eff;
+  color: #606266;
 }
 
-.detail-tabs {
+.instances-section {
   margin-top: 24px;
 }
 
-.tab-header {
+.section-header {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -592,17 +509,12 @@ function goToEditStub(id: string) {
 .instance-url {
   font-family: monospace;
   font-size: 14px;
-  color: #409eff;
+  color: #606266;
   word-break: break-all;
 }
 
 .instance-status {
   display: flex;
   gap: 8px;
-}
-
-.url-path {
-  font-family: monospace;
-  color: #606266;
 }
 </style>

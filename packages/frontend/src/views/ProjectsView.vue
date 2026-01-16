@@ -271,7 +271,7 @@ function closeDialog() {
 .project-url {
   font-family: monospace;
   font-size: 14px;
-  color: #409eff;
+  color: #606266;
 }
 
 .project-meta {

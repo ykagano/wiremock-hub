@@ -26,6 +26,7 @@
     "noAccount": "アカウントをお持ちでないですか？"
   },
   "nav": {
+    "projectList": "プロジェクト一覧",
     "projects": "プロジェクト",
     "mappings": "スタブマッピング",
     "requests": "リクエストログ",
