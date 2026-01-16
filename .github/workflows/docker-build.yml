@@ -1,0 +1,53 @@
+name: Docker Build Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test-allinone:
+    name: Build Test - All-in-One
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build All-in-One image (test only)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./allinone/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          build-args: |
+            APP_VERSION=dev-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-test-standalone:
+    name: Build Test - Standalone
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Standalone image (test only)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          build-args: |
+            APP_VERSION=dev-test
+          cache-from: type=gha,scope=standalone
+          cache-to: type=gha,mode=max,scope=standalone
