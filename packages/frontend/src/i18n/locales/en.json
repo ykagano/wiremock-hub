@@ -26,6 +26,7 @@
     "noAccount": "Don't have an account?"
   },
   "nav": {
+    "projectList": "Project List",
     "projects": "Projects",
     "mappings": "Stub Mappings",
     "requests": "Request Log",
