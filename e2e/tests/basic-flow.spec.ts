@@ -76,7 +76,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Test Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -117,7 +117,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance with Docker network URL
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Health Test Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -148,22 +148,22 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add first instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Instance 1')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Add second instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Instance 2')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Navigate to stubs tab and create a stub
-    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
 
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Fill in stub using form
     const urlInput = page.getByPlaceholder('/api/users')
@@ -181,15 +181,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail page via sidebar
-    await page.locator('.el-aside').getByText(/プロジェクト|Projects/).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
     await page.waitForTimeout(500)
-
-    // Go to project detail
-    const projectCardAfterStub = page.locator('.el-card', { hasText: testProjectName })
-    await projectCardAfterStub.getByRole('button', { name: /詳細|Detail/ }).click()
-
-    // Click on instances tab
-    await page.getByRole('tab', { name: /インスタンス|Instances/ }).click()
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
@@ -213,13 +206,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Go to project detail
     const projectCard = page.locator('.el-card', { hasText: testProjectName })
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
 
     // Navigate to stubs tab
-    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
-    await page.waitForTimeout(500)
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(1000)
 
     // Click new stub button
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Verify stub editor opened
     await expect(page.locator('h2')).toContainText(/スタブ|Mapping|新規/)
@@ -325,13 +319,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Go to project detail
     const projectCard = page.locator('.el-card', { hasText: testProjectName })
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
 
     // Navigate to stubs tab
-    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
-    await page.waitForTimeout(500)
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(1000)
 
     // ========== Create simple stub first ==========
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     const urlInput = page.getByPlaceholder('/api/users')
     await urlInput.fill('/api/simple-stub')
@@ -491,7 +486,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance - use wiremock-2
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Clear Log Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -537,17 +532,17 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Request Log Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
     await page.waitForTimeout(1000)
 
     // Navigate to stubs tab and create a stub
-    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
 
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Fill in stub
     const urlInput = page.getByPlaceholder('/api/users')
@@ -565,14 +560,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail and sync
-    await page.locator('.el-aside').getByText(/プロジェクト|Projects/).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
     await page.waitForTimeout(500)
-
-    const projectCardForSync = page.locator('.el-card', { hasText: testProjectName })
-    await projectCardForSync.getByRole('button', { name: /詳細|Detail/ }).click()
-
-    // Click on instances tab
-    await page.getByRole('tab', { name: /インスタンス|Instances/ }).click()
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
@@ -622,7 +611,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add an invalid instance (non-existent host in Docker network)
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Invalid Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill('http://nonexistent-host:8080')
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -653,17 +642,17 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance (use wiremock-2 to avoid affecting other tests)
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Reset Test Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
     await page.waitForTimeout(1000)
 
     // Navigate to stubs tab and create a stub
-    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
 
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Fill in stub
     const urlInput = page.getByPlaceholder('/api/users')
@@ -681,14 +670,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail and sync
-    await page.locator('.el-aside').getByText(/プロジェクト|Projects/).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
     await page.waitForTimeout(500)
-
-    const projectCardForSync = page.locator('.el-card', { hasText: testProjectName })
-    await projectCardForSync.getByRole('button', { name: /詳細|Detail/ }).click()
-
-    // Click on instances tab
-    await page.getByRole('tab', { name: /インスタンス|Instances/ }).click()
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
@@ -743,7 +726,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Detail Test Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -810,7 +793,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Filter Test Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -861,7 +844,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Method Filter Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
@@ -913,18 +896,18 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Status Filter Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
     await page.waitForTimeout(1000)
 
     // Navigate to stubs tab and create stubs with different status codes
-    await page.getByRole('tab', { name: /スタブ|Stubs/ }).click()
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
 
     // Create 200 OK stub
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
     await page.getByPlaceholder('/api/users').fill('/api/status-200')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.locator('.el-input-number').first().locator('input').fill('200')
@@ -932,7 +915,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 5000 })
 
     // Create 404 Not Found stub
-    await page.getByRole('button', { name: /新規作成|マッピング追加|Add/ }).first().click()
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
     await page.getByPlaceholder('/api/users').fill('/api/status-404')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.locator('.el-input-number').first().locator('input').fill('404')
@@ -940,11 +923,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back and sync
-    await page.locator('.el-aside').getByText(/プロジェクト|Projects/).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
     await page.waitForTimeout(500)
-    const projectCardForSync = page.locator('.el-card', { hasText: testProjectName })
-    await projectCardForSync.getByRole('button', { name: /詳細|Detail/ }).click()
-    await page.getByRole('tab', { name: /インスタンス|Instances/ }).click()
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
     await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
@@ -991,7 +971,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
     // Add instance
-    await page.locator('.tab-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Reset Filter Instance')
     await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
