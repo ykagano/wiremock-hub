@@ -312,7 +312,6 @@ watch(
 .url-text {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
-  color: #409eff;
   word-break: break-all;
 }
 
