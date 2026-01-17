@@ -16,8 +16,8 @@
               size="small"
               style="width: 120px"
             >
-              <el-option label="日本語" value="ja" />
               <el-option label="English" value="en" />
+              <el-option label="日本語" value="ja" />
             </el-select>
           </div>
         </div>
