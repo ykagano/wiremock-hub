@@ -235,8 +235,9 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
   })
 
   // Get requests from WireMock instance
-  fastify.get('/:id/requests', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  fastify.get('/:id/requests', async (request: FastifyRequest<{ Params: { id: string }; Querystring: { limit?: string } }>, reply: FastifyReply) => {
     const { id } = request.params
+    const { limit } = request.query
 
     const instance = await fastify.prisma.wiremockInstance.findUnique({
       where: { id },
@@ -251,8 +252,11 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
     }
 
     try {
+      // Default limit to 1000 to prevent fetching too many requests
+      const requestLimit = limit ? parseInt(limit, 10) : 1000
       const response = await axios.get(`${instance.url}/__admin/requests`, {
-        timeout: 10000
+        timeout: 10000,
+        params: { limit: requestLimit }
       })
 
       return reply.send({
