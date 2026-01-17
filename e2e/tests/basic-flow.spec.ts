@@ -185,7 +185,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail page via sidebar
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
     // Sync all instances
@@ -564,7 +564,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail and sync
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
     // Sync all instances
@@ -674,7 +674,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail and sync
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
     // Sync all instances
@@ -927,7 +927,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back and sync
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
     await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
