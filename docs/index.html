@@ -15,11 +15,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>WireMock Hub - Distributed WireMock Management GUI</title>
-  <meta name="description" content="A GUI client for centralized management of multiple WireMock instances with Japanese/English support">
+  <meta name="description" content="A GUI client for centralized management of multiple WireMock instances">
 
   <!-- OGP -->
   <meta property="og:title" content="WireMock Hub - Distributed WireMock Management GUI">
-  <meta property="og:description" content="A GUI client for centralized management of multiple WireMock instances with Japanese/English support">
+  <meta property="og:description" content="A GUI client for centralized management of multiple WireMock instances">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ykagano.github.io/wiremock-hub/">
   <meta property="og:image" content="https://ykagano.github.io/wiremock-hub/images/wiremock-hub-ogp.png">
@@ -28,7 +28,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="WireMock Hub - Distributed WireMock Management GUI">
-  <meta name="twitter:description" content="A GUI client for centralized management of multiple WireMock instances with Japanese/English support">
+  <meta name="twitter:description" content="A GUI client for centralized management of multiple WireMock instances">
   <meta name="twitter:image" content="https://ykagano.github.io/wiremock-hub/images/wiremock-hub-ogp.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,7 +102,7 @@
       color: var(--primary);
     }
 
-    .lang-switch {
+    .lang-select {
       background: var(--primary);
       color: var(--white);
       border: none;
@@ -112,10 +112,22 @@
       font-size: 14px;
       font-weight: 500;
       transition: background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
     }
 
-    .lang-switch:hover {
-      background: var(--primary-dark);
+    .lang-select:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .lang-select option {
+      background: var(--white);
+      color: var(--text);
     }
 
     /* Mobile menu */
@@ -504,10 +516,16 @@
         <a href="#comparison" data-i18n="nav.comparison">Tool Comparison</a>
         <a href="#usage" data-i18n="nav.usage">How to Use</a>
         <a href="https://github.com/ykagano/wiremock-hub">GitHub</a>
-        <button class="lang-switch" onclick="toggleLanguage()">Japanese</button>
+        <select class="lang-select" id="lang-select-desktop" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+        </select>
       </nav>
       <div class="mobile-controls">
-        <button class="lang-switch" onclick="toggleLanguage()">Japanese</button>
+        <select class="lang-select" id="lang-select-mobile" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+        </select>
         <button class="hamburger" onclick="toggleMenu()">
           <span></span>
           <span></span>
@@ -520,7 +538,7 @@
   <section class="hero">
     <div class="container">
       <h1>WireMock Hub</h1>
-      <p data-i18n="hero.description">A Japanese-friendly GUI client for<br>centralized management of multiple WireMock instances</p>
+      <p data-i18n="hero.description">A GUI client for<br>centralized management of multiple WireMock instances</p>
       <a href="https://github.com/ykagano/wiremock-hub" class="btn btn-primary" data-i18n="hero.github">View on GitHub</a>
       <a href="#quickstart" class="btn btn-secondary" data-i18n="nav.quickstart">Quick Start</a>
     </div>
@@ -729,7 +747,7 @@
         'nav.quickstart': 'クイックスタート',
         'nav.usage': '使い方',
         'nav.comparison': 'ツール比較',
-        'hero.description': '複数のWireMockインスタンスを一元管理できる<br>日本語対応GUIクライアント',
+        'hero.description': '複数のWireMockインスタンスを一元管理できる<br>GUIクライアント',
         'hero.github': 'GitHub で見る',
         'features.distributed.title': '分散WireMock管理',
         'features.distributed.desc': '複数のWireMockインスタンスにスタブを一括デプロイ。ワンクリックで全インスタンスを同期できます。',
@@ -769,7 +787,7 @@
         'nav.quickstart': 'Quick Start',
         'nav.usage': 'How to Use',
         'nav.comparison': 'Tool Comparison',
-        'hero.description': 'A Japanese-friendly GUI client for<br>centralized management of multiple WireMock instances',
+        'hero.description': 'A GUI client for<br>centralized management of multiple WireMock instances',
         'hero.github': 'View on GitHub',
         'features.distributed.title': 'Distributed WireMock Management',
         'features.distributed.desc': 'Deploy stubs to multiple WireMock instances at once. Sync all instances with a single click.',
@@ -820,12 +838,12 @@
       });
     });
 
-    function toggleLanguage() {
-      currentLang = currentLang === 'ja' ? 'en' : 'ja';
+    function changeLanguage(lang) {
+      currentLang = lang;
       applyTranslations();
-      // Update all lang-switch buttons
-      document.querySelectorAll('.lang-switch').forEach(btn => {
-        btn.textContent = currentLang === 'ja' ? 'English' : 'Japanese';
+      // Sync all language selects
+      document.querySelectorAll('.lang-select').forEach(select => {
+        select.value = currentLang;
       });
       document.documentElement.lang = currentLang;
 
