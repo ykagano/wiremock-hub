@@ -1,6 +1,6 @@
 # WireMock Hub
 
-A Japanese GUI client for WireMock with centralized management support for distributed WireMock environments.
+A GUI client for centralized management of distributed WireMock environments.
 
 ## Features
 
@@ -21,7 +21,7 @@ A Japanese GUI client for WireMock with centralized management support for distr
 - **Easy backup**: Just copy the SQLite file
 
 ### Ease of Use
-- **Japanese UI**: Switch between Japanese and English
+- **Multilingual UI**: Switch between English and Japanese
 - **Intuitive interface**: Modern UI powered by Element Plus
 - **No authentication required**: Simple setup for team-wide access
 
