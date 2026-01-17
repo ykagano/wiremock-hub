@@ -1012,4 +1012,84 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Clean up
     await cleanupProject(page, testProjectName)
   })
+
+  test('should paginate request log when there are many requests', async ({ page, request }) => {
+    const testProjectName = `Pagination Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Pagination Test Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Generate 25 requests to WireMock to exceed default page size (20)
+    const requestPromises = []
+    for (let i = 1; i <= 25; i++) {
+      requestPromises.push(
+        request.get(`http://localhost:8082/api/pagination-test-${i}`).catch(() => {
+          // Requests will return 404, ignore errors
+        })
+      )
+    }
+    await Promise.all(requestPromises)
+
+    // Navigate to request log page
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
+    await page.waitForTimeout(1000)
+    await page.getByRole('button', { name: /更新|Refresh/ }).click()
+    await page.waitForTimeout(500)
+
+    // Verify pagination is visible (use first() since each tab has its own pagination)
+    const pagination = page.locator('.el-pagination').first()
+    await expect(pagination).toBeVisible()
+
+    // Verify total count shows 25 or more
+    await expect(pagination.locator('.el-pagination__total')).toContainText(/\d+/)
+
+    // Verify page size selector is present
+    await expect(pagination.locator('.el-pagination__sizes')).toBeVisible()
+
+    // Verify first page is showing some pagination-test requests
+    await expect(page.locator('code', { hasText: '/api/pagination-test-' }).first()).toBeVisible({ timeout: 5000 })
+
+    // Navigate to page 2 using the pager item (li.number element, not button)
+    const page2Button = pagination.locator('.el-pager li.number', { hasText: '2' })
+    await expect(page2Button).toBeVisible({ timeout: 5000 })
+    await page2Button.click()
+    await page.waitForTimeout(500)
+
+    // Verify page 2 is showing requests
+    const tableRows = page.locator('.el-table__row:visible')
+    await expect(tableRows.first()).toBeVisible()
+
+    // Go back to page 1
+    const page1Button = pagination.locator('.el-pager li.number', { hasText: '1' })
+    await page1Button.click()
+    await page.waitForTimeout(500)
+
+    // Change page size to 10
+    await pagination.locator('.el-pagination__sizes .el-select').click()
+    await page.waitForTimeout(300)
+    await page.getByRole('option', { name: '10/page' }).click()
+    await page.waitForTimeout(500)
+
+    // Verify table shows max 10 rows now
+    const rowsAfterSizeChange = page.locator('.el-table__row:visible')
+    const rowCount = await rowsAfterSizeChange.count()
+    expect(rowCount).toBeLessThanOrEqual(10)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
 })

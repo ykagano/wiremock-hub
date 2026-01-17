@@ -7,7 +7,6 @@ import { t } from '@/i18n'
 
 export const useRequestStore = defineStore('request', () => {
   const requests = ref<LoggedRequest[]>([])
-  const unmatchedRequests = ref<LoggedRequest[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const currentInstanceId = ref<string | null>(null)
@@ -19,7 +18,6 @@ export const useRequestStore = defineStore('request', () => {
     // Clear requests when instance changes
     if (!instanceId) {
       requests.value = []
-      unmatchedRequests.value = []
     }
   }
 
@@ -50,21 +48,6 @@ export const useRequestStore = defineStore('request', () => {
     }
   }
 
-  async function fetchUnmatchedRequests() {
-    if (!currentInstanceId.value) return
-
-    loading.value = true
-    try {
-      const response = await wiremockInstanceApi.getUnmatchedRequests(currentInstanceId.value)
-      unmatchedRequests.value = response.requests || []
-    } catch (e: any) {
-      error.value = e.message || t('messages.request.fetchUnmatchedFailed')
-      ElMessage.error(error.value!)
-    } finally {
-      loading.value = false
-    }
-  }
-
   async function resetRequests() {
     if (!currentInstanceId.value) return
 
@@ -72,7 +55,6 @@ export const useRequestStore = defineStore('request', () => {
     try {
       await wiremockInstanceApi.clearRequests(currentInstanceId.value)
       requests.value = []
-      unmatchedRequests.value = []
       ElMessage.success(t('messages.request.cleared'))
     } catch (e: any) {
       error.value = e.message || t('messages.request.clearFailed')
@@ -85,7 +67,6 @@ export const useRequestStore = defineStore('request', () => {
 
   return {
     requests,
-    unmatchedRequests,
     loading,
     error,
     currentInstanceId,
@@ -94,7 +75,6 @@ export const useRequestStore = defineStore('request', () => {
     setPendingRequestDetail,
     consumePendingRequestDetail,
     fetchRequests,
-    fetchUnmatchedRequests,
     resetRequests
   }
 })

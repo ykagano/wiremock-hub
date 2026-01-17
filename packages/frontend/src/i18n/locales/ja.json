@@ -302,7 +302,6 @@
     },
     "request": {
       "fetchFailed": "リクエストログの取得に失敗しました",
-      "fetchUnmatchedFailed": "マッチしなかったリクエストの取得に失敗しました",
       "cleared": "リクエストログをクリアしました",
       "clearFailed": "リクエストログのクリアに失敗しました"
     },

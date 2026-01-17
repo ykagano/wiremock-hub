@@ -302,7 +302,6 @@
     },
     "request": {
       "fetchFailed": "Failed to fetch request logs",
-      "fetchUnmatchedFailed": "Failed to fetch unmatched requests",
       "cleared": "Request logs cleared",
       "clearFailed": "Failed to clear request logs"
     },

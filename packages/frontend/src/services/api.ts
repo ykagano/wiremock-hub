@@ -140,13 +140,10 @@ export const wiremockInstanceApi = {
     return response.data.data
   },
 
-  async getRequests(id: string): Promise<any> {
-    const response = await apiClient.get<ApiResponse<any>>(`/wiremock-instances/${id}/requests`)
-    return response.data.data
-  },
-
-  async getUnmatchedRequests(id: string): Promise<any> {
-    const response = await apiClient.get<ApiResponse<any>>(`/wiremock-instances/${id}/requests/unmatched`)
+  async getRequests(id: string, limit?: number): Promise<any> {
+    const response = await apiClient.get<ApiResponse<any>>(`/wiremock-instances/${id}/requests`, {
+      params: limit ? { limit } : undefined
+    })
     return response.data.data
   },
 
