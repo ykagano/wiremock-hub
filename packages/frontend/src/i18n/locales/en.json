@@ -149,6 +149,7 @@
     "stubName": "Stub Name",
     "stubId": "Stub ID",
     "fetchError": "Failed to fetch request",
+    "unmatchedNotAvailable": "Unmatched request details are not available. Please navigate from the request list.",
     "filter": {
       "urlPattern": "URL Pattern",
       "urlPatternPlaceholder": "Filter by URL",

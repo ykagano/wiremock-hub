@@ -290,9 +290,37 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         timeout: 10000
       })
 
+      // Normalize unmatched requests to match the format of /__admin/requests
+      // WireMock's /unmatched returns flat request objects without the 'request' wrapper
+      const normalizedRequests = (response.data.requests || []).map((req: any, index: number) => ({
+        id: req.id || `unmatched-${index}-${req.loggedDate}`,
+        request: {
+          url: req.url,
+          absoluteUrl: req.absoluteUrl,
+          method: req.method,
+          clientIp: req.clientIp,
+          headers: req.headers,
+          cookies: req.cookies,
+          body: req.body,
+          bodyAsBase64: req.bodyAsBase64,
+          loggedDate: req.loggedDate,
+          loggedDateString: req.loggedDateString,
+          queryParams: req.queryParams,
+          formParams: req.formParams,
+          protocol: req.protocol,
+          scheme: req.scheme,
+          host: req.host,
+          port: req.port
+        },
+        wasMatched: false
+      }))
+
       return reply.send({
         success: true,
-        data: response.data
+        data: {
+          requests: normalizedRequests,
+          requestJournalDisabled: response.data.requestJournalDisabled
+        }
       })
     } catch (error: any) {
       return reply.status(502).send({

@@ -139,10 +139,12 @@ import dayjs from 'dayjs'
 import type { LoggedRequest } from '@/types/wiremock'
 import api from '@/services/api'
 import ImportStubDialog from '@/components/request/ImportStubDialog.vue'
+import { useRequestStore } from '@/stores/request'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const requestStore = useRequestStore()
 
 const instanceId = computed(() => route.params.instanceId as string)
 const requestId = computed(() => route.params.requestId as string)
@@ -231,6 +233,20 @@ function onStubImported() {
 
 async function fetchRequestDetail() {
   if (!instanceId.value || !requestId.value) return
+
+  // Check if request data was passed via Pinia store (for unmatched requests)
+  const pendingRequest = requestStore.consumePendingRequestDetail()
+  if (pendingRequest) {
+    request.value = pendingRequest
+    return
+  }
+
+  // Unmatched requests cannot be fetched individually from WireMock API
+  // They need to be accessed via the store from the requests list
+  if (requestId.value.startsWith('unmatched-')) {
+    error.value = t('requests.unmatchedNotAvailable')
+    return
+  }
 
   loading.value = true
   error.value = null

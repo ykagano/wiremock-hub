@@ -11,6 +11,8 @@ export const useRequestStore = defineStore('request', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const currentInstanceId = ref<string | null>(null)
+  // Temporary storage for request detail (used for unmatched requests that can't be fetched by ID)
+  const pendingRequestDetail = ref<LoggedRequest | null>(null)
 
   function setCurrentInstance(instanceId: string | null) {
     currentInstanceId.value = instanceId
@@ -19,6 +21,16 @@ export const useRequestStore = defineStore('request', () => {
       requests.value = []
       unmatchedRequests.value = []
     }
+  }
+
+  function setPendingRequestDetail(request: LoggedRequest | null) {
+    pendingRequestDetail.value = request
+  }
+
+  function consumePendingRequestDetail(): LoggedRequest | null {
+    const request = pendingRequestDetail.value
+    pendingRequestDetail.value = null
+    return request
   }
 
   async function fetchRequests() {
@@ -77,7 +89,10 @@ export const useRequestStore = defineStore('request', () => {
     loading,
     error,
     currentInstanceId,
+    pendingRequestDetail,
     setCurrentInstance,
+    setPendingRequestDetail,
+    consumePendingRequestDetail,
     fetchRequests,
     fetchUnmatchedRequests,
     resetRequests

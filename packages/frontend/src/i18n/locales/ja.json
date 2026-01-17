@@ -149,6 +149,7 @@
     "stubName": "スタブ名",
     "stubId": "スタブID",
     "fetchError": "リクエストの取得に失敗しました",
+    "unmatchedNotAvailable": "マッチング失敗リクエストの詳細は表示できません。リクエスト一覧から選択してください。",
     "filter": {
       "urlPattern": "URLパターン",
       "urlPatternPlaceholder": "URLで絞り込み",

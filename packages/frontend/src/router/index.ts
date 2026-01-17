@@ -57,10 +57,18 @@ const router = createRouter({
 })
 
 // Navigation guard
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   // Pages that require project selection
   if (to.meta.requiresProject) {
     const projectStore = useProjectStore()
+
+    // If projects not loaded yet, load them first
+    if (projectStore.projects.length === 0) {
+      await projectStore.fetchProjects()
+      // Try to restore current project from localStorage
+      projectStore.loadCurrentProject()
+    }
+
     if (!projectStore.currentProject) {
       next('/projects')
       return

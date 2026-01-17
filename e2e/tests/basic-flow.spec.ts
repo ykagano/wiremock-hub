@@ -525,7 +525,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await cleanupProject(page, testProjectName)
   })
 
-  test('should display request log', async ({ page, request }) => {
+  test('should display request log, detail and import as stub', async ({ page, request }) => {
     const testProjectName = `Request Log Test ${Date.now()}`
 
     // Create project
@@ -575,15 +575,21 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
 
-    // Make a request to WireMock via the backend proxy
-    // Since E2E tests run in the browser context and WireMock is on Docker network,
-    // we need to use the backend API to trigger the request
-    // Actually, we can directly call WireMock from the test (Playwright request context)
-    // but since wiremock-1 is in Docker network, we need to use localhost:8081 for host access
+    // Make a matched request (stub exists)
     try {
       await request.get('http://localhost:8081/api/request-log-test')
     } catch {
       // Request might fail if wiremock is not accessible from host, continue anyway
+    }
+
+    // Make an unmatched request (no stub exists)
+    try {
+      await request.post('http://localhost:8081/api/unmatched-test', {
+        data: { name: 'test', value: 123 },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    } catch {
+      // Request will return 404, continue anyway
     }
 
     // Navigate to request log page via sidebar
@@ -598,8 +604,64 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByRole('tab', { name: /マッチング成功|Matched/ })).toBeVisible()
     await expect(page.getByRole('tab', { name: /マッチング失敗|Unmatched/ })).toBeVisible()
 
-    // Verify request log entry is displayed (use first() since it appears in multiple tabs)
+    // Verify matched request log entry is displayed (in All tab)
     await expect(page.locator('code', { hasText: '/api/request-log-test' }).first()).toBeVisible({ timeout: 10000 })
+
+    // Verify unmatched request log entry is displayed (in All tab)
+    await expect(page.locator('code', { hasText: '/api/unmatched-test' }).first()).toBeVisible({ timeout: 10000 })
+
+    // --- Test request detail view for matched request (from Matched tab) ---
+    // Switch to Matched tab
+    await page.getByRole('tab', { name: /マッチング成功|Matched/ }).click()
+    await page.waitForTimeout(500)
+
+    // Click on "Detail" link in the matched request row
+    const matchedRowInTab = page.locator('.el-table__row:visible', { hasText: '/api/request-log-test' }).first()
+    await expect(matchedRowInTab).toBeVisible({ timeout: 5000 })
+    await matchedRowInTab.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Verify we're on request detail page
+    await expect(page.getByRole('button', { name: /戻る|Back/ })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/リクエスト|Request/).first()).toBeVisible()
+    await expect(page.getByText('/api/request-log-test')).toBeVisible({ timeout: 10000 })
+
+    // Verify matched stub info is displayed
+    await expect(page.getByText(/マッチしたスタブ|Matched Stub/)).toBeVisible()
+
+    // Go back to request list
+    await page.getByRole('button', { name: /戻る|Back/ }).click()
+    await expect(page.getByRole('heading', { name: /リクエストログ|Request Log/ })).toBeVisible({ timeout: 5000 })
+
+    // --- Test request detail view for unmatched request (from Unmatched tab) ---
+    // Switch to Unmatched tab
+    await page.getByRole('tab', { name: /マッチング失敗|Unmatched/ }).click()
+    await page.waitForTimeout(500)
+
+    // Click on "Detail" link in the unmatched request row (use :visible to get the one in the active tab)
+    const unmatchedRowInTab = page.locator('.el-table__row:visible', { hasText: '/api/unmatched-test' }).first()
+    await expect(unmatchedRowInTab).toBeVisible({ timeout: 5000 })
+    // Click the Detail link instead of the row to ensure click is handled
+    await unmatchedRowInTab.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Verify we're on request detail page
+    await expect(page.getByRole('button', { name: /戻る|Back/ })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/リクエスト|Request/).first()).toBeVisible()
+    await expect(page.getByText('/api/unmatched-test')).toBeVisible({ timeout: 10000 })
+
+    // Click import as stub button
+    await page.getByRole('button', { name: /スタブとしてインポート|Import as Stub/ }).click()
+
+    // Verify import dialog is visible
+    await expect(page.locator('.el-dialog', { hasText: /スタブとしてインポート|Import as Stub/ })).toBeVisible()
+
+    // Verify default values are filled
+    await expect(page.getByLabel(/スタブ名|Stub Name/).first()).toHaveValue(/POST.*unmatched-test/)
+
+    // Click import button
+    await page.locator('.el-dialog').getByRole('button', { name: /インポート|Import/ }).click()
+
+    // Wait for success message
+    await expect(page.getByText(/インポート|import|成功|success/i).first()).toBeVisible({ timeout: 5000 })
 
     // Clean up
     await cleanupProject(page, testProjectName)
@@ -714,73 +776,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     const responseAfterReset = await request.get('http://localhost:8082/api/reset-test')
     // After reset, WireMock returns 404 for non-existent mappings
     expect(responseAfterReset.status()).toBe(404)
-
-    // Clean up
-    await cleanupProject(page, testProjectName)
-  })
-
-  test('should display request detail and import as stub', async ({ page, request }) => {
-    const testProjectName = `Request Detail Test ${Date.now()}`
-
-    // Create project
-    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
-    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName })
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
-
-    // Add instance
-    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
-    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Detail Test Instance')
-    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
-    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
-    await page.waitForTimeout(1000)
-
-    // Make a request to WireMock to create some log entries
-    try {
-      await request.post('http://localhost:8081/api/detail-test', {
-        data: { name: 'test', value: 123 },
-        headers: { 'Content-Type': 'application/json' }
-      })
-    } catch {
-      // Request might return 404, continue anyway
-    }
-
-    // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
-    await page.waitForTimeout(1000)
-
-    // Click refresh button
-    await page.getByRole('button', { name: /更新|Refresh/ }).click()
-    await page.waitForTimeout(500)
-
-    // Click on a request row to go to detail page
-    const requestRow = page.locator('code', { hasText: '/api/detail-test' }).first()
-    await expect(requestRow).toBeVisible({ timeout: 10000 })
-    await requestRow.click()
-
-    // Verify we're on request detail page
-    await expect(page.getByRole('button', { name: /戻る|Back/ })).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/リクエスト|Request/).first()).toBeVisible()
-    await expect(page.getByText('/api/detail-test')).toBeVisible()
-
-    // Click import as stub button
-    await page.getByRole('button', { name: /スタブとしてインポート|Import as Stub/ }).click()
-
-    // Verify import dialog is visible
-    await expect(page.locator('.el-dialog', { hasText: /スタブとしてインポート|Import as Stub/ })).toBeVisible()
-
-    // Verify default values are filled
-    await expect(page.getByLabel(/スタブ名|Stub Name/).first()).toHaveValue(/POST.*detail-test/)
-
-    // Click import button
-    await page.locator('.el-dialog').getByRole('button', { name: /インポート|Import/ }).click()
-
-    // Wait for success message
-    await expect(page.getByText(/インポート|import|成功|success/i).first()).toBeVisible({ timeout: 5000 })
 
     // Clean up
     await cleanupProject(page, testProjectName)
