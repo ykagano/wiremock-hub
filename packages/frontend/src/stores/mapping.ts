@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { stubApi, wiremockInstanceApi, type Stub, type CreateStubInput, type UpdateStubInput } from '@/services/api'
 import { useProjectStore } from './project'
 import { ElMessage } from 'element-plus'
+import { t } from '@/i18n'
 import type { Mapping } from '@/types/wiremock'
 
 export const useMappingStore = defineStore('mapping', () => {
@@ -10,14 +11,14 @@ export const useMappingStore = defineStore('mapping', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // 後方互換性のためにmappingsを公開（stubのmappingフィールドから生成）
+  // Expose mappings for backward compatibility (generated from stub's mapping field)
   const mappings = ref<Mapping[]>([])
 
-  // スタブ一覧取得
+  // Fetch stub list
   async function fetchMappings() {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) {
-      error.value = 'プロジェクトが選択されていません'
+      error.value = t('messages.project.notSelected')
       return
     }
 
@@ -26,20 +27,20 @@ export const useMappingStore = defineStore('mapping', () => {
 
     try {
       stubs.value = await stubApi.list(projectStore.currentProjectId)
-      // mappingsをstubsから生成（後方互換性のため）
+      // Generate mappings from stubs (for backward compatibility)
       mappings.value = stubs.value.map(s => ({
         ...s.mapping as Mapping,
         id: s.id
       }))
     } catch (e: any) {
-      error.value = e.message || 'スタブの取得に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.stub.fetchFailed')
+      ElMessage.error(error.value!)
     } finally {
       loading.value = false
     }
   }
 
-  // スタブ作成
+  // Create stub
   async function createMapping(mapping: Mapping): Promise<Stub | null> {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) return null
@@ -54,18 +55,18 @@ export const useMappingStore = defineStore('mapping', () => {
       const created = await stubApi.create(input)
       stubs.value.push(created)
       mappings.value.push({ ...mapping, id: created.id })
-      ElMessage.success('スタブを作成しました')
+      ElMessage.success(t('messages.stub.created'))
       return created
     } catch (e: any) {
-      error.value = e.message || 'スタブの作成に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.stub.createFailed')
+      ElMessage.error(error.value!)
       throw e
     } finally {
       loading.value = false
     }
   }
 
-  // スタブ更新
+  // Update stub
   async function updateMapping(id: string, mapping: Mapping): Promise<Stub | null> {
     loading.value = true
     try {
@@ -79,51 +80,51 @@ export const useMappingStore = defineStore('mapping', () => {
         stubs.value[index] = updated
         mappings.value[index] = { ...mapping, id: updated.id }
       }
-      ElMessage.success('スタブを更新しました')
+      ElMessage.success(t('messages.stub.updated'))
       return updated
     } catch (e: any) {
-      error.value = e.message || 'スタブの更新に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.stub.updateFailed')
+      ElMessage.error(error.value!)
       throw e
     } finally {
       loading.value = false
     }
   }
 
-  // スタブ削除
+  // Delete stub
   async function deleteMapping(id: string): Promise<boolean> {
     loading.value = true
     try {
       await stubApi.delete(id)
       stubs.value = stubs.value.filter(s => s.id !== id)
       mappings.value = mappings.value.filter(m => m.id !== id)
-      ElMessage.success('スタブを削除しました')
+      ElMessage.success(t('messages.stub.deleted'))
       return true
     } catch (e: any) {
-      error.value = e.message || 'スタブの削除に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.stub.deleteFailed')
+      ElMessage.error(error.value!)
       throw e
     } finally {
       loading.value = false
     }
   }
 
-  // WireMockに同期
+  // Sync to WireMock
   async function syncToWiremock(stubId: string, instanceId: string): Promise<boolean> {
     loading.value = true
     try {
       await stubApi.sync(stubId, instanceId)
-      ElMessage.success('WireMockに同期しました')
+      ElMessage.success(t('messages.stub.synced'))
       return true
     } catch (e: any) {
-      ElMessage.error(e.message || 'WireMockへの同期に失敗しました')
+      ElMessage.error(e.message || t('messages.stub.syncFailed'))
       return false
     } finally {
       loading.value = false
     }
   }
 
-  // 全スタブをWireMockに同期
+  // Sync all stubs to WireMock
   async function syncAllToWiremock(instanceId: string): Promise<{ success: number; failed: number } | null> {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) return null
@@ -132,13 +133,13 @@ export const useMappingStore = defineStore('mapping', () => {
     try {
       const result = await stubApi.syncAll(projectStore.currentProjectId, instanceId)
       if (result.failed === 0) {
-        ElMessage.success(`${result.success}件のスタブをWireMockに同期しました`)
+        ElMessage.success(t('messages.stub.syncedCount', { count: result.success }))
       } else {
-        ElMessage.warning(`成功: ${result.success}件, 失敗: ${result.failed}件`)
+        ElMessage.warning(t('messages.stub.syncResult', { success: result.success, failed: result.failed }))
       }
       return result
     } catch (e: any) {
-      ElMessage.error(e.message || 'WireMockへの同期に失敗しました')
+      ElMessage.error(e.message || t('messages.stub.syncFailed'))
       return null
     } finally {
       loading.value = false
@@ -150,26 +151,26 @@ export const useMappingStore = defineStore('mapping', () => {
     mappings.value = []
   }
 
-  // スタブを取得（IDで）
+  // Get stub by ID
   function getStubById(id: string): Stub | undefined {
     return stubs.value.find(s => s.id === id)
   }
 
-  // WireMockインスタンスのマッピングをリセット
+  // Reset WireMock instance mappings
   async function resetMappings(): Promise<boolean> {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) {
-      ElMessage.warning('プロジェクトが選択されていません')
+      ElMessage.warning(t('messages.project.notSelected'))
       return false
     }
 
-    // インスタンスがロードされていなければロードする
+    // Load instances if not already loaded
     if (projectStore.wiremockInstances.length === 0) {
       await projectStore.fetchWiremockInstances(projectStore.currentProjectId)
     }
 
     if (projectStore.wiremockInstances.length === 0) {
-      ElMessage.warning('WireMockインスタンスがありません')
+      ElMessage.warning(t('messages.instance.notAvailable'))
       return false
     }
 
@@ -189,14 +190,14 @@ export const useMappingStore = defineStore('mapping', () => {
       }
 
       if (failCount === 0) {
-        ElMessage.success('すべてのマッピングをリセットしました')
+        ElMessage.success(t('messages.stub.resetSuccess'))
       } else {
-        ElMessage.warning(`成功: ${successCount}件, 失敗: ${failCount}件`)
+        ElMessage.warning(t('messages.stub.syncResult', { success: successCount, failed: failCount }))
       }
       return failCount === 0
     } catch (e: any) {
-      error.value = e.message || 'マッピングのリセットに失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.stub.resetFailed')
+      ElMessage.error(error.value!)
       return false
     } finally {
       loading.value = false

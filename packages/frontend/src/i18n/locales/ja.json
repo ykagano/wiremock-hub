@@ -90,6 +90,7 @@
     "request": "リクエスト",
     "response": "レスポンス",
     "advanced": "詳細設定",
+    "json": "JSON",
     "save": "保存",
     "cancel": "キャンセル",
     "requestMethod": "メソッド",
@@ -97,6 +98,9 @@
     "requestUrlPattern": "URLパターン",
     "requestHeaders": "ヘッダー",
     "requestBody": "ボディ",
+    "queryParameters": "クエリパラメータ",
+    "text": "テキスト",
+    "bodyPatterns": "ボディパターン",
     "responseStatus": "ステータスコード",
     "responseBody": "レスポンスボディ",
     "responseHeaders": "レスポンスヘッダー",
@@ -104,7 +108,14 @@
     "priority": "優先度",
     "scenario": "シナリオ名",
     "requiredState": "必要な状態",
-    "newState": "新しい状態"
+    "newState": "新しい状態",
+    "persistent": "永続化",
+    "placeholder": {
+      "url": "例: /api/users",
+      "scenario": "例: ログインフロー",
+      "requiredState": "例: 開始",
+      "newState": "例: ログイン済み"
+    }
   },
   "requests": {
     "title": "リクエストログ",
@@ -154,12 +165,26 @@
       "title": "スタブとしてインポート",
       "importAsStub": "スタブとしてインポート",
       "stubName": "スタブ名",
-      "stubNamePlaceholder": "例: POST /api/users",
+      "placeholder": {
+        "stubName": "例: POST /api/users"
+      },
       "requestMatching": "リクエストマッチング",
       "urlMatchType": "URLマッチング方式",
+      "urlMatchOptions": {
+        "urlPath": "urlPath（パス完全一致）",
+        "urlPathPattern": "urlPathPattern（パス正規表現）",
+        "url": "url（URL完全一致）",
+        "urlPattern": "urlPattern（URL正規表現）"
+      },
       "urlPattern": "URLパターン",
       "matchHeaders": "マッチングするヘッダー",
       "bodyMatchType": "ボディマッチング方式",
+      "bodyMatchOptions": {
+        "equalToJson": "equalToJson（JSON一致）",
+        "equalTo": "equalTo（完全一致）",
+        "contains": "contains（部分一致）",
+        "matches": "matches（正規表現）"
+      },
       "noBodyMatch": "ボディマッチングなし",
       "ignoreArrayOrder": "配列の順序を無視",
       "ignoreExtraElements": "追加の要素を無視",
@@ -238,6 +263,81 @@
     "selected": "選択中",
     "refresh": "更新",
     "actions": "操作",
-    "confirmDelete": "削除しますか？"
+    "confirmDelete": "削除しますか？",
+    "add": "追加"
+  },
+  "messages": {
+    "project": {
+      "fetchFailed": "プロジェクトの取得に失敗しました",
+      "created": "プロジェクトを作成しました",
+      "createFailed": "プロジェクトの作成に失敗しました",
+      "updated": "プロジェクトを更新しました",
+      "updateFailed": "プロジェクトの更新に失敗しました",
+      "deleted": "プロジェクトを削除しました",
+      "deleteFailed": "プロジェクトの削除に失敗しました",
+      "notSelected": "プロジェクトが選択されていません"
+    },
+    "instance": {
+      "added": "WireMockインスタンスを追加しました",
+      "addFailed": "WireMockインスタンスの追加に失敗しました",
+      "deleted": "WireMockインスタンスを削除しました",
+      "deleteFailed": "WireMockインスタンスの削除に失敗しました",
+      "notAvailable": "WireMockインスタンスがありません"
+    },
+    "stub": {
+      "fetchFailed": "スタブの取得に失敗しました",
+      "created": "スタブを作成しました",
+      "createFailed": "スタブの作成に失敗しました",
+      "updated": "スタブを更新しました",
+      "updateFailed": "スタブの更新に失敗しました",
+      "deleted": "スタブを削除しました",
+      "deleteFailed": "スタブの削除に失敗しました",
+      "synced": "WireMockに同期しました",
+      "syncFailed": "WireMockへの同期に失敗しました",
+      "syncedCount": "{count}件のスタブをWireMockに同期しました",
+      "syncResult": "成功: {success}件, 失敗: {failed}件",
+      "resetSuccess": "すべてのマッピングをリセットしました",
+      "resetFailed": "マッピングのリセットに失敗しました"
+    },
+    "request": {
+      "fetchFailed": "リクエストログの取得に失敗しました",
+      "fetchUnmatchedFailed": "マッチしなかったリクエストの取得に失敗しました",
+      "cleared": "リクエストログをクリアしました",
+      "clearFailed": "リクエストログのクリアに失敗しました"
+    },
+    "mapping": {
+      "loadFailed": "マッピングの読み込みに失敗しました",
+      "statusRequired": "ステータスコードを入力してください",
+      "urlRequired": "URLを入力してください",
+      "created": "マッピングを作成しました",
+      "updated": "マッピングを更新しました",
+      "saveFailed": "保存に失敗しました"
+    },
+    "json": {
+      "parseError": "JSON解析エラー: {message}"
+    }
+  },
+  "labels": {
+    "patternType": "パターンタイプ",
+    "value": "値",
+    "addPattern": "パターン追加",
+    "urlMatch": {
+      "exact": "完全一致",
+      "regex": "正規表現",
+      "path": "パス一致",
+      "pathPattern": "パスパターン"
+    },
+    "bodyMatch": {
+      "equalTo": "完全一致",
+      "contains": "含む",
+      "matches": "正規表現",
+      "equalToJson": "JSON一致",
+      "matchesJsonPath": "JSONPath"
+    },
+    "ms": "ミリ秒",
+    "priorityHint": "優先度が高いほど先にマッチングされます（小さい数値 = 高優先度）",
+    "persistentHint": "有効にすると、WireMock再起動後もマッピングが保持されます",
+    "selectMethod": "メソッドを選択",
+    "key": "キー"
   }
 }

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import type { LoggedRequest } from '@/types/wiremock'
 import { wiremockInstanceApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
+import { t } from '@/i18n'
 
 export const useRequestStore = defineStore('request', () => {
   const requests = ref<LoggedRequest[]>([])
@@ -13,7 +14,7 @@ export const useRequestStore = defineStore('request', () => {
 
   function setCurrentInstance(instanceId: string | null) {
     currentInstanceId.value = instanceId
-    // インスタンスが変わったらリクエストをクリア
+    // Clear requests when instance changes
     if (!instanceId) {
       requests.value = []
       unmatchedRequests.value = []
@@ -30,8 +31,8 @@ export const useRequestStore = defineStore('request', () => {
       const response = await wiremockInstanceApi.getRequests(currentInstanceId.value)
       requests.value = response?.requests || []
     } catch (e: any) {
-      error.value = e.message || 'リクエストログの取得に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.request.fetchFailed')
+      ElMessage.error(error.value!)
     } finally {
       loading.value = false
     }
@@ -45,8 +46,8 @@ export const useRequestStore = defineStore('request', () => {
       const response = await wiremockInstanceApi.getUnmatchedRequests(currentInstanceId.value)
       unmatchedRequests.value = response.requests || []
     } catch (e: any) {
-      error.value = e.message || 'マッチしなかったリクエストの取得に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.request.fetchUnmatchedFailed')
+      ElMessage.error(error.value!)
     } finally {
       loading.value = false
     }
@@ -60,10 +61,10 @@ export const useRequestStore = defineStore('request', () => {
       await wiremockInstanceApi.clearRequests(currentInstanceId.value)
       requests.value = []
       unmatchedRequests.value = []
-      ElMessage.success('リクエストログをクリアしました')
+      ElMessage.success(t('messages.request.cleared'))
     } catch (e: any) {
-      error.value = e.message || 'リクエストログのクリアに失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.request.clearFailed')
+      ElMessage.error(error.value!)
       throw e
     } finally {
       loading.value = false

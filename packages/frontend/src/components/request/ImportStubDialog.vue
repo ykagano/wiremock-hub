@@ -8,17 +8,17 @@
   >
     <el-form :model="form" label-width="160px" label-position="top">
       <el-form-item :label="t('requests.import.stubName')" required>
-        <el-input v-model="form.name" :placeholder="t('requests.import.stubNamePlaceholder')" />
+        <el-input v-model="form.name" :placeholder="t('requests.import.placeholder.stubName')" />
       </el-form-item>
 
       <el-divider content-position="left">{{ t('requests.import.requestMatching') }}</el-divider>
 
       <el-form-item :label="t('requests.import.urlMatchType')">
         <el-select v-model="form.urlMatchType" style="width: 100%">
-          <el-option label="urlPath (Exact path match)" value="urlPath" />
-          <el-option label="urlPathPattern (Regex path match)" value="urlPathPattern" />
-          <el-option label="url (Exact full URL)" value="url" />
-          <el-option label="urlPattern (Regex full URL)" value="urlPattern" />
+          <el-option :label="t('requests.import.urlMatchOptions.urlPath')" value="urlPath" />
+          <el-option :label="t('requests.import.urlMatchOptions.urlPathPattern')" value="urlPathPattern" />
+          <el-option :label="t('requests.import.urlMatchOptions.url')" value="url" />
+          <el-option :label="t('requests.import.urlMatchOptions.urlPattern')" value="urlPattern" />
         </el-select>
       </el-form-item>
 
@@ -42,10 +42,10 @@
       <el-form-item v-if="request.request.body" :label="t('requests.import.bodyMatchType')">
         <el-select v-model="form.bodyMatchType" clearable style="width: 100%">
           <el-option :label="t('requests.import.noBodyMatch')" value="" />
-          <el-option label="equalToJson (JSON match)" value="equalToJson" />
-          <el-option label="equalTo (Exact match)" value="equalTo" />
-          <el-option label="contains (Partial match)" value="contains" />
-          <el-option label="matches (Regex)" value="matches" />
+          <el-option :label="t('requests.import.bodyMatchOptions.equalToJson')" value="equalToJson" />
+          <el-option :label="t('requests.import.bodyMatchOptions.equalTo')" value="equalTo" />
+          <el-option :label="t('requests.import.bodyMatchOptions.contains')" value="contains" />
+          <el-option :label="t('requests.import.bodyMatchOptions.matches')" value="matches" />
         </el-select>
       </el-form-item>
 

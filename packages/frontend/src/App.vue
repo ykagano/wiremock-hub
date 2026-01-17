@@ -1,7 +1,7 @@
 <template>
   <el-config-provider :locale="elementLocale">
     <el-container class="app-container">
-      <!-- ヘッダー -->
+      <!-- Header -->
       <el-header class="app-header">
         <div class="header-content">
           <div class="header-left">
@@ -24,7 +24,7 @@
       </el-header>
 
       <el-container>
-        <!-- サイドバー -->
+        <!-- Sidebar -->
         <el-aside width="200px" class="app-aside">
           <el-menu
             :default-active="currentRoute"
@@ -63,7 +63,7 @@
           </el-menu>
         </el-aside>
 
-        <!-- メインコンテンツ -->
+        <!-- Main content -->
         <el-main class="app-main">
           <router-view v-slot="{ Component }">
             <transition name="fade" mode="out-in">

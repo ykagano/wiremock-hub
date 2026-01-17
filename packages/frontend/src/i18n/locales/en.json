@@ -90,6 +90,7 @@
     "request": "Request",
     "response": "Response",
     "advanced": "Advanced",
+    "json": "JSON",
     "save": "Save",
     "cancel": "Cancel",
     "requestMethod": "Method",
@@ -97,6 +98,9 @@
     "requestUrlPattern": "URL Pattern",
     "requestHeaders": "Headers",
     "requestBody": "Body",
+    "queryParameters": "Query Parameters",
+    "text": "Text",
+    "bodyPatterns": "Body Patterns",
     "responseStatus": "Status Code",
     "responseBody": "Response Body",
     "responseHeaders": "Response Headers",
@@ -104,7 +108,14 @@
     "priority": "Priority",
     "scenario": "Scenario Name",
     "requiredState": "Required State",
-    "newState": "New State"
+    "newState": "New State",
+    "persistent": "Persistent",
+    "placeholder": {
+      "url": "e.g. /api/users",
+      "scenario": "e.g. login-flow",
+      "requiredState": "e.g. Started",
+      "newState": "e.g. LoggedIn"
+    }
   },
   "requests": {
     "title": "Request Log",
@@ -154,12 +165,26 @@
       "title": "Import as Stub",
       "importAsStub": "Import as Stub",
       "stubName": "Stub Name",
-      "stubNamePlaceholder": "e.g. POST /api/users",
+      "placeholder": {
+        "stubName": "e.g. POST /api/users"
+      },
       "requestMatching": "Request Matching",
       "urlMatchType": "URL Match Type",
+      "urlMatchOptions": {
+        "urlPath": "urlPath (Exact path match)",
+        "urlPathPattern": "urlPathPattern (Regex path match)",
+        "url": "url (Exact full URL)",
+        "urlPattern": "urlPattern (Regex full URL)"
+      },
       "urlPattern": "URL Pattern",
       "matchHeaders": "Headers to Match",
       "bodyMatchType": "Body Match Type",
+      "bodyMatchOptions": {
+        "equalToJson": "equalToJson (JSON match)",
+        "equalTo": "equalTo (Exact match)",
+        "contains": "contains (Partial match)",
+        "matches": "matches (Regex)"
+      },
       "noBodyMatch": "No body matching",
       "ignoreArrayOrder": "Ignore array order",
       "ignoreExtraElements": "Ignore extra elements",
@@ -238,6 +263,81 @@
     "selected": "Selected",
     "refresh": "Refresh",
     "actions": "Actions",
-    "confirmDelete": "Are you sure you want to delete?"
+    "confirmDelete": "Are you sure you want to delete?",
+    "add": "Add"
+  },
+  "messages": {
+    "project": {
+      "fetchFailed": "Failed to fetch projects",
+      "created": "Project created",
+      "createFailed": "Failed to create project",
+      "updated": "Project updated",
+      "updateFailed": "Failed to update project",
+      "deleted": "Project deleted",
+      "deleteFailed": "Failed to delete project",
+      "notSelected": "No project selected"
+    },
+    "instance": {
+      "added": "WireMock instance added",
+      "addFailed": "Failed to add WireMock instance",
+      "deleted": "WireMock instance deleted",
+      "deleteFailed": "Failed to delete WireMock instance",
+      "notAvailable": "No WireMock instances available"
+    },
+    "stub": {
+      "fetchFailed": "Failed to fetch stubs",
+      "created": "Stub created",
+      "createFailed": "Failed to create stub",
+      "updated": "Stub updated",
+      "updateFailed": "Failed to update stub",
+      "deleted": "Stub deleted",
+      "deleteFailed": "Failed to delete stub",
+      "synced": "Synced to WireMock",
+      "syncFailed": "Failed to sync to WireMock",
+      "syncedCount": "Synced {count} stub(s) to WireMock",
+      "syncResult": "Success: {success}, Failed: {failed}",
+      "resetSuccess": "All mappings have been reset",
+      "resetFailed": "Failed to reset mappings"
+    },
+    "request": {
+      "fetchFailed": "Failed to fetch request logs",
+      "fetchUnmatchedFailed": "Failed to fetch unmatched requests",
+      "cleared": "Request logs cleared",
+      "clearFailed": "Failed to clear request logs"
+    },
+    "mapping": {
+      "loadFailed": "Failed to load mapping",
+      "statusRequired": "Please enter a status code",
+      "urlRequired": "Please enter a URL",
+      "created": "Mapping created",
+      "updated": "Mapping updated",
+      "saveFailed": "Failed to save"
+    },
+    "json": {
+      "parseError": "JSON parse error: {message}"
+    }
+  },
+  "labels": {
+    "patternType": "Pattern Type",
+    "value": "Value",
+    "addPattern": "Add Pattern",
+    "urlMatch": {
+      "exact": "Exact match",
+      "regex": "Regex",
+      "path": "Path match",
+      "pathPattern": "Path pattern"
+    },
+    "bodyMatch": {
+      "equalTo": "Equal To",
+      "contains": "Contains",
+      "matches": "Matches (Regex)",
+      "equalToJson": "Equal To JSON",
+      "matchesJsonPath": "Matches JSON Path"
+    },
+    "ms": "ms",
+    "priorityHint": "Higher priority is matched first (lower number = higher priority)",
+    "persistentHint": "When enabled, mapping is retained after WireMock restart",
+    "selectMethod": "Select method",
+    "key": "Key"
   }
 }

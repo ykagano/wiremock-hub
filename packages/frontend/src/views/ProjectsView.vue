@@ -8,7 +8,7 @@
       </el-button>
     </div>
 
-    <!-- プロジェクトがない場合 -->
+    <!-- When there are no projects -->
     <el-empty
       v-if="projects.length === 0"
       :description="t('projects.noProjects')"
@@ -18,7 +18,7 @@
       </el-button>
     </el-empty>
 
-    <!-- プロジェクト一覧 -->
+    <!-- Project list -->
     <div v-else class="project-grid">
       <el-card
         v-for="project in projects"
@@ -71,7 +71,7 @@
       </el-card>
     </div>
 
-    <!-- プロジェクト追加/編集ダイアログ -->
+    <!-- Project add/edit dialog -->
     <el-dialog
       v-model="showAddDialog"
       :title="editingProject ? t('projects.dialog.editTitle') : t('projects.dialog.addTitle')"
@@ -145,7 +145,7 @@ const formRules = computed<FormRules>(() => ({
   ]
 }))
 
-// 初期化時にプロジェクト一覧を取得
+// Fetch project list on initialization
 onMounted(async () => {
   await projectStore.fetchProjects()
   projectStore.loadCurrentProject()
@@ -178,7 +178,7 @@ function confirmDelete(project: Project) {
   ).then(async () => {
     await projectStore.deleteProject(project.id)
   }).catch(() => {
-    // キャンセル
+    // Cancelled
   })
 }
 
@@ -194,7 +194,7 @@ async function saveProject() {
     }
     closeDialog()
   } catch {
-    // バリデーションエラー
+    // Validation error
   }
 }
 

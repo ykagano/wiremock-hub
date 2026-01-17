@@ -15,13 +15,13 @@
     </div>
 
     <el-tabs v-model="activeTab" type="card">
-      <!-- リクエスト設定 -->
+      <!-- Request settings -->
       <el-tab-pane :label="t('editor.request')" name="request">
         <el-card>
           <el-form :model="formData" label-width="150px" label-position="left">
-            <!-- メソッド -->
+            <!-- Method -->
             <el-form-item :label="t('editor.requestMethod')">
-              <el-select v-model="formData.request.method" placeholder="メソッドを選択" clearable>
+              <el-select v-model="formData.request.method" :placeholder="t('labels.selectMethod')" clearable>
                 <el-option label="GET" value="GET" />
                 <el-option label="POST" value="POST" />
                 <el-option label="PUT" value="PUT" />
@@ -35,32 +35,32 @@
             <!-- URL -->
             <el-form-item :label="t('editor.requestUrl')">
               <el-radio-group v-model="urlType" @change="handleUrlTypeChange">
-                <el-radio value="url">完全一致</el-radio>
-                <el-radio value="urlPattern">正規表現</el-radio>
-                <el-radio value="urlPath">パス一致</el-radio>
-                <el-radio value="urlPathPattern">パスパターン</el-radio>
+                <el-radio value="url">{{ t('labels.urlMatch.exact') }}</el-radio>
+                <el-radio value="urlPattern">{{ t('labels.urlMatch.regex') }}</el-radio>
+                <el-radio value="urlPath">{{ t('labels.urlMatch.path') }}</el-radio>
+                <el-radio value="urlPathPattern">{{ t('labels.urlMatch.pathPattern') }}</el-radio>
               </el-radio-group>
               <el-input
                 v-model="urlValue"
-                placeholder="/api/users"
+                :placeholder="t('editor.placeholder.url')"
                 style="margin-top: 8px"
               />
             </el-form-item>
 
-            <!-- ヘッダー -->
+            <!-- Headers -->
             <el-form-item :label="t('editor.requestHeaders')">
               <KeyValueEditor v-model="formData.request.headers" />
             </el-form-item>
 
-            <!-- クエリパラメータ -->
-            <el-form-item label="Query Parameters">
+            <!-- Query parameters -->
+            <el-form-item :label="t('editor.queryParameters')">
               <KeyValueEditor v-model="formData.request.queryParameters" />
             </el-form-item>
 
-            <!-- ボディ -->
+            <!-- Body -->
             <el-form-item :label="t('editor.requestBody')">
               <el-tabs type="border-card">
-                <el-tab-pane label="Text">
+                <el-tab-pane :label="t('editor.text')">
                   <el-input
                     v-model="requestBodyText"
                     type="textarea"
@@ -68,7 +68,7 @@
                     placeholder='{"key": "value"}'
                   />
                 </el-tab-pane>
-                <el-tab-pane label="Body Patterns">
+                <el-tab-pane :label="t('editor.bodyPatterns')">
                   <BodyPatternsEditor v-model="formData.request.bodyPatterns" />
                 </el-tab-pane>
               </el-tabs>
@@ -77,11 +77,11 @@
         </el-card>
       </el-tab-pane>
 
-      <!-- レスポンス設定 -->
+      <!-- Response settings -->
       <el-tab-pane :label="t('editor.response')" name="response">
         <el-card>
           <el-form :model="formData" label-width="150px" label-position="left">
-            <!-- ステータスコード -->
+            <!-- Status code -->
             <el-form-item :label="t('editor.responseStatus')" required>
               <el-input-number
                 v-model="formData.response.status"
@@ -90,7 +90,7 @@
               />
             </el-form-item>
 
-            <!-- レスポンスボディ -->
+            <!-- Response body -->
             <el-form-item :label="t('editor.responseBody')">
               <el-input
                 v-model="formData.response.body"
@@ -101,29 +101,29 @@
               />
             </el-form-item>
 
-            <!-- レスポンスヘッダー -->
+            <!-- Response headers -->
             <el-form-item :label="t('editor.responseHeaders')">
               <KeyValueEditor v-model="formData.response.headers" />
             </el-form-item>
 
-            <!-- 遅延 -->
+            <!-- Delay -->
             <el-form-item :label="t('editor.responseDelay')">
               <el-input-number
                 v-model="formData.response.fixedDelayMilliseconds"
                 :min="0"
                 :step="100"
               />
-              <span style="margin-left: 8px">ミリ秒</span>
+              <span style="margin-left: 8px">{{ t('labels.ms') }}</span>
             </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
 
-      <!-- 詳細設定 -->
+      <!-- Advanced settings -->
       <el-tab-pane :label="t('editor.advanced')" name="advanced">
         <el-card>
           <el-form :model="formData" label-width="150px" label-position="left">
-            <!-- 優先度 -->
+            <!-- Priority -->
             <el-form-item :label="t('editor.priority')">
               <el-input-number v-model="formData.priority" :min="1" />
               <el-alert
@@ -131,22 +131,22 @@
                 :closable="false"
                 style="margin-top: 8px"
               >
-                優先度が高いほど先にマッチングされます（小さい数値 = 高優先度）
+                {{ t('labels.priorityHint') }}
               </el-alert>
             </el-form-item>
 
-            <!-- シナリオ -->
+            <!-- Scenario -->
             <el-form-item :label="t('editor.scenario')">
               <el-input
                 v-model="formData.scenarioName"
-                placeholder="login-flow"
+                :placeholder="t('editor.placeholder.scenario')"
               />
             </el-form-item>
 
             <el-form-item :label="t('editor.requiredState')">
               <el-input
                 v-model="formData.requiredScenarioState"
-                placeholder="Started"
+                :placeholder="t('editor.placeholder.requiredState')"
                 :disabled="!formData.scenarioName"
               />
             </el-form-item>
@@ -154,28 +154,28 @@
             <el-form-item :label="t('editor.newState')">
               <el-input
                 v-model="formData.newScenarioState"
-                placeholder="LoggedIn"
+                :placeholder="t('editor.placeholder.newState')"
                 :disabled="!formData.scenarioName"
               />
             </el-form-item>
 
-            <!-- 永続化 -->
-            <el-form-item label="Persistent">
+            <!-- Persistence -->
+            <el-form-item :label="t('editor.persistent')">
               <el-switch v-model="formData.persistent" />
               <el-alert
                 type="info"
                 :closable="false"
                 style="margin-top: 8px"
               >
-                有効にすると、WireMock再起動後もマッピングが保持されます
+                {{ t('labels.persistentHint') }}
               </el-alert>
             </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
 
-      <!-- JSON表示 -->
-      <el-tab-pane label="JSON" name="json">
+      <!-- JSON view -->
+      <el-tab-pane :label="t('editor.json')" name="json">
         <el-card>
           <JsonEditor
             v-model="formData"
@@ -226,15 +226,15 @@ const formData = reactive<Mapping>({
   persistent: true
 })
 
-// URLタイプの変更処理
+// Handle URL type change
 watch(urlValue, (newValue) => {
-  // 既存のURL設定をクリア
+  // Clear existing URL settings
   delete formData.request.url
   delete formData.request.urlPattern
   delete formData.request.urlPath
   delete formData.request.urlPathPattern
 
-  // 新しい値を設定
+  // Set new value
   if (newValue) {
     formData.request[urlType.value] = newValue
   }
@@ -252,19 +252,19 @@ function handleUrlTypeChange() {
   }
 }
 
-// 初期化
+// Initialization
 onMounted(async () => {
   if (!isNew.value) {
     const id = route.params.id as string
     try {
-      // APIから最新のスタブデータを取得
+      // Fetch the latest stub data from API
       const stub = await stubApi.get(id)
       const mapping = stub.mapping as unknown as Mapping
 
       if (mapping) {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
 
-        // URLタイプを検出
+        // Detect URL type
         if (mapping.request.url) {
           urlType.value = 'url'
           urlValue.value = mapping.request.url
@@ -279,33 +279,33 @@ onMounted(async () => {
           urlValue.value = mapping.request.urlPathPattern
         }
 
-        // リクエストボディ
+        // Request body
         if (mapping.request.bodyPatterns && mapping.request.bodyPatterns[0]?.equalTo) {
           requestBodyText.value = mapping.request.bodyPatterns[0].equalTo
         }
       }
     } catch (error) {
       console.error('Failed to load mapping:', error)
-      ElMessage.error('マッピングの読み込みに失敗しました')
+      ElMessage.error(t('messages.mapping.loadFailed'))
     }
   }
 })
 
 async function handleSave() {
-  // バリデーション
+  // Validation
   if (!formData.response.status) {
-    ElMessage.error('ステータスコードを入力してください')
+    ElMessage.error(t('messages.mapping.statusRequired'))
     return
   }
 
   if (!urlValue.value) {
-    ElMessage.error('URLを入力してください')
+    ElMessage.error(t('messages.mapping.urlRequired'))
     return
   }
 
   saving.value = true
   try {
-    // リクエストボディをbodyPatternsに変換
+    // Convert request body to bodyPatterns
     if (requestBodyText.value && !formData.request.bodyPatterns) {
       formData.request.bodyPatterns = [
         { equalTo: requestBodyText.value }
@@ -314,17 +314,17 @@ async function handleSave() {
 
     if (isNew.value) {
       await mappingStore.createMapping(formData)
-      ElMessage.success('マッピングを作成しました')
+      ElMessage.success(t('messages.mapping.created'))
     } else {
       const id = route.params.id as string
       await mappingStore.updateMapping(id, formData)
-      ElMessage.success('マッピングを更新しました')
+      ElMessage.success(t('messages.mapping.updated'))
     }
 
     router.push('/mappings')
   } catch (error: any) {
     console.error('Failed to save mapping:', error)
-    ElMessage.error(error.message || '保存に失敗しました')
+    ElMessage.error(error.message || t('messages.mapping.saveFailed'))
   } finally {
     saving.value = false
   }
