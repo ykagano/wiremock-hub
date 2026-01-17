@@ -29,7 +29,11 @@ async function cleanupProject(page: any, projectName: string) {
 }
 
 test.describe('WireMock Hub E2E Tests - UI', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
+    // Set up localStorage before page loads to ensure English locale
+    await context.addInitScript(() => {
+      localStorage.removeItem('wiremock-hub-locale')
+    })
     await page.goto('/')
   })
 
@@ -125,7 +129,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Check health
     const instanceCard = page.locator('.el-card', { hasText: 'Health Test Instance' })
     await instanceCard.locator('.el-dropdown').click()
-    await page.getByRole('menuitem', { name: /ヘルスチェック|Check Health|接続確認/ }).click()
+    await page.getByRole('menuitem', { name: /ヘルスチェック|Health Check|接続確認/ }).click()
 
     // Should show health status - look for success message
     await expect(page.getByText(/接続に成功|接続OK|Healthy|success/i).first()).toBeVisible({ timeout: 10000 })
@@ -232,14 +236,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Request Headers - add header (label is "ヘッダー")
     // Find the form item containing "ヘッダー" label but not "Query" or "レスポンス"
-    const headerSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' }).filter({ hasNotText: 'Query' }).filter({ hasNotText: 'レスポンス' })
-    await headerSection.getByRole('button', { name: /追加/ }).click()
+    const headerSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ }).filter({ hasNotText: 'Query' }).filter({ hasNotText: /レスポンス|Response/ })
+    await headerSection.getByRole('button', { name: /追加|Add/ }).click()
     await headerSection.getByPlaceholder('Key').fill('X-Request-ID')
     await headerSection.getByPlaceholder('Value').fill('test-request-123')
 
     // Query Parameters - add parameter
-    const queryParamSection = page.locator('.el-form-item', { hasText: 'Query Parameters' })
-    await queryParamSection.getByRole('button', { name: /追加/ }).click()
+    const queryParamSection = page.locator('.el-form-item', { hasText: /Query Parameters|クエリパラメータ/ })
+    await queryParamSection.getByRole('button', { name: /追加|Add/ }).click()
     await queryParamSection.getByPlaceholder('Key').fill('page')
     await queryParamSection.getByPlaceholder('Value').fill('1')
 
@@ -256,8 +260,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Response Headers - add header (label is "ヘッダー" on response tab too)
     // There's already a Content-Type header, so we add another one
-    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' })
-    await responseHeaderSection.getByRole('button', { name: /追加/ }).click()
+    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ })
+    await responseHeaderSection.getByRole('button', { name: /追加|Add/ }).click()
     // Fill the last (newly added) Key/Value pair
     await responseHeaderSection.getByPlaceholder('Key').last().fill('X-Response-ID')
     await responseHeaderSection.getByPlaceholder('Value').last().fill('resp-456')
@@ -350,14 +354,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await editUrlInput.fill('/api/edited-stub')
 
     // Add request header (label is "ヘッダー")
-    const requestHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' }).filter({ hasNotText: 'Query' }).filter({ hasNotText: 'レスポンス' })
-    await requestHeaderSection.getByRole('button', { name: /追加/ }).click()
+    const requestHeaderSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ }).filter({ hasNotText: 'Query' }).filter({ hasNotText: /レスポンス|Response/ })
+    await requestHeaderSection.getByRole('button', { name: /追加|Add/ }).click()
     await requestHeaderSection.getByPlaceholder('Key').fill('Authorization')
     await requestHeaderSection.getByPlaceholder('Value').fill('Bearer token123')
 
     // Add query parameter
-    const queryParamSection = page.locator('.el-form-item', { hasText: 'Query Parameters' })
-    await queryParamSection.getByRole('button', { name: /追加/ }).click()
+    const queryParamSection = page.locator('.el-form-item', { hasText: /Query Parameters|クエリパラメータ/ })
+    await queryParamSection.getByRole('button', { name: /追加|Add/ }).click()
     await queryParamSection.getByPlaceholder('Key').fill('limit')
     await queryParamSection.getByPlaceholder('Value').fill('50')
 
@@ -376,8 +380,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Add response header (label is "ヘッダー" on response tab too)
     // There's already a Content-Type header, so we add another one
-    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' })
-    await responseHeaderSection.getByRole('button', { name: /追加/ }).click()
+    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ })
+    await responseHeaderSection.getByRole('button', { name: /追加|Add/ }).click()
     // Fill the last (newly added) Key/Value pair
     await responseHeaderSection.getByPlaceholder('Key').last().fill('X-Error-Code')
     await responseHeaderSection.getByPlaceholder('Value').last().fill('ERR-404')
@@ -500,7 +504,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -580,7 +584,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Verify we're on request log page
@@ -619,7 +623,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Check health - should show unhealthy (error message will appear)
     const instanceCard = page.locator('.el-card', { hasText: 'Invalid Instance' })
     await instanceCard.locator('.el-dropdown').click()
-    await page.getByRole('menuitem', { name: /ヘルスチェック|Check Health|接続確認/ }).click()
+    await page.getByRole('menuitem', { name: /ヘルスチェック|Health Check|接続確認/ }).click()
 
     // Should show unhealthy status (接続エラー is shown in the card)
     await expect(page.getByText(/接続に失敗|接続エラー|Unhealthy|エラー|failed/i).first()).toBeVisible({ timeout: 10000 })
@@ -743,7 +747,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -809,7 +813,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -860,7 +864,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -938,7 +942,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
     await page.getByRole('button', { name: /更新|Refresh/ }).click()
     await page.waitForTimeout(500)
@@ -986,7 +990,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
     await page.getByRole('button', { name: /更新|Refresh/ }).click()
     await page.waitForTimeout(500)
