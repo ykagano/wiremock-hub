@@ -45,7 +45,7 @@
 
       <el-table-column :label="t('requests.responseTime')" width="100">
         <template #default="{ row }">
-          <span v-if="row.timing?.totalTime">{{ row.timing.totalTime }}ms</span>
+          <span v-if="row.timing?.totalTime != null">{{ row.timing.totalTime }}ms</span>
           <span v-else>-</span>
         </template>
       </el-table-column>
