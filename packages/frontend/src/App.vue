@@ -36,7 +36,7 @@
               <span>{{ t('nav.projectList') }}</span>
             </el-menu-item>
             <el-menu-item
-              :index="currentProject ? `/projects/${currentProject.id}` : '/projects'"
+              :index="currentProject ? `/projects/${currentProject.id}` : ''"
               :disabled="!currentProject"
             >
               <el-icon><Folder /></el-icon>
