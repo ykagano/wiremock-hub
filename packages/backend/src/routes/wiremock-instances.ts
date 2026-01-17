@@ -268,69 +268,6 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // Get unmatched requests from WireMock instance
-  // NOTE: This route must be registered BEFORE /:id/requests/:requestId to avoid matching 'unmatched' as requestId
-  fastify.get('/:id/requests/unmatched', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-    const { id } = request.params
-
-    const instance = await fastify.prisma.wiremockInstance.findUnique({
-      where: { id },
-      include: { project: true }
-    })
-
-    if (!instance) {
-      return reply.status(404).send({
-        success: false,
-        error: 'Instance not found'
-      })
-    }
-
-    try {
-      const response = await axios.get(`${instance.url}/__admin/requests/unmatched`, {
-        timeout: 10000
-      })
-
-      // Normalize unmatched requests to match the format of /__admin/requests
-      // WireMock's /unmatched returns flat request objects without the 'request' wrapper
-      const normalizedRequests = (response.data.requests || []).map((req: any, index: number) => ({
-        id: req.id || `unmatched-${index}-${req.loggedDate}`,
-        request: {
-          url: req.url,
-          absoluteUrl: req.absoluteUrl,
-          method: req.method,
-          clientIp: req.clientIp,
-          headers: req.headers,
-          cookies: req.cookies,
-          body: req.body,
-          bodyAsBase64: req.bodyAsBase64,
-          loggedDate: req.loggedDate,
-          loggedDateString: req.loggedDateString,
-          queryParams: req.queryParams,
-          formParams: req.formParams,
-          protocol: req.protocol,
-          scheme: req.scheme,
-          host: req.host,
-          port: req.port
-        },
-        wasMatched: false
-      }))
-
-      return reply.send({
-        success: true,
-        data: {
-          requests: normalizedRequests,
-          requestJournalDisabled: response.data.requestJournalDisabled
-        }
-      })
-    } catch (error: any) {
-      return reply.status(502).send({
-        success: false,
-        error: 'Failed to fetch unmatched requests from WireMock',
-        details: error.message
-      })
-    }
-  })
-
   // Get single request from WireMock instance
   fastify.get('/:id/requests/:requestId', async (request: FastifyRequest<{ Params: { id: string; requestId: string } }>, reply: FastifyReply) => {
     const { id, requestId } = request.params

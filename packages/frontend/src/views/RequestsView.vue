@@ -65,7 +65,7 @@ const { t } = useI18n()
 const router = useRouter()
 const requestStore = useRequestStore()
 const projectStore = useProjectStore()
-const { requests, unmatchedRequests, loading } = storeToRefs(requestStore)
+const { requests, loading } = storeToRefs(requestStore)
 const { wiremockInstances } = storeToRefs(projectStore)
 
 const activeTab = ref('all')
@@ -114,7 +114,7 @@ const filteredMatchedRequests = computed(() => {
 })
 
 const filteredUnmatchedRequests = computed(() => {
-  return applyFilter(unmatchedRequests.value)
+  return applyFilter(requests.value.filter(r => r.wasMatched === false))
 })
 
 function onFilterChange(newFilter: FilterState) {
@@ -147,10 +147,7 @@ function onInstanceChange(instanceId: string) {
 }
 
 async function fetchRequests() {
-  await Promise.all([
-    requestStore.fetchRequests(),
-    requestStore.fetchUnmatchedRequests()
-  ])
+  await requestStore.fetchRequests()
 }
 
 function confirmClear() {

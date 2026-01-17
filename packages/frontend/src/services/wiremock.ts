@@ -68,11 +68,6 @@ export class WireMockAPI {
     return response.data
   }
 
-  async getUnmatchedRequests(): Promise<RequestsResponse> {
-    const response = await this.client.get('/__admin/requests/unmatched')
-    return response.data
-  }
-
   async resetRequests(): Promise<void> {
     await this.client.delete('/__admin/requests')
   }
