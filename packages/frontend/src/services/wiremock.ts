@@ -108,7 +108,7 @@ export class WireMockAPI {
   }
 }
 
-// シングルトンインスタンス管理
+// Singleton instance management
 let apiInstance: WireMockAPI | null = null
 
 export function initWireMockAPI(baseUrl: string): WireMockAPI {

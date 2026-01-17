@@ -56,9 +56,9 @@ const router = createRouter({
   ]
 })
 
-// ナビゲーションガード
+// Navigation guard
 router.beforeEach((to, _from, next) => {
-  // プロジェクト選択が必要なページ
+  // Pages that require project selection
   if (to.meta.requiresProject) {
     const projectStore = useProjectStore()
     if (!projectStore.currentProject) {

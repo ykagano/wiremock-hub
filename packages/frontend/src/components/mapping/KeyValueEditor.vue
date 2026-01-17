@@ -7,13 +7,13 @@
     >
       <el-input
         v-model="item.key"
-        placeholder="Key"
+        :placeholder="t('labels.key')"
         @input="updateValue"
         style="width: 200px"
       />
       <el-input
         v-model="item.value"
-        placeholder="Value"
+        :placeholder="t('labels.value')"
         @input="updateValue"
       />
       <el-button
@@ -34,13 +34,16 @@
       style="margin-top: 8px"
     >
       <el-icon><Plus /></el-icon>
-      追加
+      {{ t('common.add') }}
     </el-button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue?: Record<string, any>
@@ -57,7 +60,7 @@ interface KeyValueItem {
 
 const items = ref<KeyValueItem[]>([])
 
-// 初期化
+// Initialization
 watch(() => props.modelValue, (value) => {
   if (value && typeof value === 'object') {
     items.value = Object.entries(value).map(([key, val]) => ({

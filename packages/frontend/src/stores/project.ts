@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { projectApi, wiremockInstanceApi, type Project, type WiremockInstance, type CreateProjectInput, type UpdateProjectInput, type CreateWiremockInstanceInput } from '@/services/api'
 import { ElMessage } from 'element-plus'
+import { t } from '@/i18n'
 
 const CURRENT_PROJECT_KEY = 'wiremock-hub-current-project'
 
@@ -17,37 +18,37 @@ export const useProjectStore = defineStore('project', () => {
     return projects.value.find(p => p.id === currentProjectId.value) || null
   })
 
-  // プロジェクト一覧取得
+  // Fetch project list
   async function fetchProjects() {
     loading.value = true
     error.value = null
     try {
       projects.value = await projectApi.list()
     } catch (e: any) {
-      error.value = e.message || 'プロジェクトの取得に失敗しました'
-      ElMessage.error(error.value)
+      error.value = e.message || t('messages.project.fetchFailed')
+      ElMessage.error(error.value!)
     } finally {
       loading.value = false
     }
   }
 
-  // プロジェクト作成
+  // Create project
   async function addProject(input: CreateProjectInput): Promise<Project | null> {
     loading.value = true
     try {
       const project = await projectApi.create(input)
       projects.value.push(project)
-      ElMessage.success('プロジェクトを作成しました')
+      ElMessage.success(t('messages.project.created'))
       return project
     } catch (e: any) {
-      ElMessage.error(e.message || 'プロジェクトの作成に失敗しました')
+      ElMessage.error(e.message || t('messages.project.createFailed'))
       return null
     } finally {
       loading.value = false
     }
   }
 
-  // プロジェクト更新
+  // Update project
   async function updateProject(id: string, input: UpdateProjectInput): Promise<Project | null> {
     loading.value = true
     try {
@@ -56,17 +57,17 @@ export const useProjectStore = defineStore('project', () => {
       if (index !== -1) {
         projects.value[index] = updated
       }
-      ElMessage.success('プロジェクトを更新しました')
+      ElMessage.success(t('messages.project.updated'))
       return updated
     } catch (e: any) {
-      ElMessage.error(e.message || 'プロジェクトの更新に失敗しました')
+      ElMessage.error(e.message || t('messages.project.updateFailed'))
       return null
     } finally {
       loading.value = false
     }
   }
 
-  // プロジェクト削除
+  // Delete project
   async function deleteProject(id: string): Promise<boolean> {
     loading.value = true
     try {
@@ -75,26 +76,26 @@ export const useProjectStore = defineStore('project', () => {
       if (currentProjectId.value === id) {
         clearCurrentProject()
       }
-      ElMessage.success('プロジェクトを削除しました')
+      ElMessage.success(t('messages.project.deleted'))
       return true
     } catch (e: any) {
-      ElMessage.error(e.message || 'プロジェクトの削除に失敗しました')
+      ElMessage.error(e.message || t('messages.project.deleteFailed'))
       return false
     } finally {
       loading.value = false
     }
   }
 
-  // 現在のプロジェクトを設定
+  // Set current project
   async function setCurrentProject(id: string) {
     currentProjectId.value = id
     localStorage.setItem(CURRENT_PROJECT_KEY, id)
 
-    // WireMockインスタンス一覧を取得
+    // Fetch WireMock instance list
     await fetchWiremockInstances(id)
   }
 
-  // 保存された現在のプロジェクトを復元
+  // Restore saved current project
   function loadCurrentProject() {
     try {
       const stored = localStorage.getItem(CURRENT_PROJECT_KEY)
@@ -106,14 +107,14 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
-  // 現在のプロジェクトをクリア
+  // Clear current project
   function clearCurrentProject() {
     currentProjectId.value = null
     wiremockInstances.value = []
     localStorage.removeItem(CURRENT_PROJECT_KEY)
   }
 
-  // WireMockインスタンス一覧取得
+  // Fetch WireMock instance list
   async function fetchWiremockInstances(projectId: string) {
     try {
       wiremockInstances.value = await wiremockInstanceApi.list(projectId)
@@ -123,28 +124,28 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
-  // WireMockインスタンス追加
+  // Add WireMock instance
   async function addWiremockInstance(input: CreateWiremockInstanceInput): Promise<WiremockInstance | null> {
     try {
       const instance = await wiremockInstanceApi.create(input)
       wiremockInstances.value.push(instance)
-      ElMessage.success('WireMockインスタンスを追加しました')
+      ElMessage.success(t('messages.instance.added'))
       return instance
     } catch (e: any) {
-      ElMessage.error(e.message || 'WireMockインスタンスの追加に失敗しました')
+      ElMessage.error(e.message || t('messages.instance.addFailed'))
       return null
     }
   }
 
-  // WireMockインスタンス削除
+  // Delete WireMock instance
   async function deleteWiremockInstance(id: string): Promise<boolean> {
     try {
       await wiremockInstanceApi.delete(id)
       wiremockInstances.value = wiremockInstances.value.filter(i => i.id !== id)
-      ElMessage.success('WireMockインスタンスを削除しました')
+      ElMessage.success(t('messages.instance.deleted'))
       return true
     } catch (e: any) {
-      ElMessage.error(e.message || 'WireMockインスタンスの削除に失敗しました')
+      ElMessage.error(e.message || t('messages.instance.deleteFailed'))
       return false
     }
   }

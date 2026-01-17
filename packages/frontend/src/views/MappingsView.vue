@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <!-- 検索バー -->
+    <!-- Search bar -->
     <div class="search-bar">
       <el-input
         v-model="searchQuery"
@@ -45,10 +45,10 @@
       </el-select>
     </div>
 
-    <!-- ローディング -->
+    <!-- Loading -->
     <el-skeleton v-if="loading && mappings.length === 0" :rows="5" animated />
 
-    <!-- マッピングがない場合 -->
+    <!-- When there are no mappings -->
     <el-empty
       v-else-if="!loading && filteredMappings.length === 0"
       :description="t('mappings.noMappings')"
@@ -58,7 +58,7 @@
       </el-button>
     </el-empty>
 
-    <!-- マッピング一覧テーブル -->
+    <!-- Mapping list table -->
     <el-table
       v-else
       :data="paginatedMappings"
@@ -146,7 +146,7 @@
       </el-table-column>
     </el-table>
 
-    <!-- ページネーション -->
+    <!-- Pagination -->
     <div class="pagination">
       <el-pagination
         v-model:current-page="currentPage"
@@ -178,16 +178,16 @@ const filterMethod = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 
-// フィルタリング
+// Filtering
 const filteredMappings = computed(() => {
   let result = mappings.value
 
-  // メソッドフィルター
+  // Method filter
   if (filterMethod.value) {
     result = result.filter(m => m.request.method === filterMethod.value)
   }
 
-  // 検索クエリフィルター
+  // Search query filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(m => {
@@ -201,14 +201,14 @@ const filteredMappings = computed(() => {
   return result
 })
 
-// ページネーション
+// Pagination
 const paginatedMappings = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return filteredMappings.value.slice(start, end)
 })
 
-// ヘルパー関数
+// Helper functions
 function getUrl(request: MappingRequest): string {
   return request.url || request.urlPattern || request.urlPath || request.urlPathPattern || '/'
 }
@@ -240,7 +240,7 @@ function formatResponse(response: any): string {
   return JSON.stringify(response, null, 2)
 }
 
-// アクション
+// Actions
 async function fetchMappings() {
   await mappingStore.fetchMappings()
 }
@@ -289,7 +289,7 @@ function confirmDelete(mapping: Mapping) {
       console.error('Failed to delete mapping:', error)
     }
   }).catch(() => {
-    // キャンセル
+    // Cancelled
   })
 }
 
@@ -310,11 +310,11 @@ function confirmResetAll() {
       console.error('Failed to reset mappings:', error)
     }
   }).catch(() => {
-    // キャンセル
+    // Cancelled
   })
 }
 
-// 初期化
+// Initialization
 onMounted(() => {
   fetchMappings()
 })

@@ -7,17 +7,17 @@
     >
       <el-card>
         <el-form label-width="120px">
-          <el-form-item label="パターンタイプ">
+          <el-form-item :label="t('labels.patternType')">
             <el-select v-model="pattern.type" @change="updateValue">
-              <el-option label="Equal To" value="equalTo" />
-              <el-option label="Contains" value="contains" />
-              <el-option label="Matches (Regex)" value="matches" />
-              <el-option label="Equal To JSON" value="equalToJson" />
-              <el-option label="Matches JSON Path" value="matchesJsonPath" />
+              <el-option :label="t('labels.bodyMatch.equalTo')" value="equalTo" />
+              <el-option :label="t('labels.bodyMatch.contains')" value="contains" />
+              <el-option :label="t('labels.bodyMatch.matches')" value="matches" />
+              <el-option :label="t('labels.bodyMatch.equalToJson')" value="equalToJson" />
+              <el-option :label="t('labels.bodyMatch.matchesJsonPath')" value="matchesJsonPath" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="値">
+          <el-form-item :label="t('labels.value')">
             <el-input
               v-model="pattern.value"
               type="textarea"
@@ -31,7 +31,7 @@
             size="small"
             @click="removePattern(index)"
           >
-            削除
+            {{ t('common.delete') }}
           </el-button>
         </el-form>
       </el-card>
@@ -45,14 +45,17 @@
       style="margin-top: 8px"
     >
       <el-icon><Plus /></el-icon>
-      パターン追加
+      {{ t('labels.addPattern') }}
     </el-button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { BodyPattern } from '@/types/wiremock'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue?: BodyPattern[]
@@ -69,7 +72,7 @@ interface PatternItem {
 
 const patterns = ref<PatternItem[]>([])
 
-// 初期化
+// Initialization
 watch(() => props.modelValue, (value) => {
   if (value && Array.isArray(value)) {
     patterns.value = value.map(p => {

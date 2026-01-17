@@ -1,6 +1,6 @@
 <template>
   <div class="project-detail">
-    <!-- ヘッダー -->
+    <!-- Header -->
     <div class="page-header">
       <div class="header-left">
         <el-button text @click="goBack">
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <!-- プロジェクト情報 -->
+    <!-- Project information -->
     <el-card class="info-card" v-if="project">
       <template #header>
         <span>{{ t('projectDetail.info') }}</span>
@@ -38,7 +38,7 @@
       </el-descriptions>
     </el-card>
 
-    <!-- インスタンス一覧 -->
+    <!-- Instance list -->
     <div class="instances-section">
       <div class="section-header">
         <el-button type="success" @click="syncAllInstances" :loading="syncing" :disabled="instances.length === 0">
@@ -122,7 +122,7 @@
       </div>
     </div>
 
-    <!-- インスタンス追加/編集ダイアログ -->
+    <!-- Instance add/edit dialog -->
     <el-dialog
       v-model="showInstanceDialog"
       :title="editingInstance ? t('instances.dialog.editTitle') : t('instances.dialog.addTitle')"
@@ -156,7 +156,7 @@
       </template>
     </el-dialog>
 
-    <!-- プロジェクト編集ダイアログ -->
+    <!-- Project edit dialog -->
     <el-dialog
       v-model="showProjectDialog"
       :title="t('projects.dialog.editTitle')"

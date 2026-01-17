@@ -164,13 +164,13 @@ function confirmClear() {
       console.error('Failed to clear requests:', error)
     }
   }).catch(() => {
-    // キャンセル
+    // Cancelled
   })
 }
 
-// 初期化時にインスタンスを取得して最初のインスタンスを選択
+// On initialization, fetch instances and select the first one
 onMounted(async () => {
-  // 現在のプロジェクトが設定されている場合は常に最新のインスタンスを取得
+  // Always fetch the latest instances if current project is set
   if (projectStore.currentProjectId) {
     await projectStore.fetchWiremockInstances(projectStore.currentProjectId)
   }
@@ -181,7 +181,7 @@ onMounted(async () => {
   }
 })
 
-// インスタンスリストが変わったら再チェック
+// Re-check when instance list changes
 watch(wiremockInstances, (instances) => {
   if (instances.length > 0 && !selectedInstanceId.value) {
     selectedInstanceId.value = instances[0].id

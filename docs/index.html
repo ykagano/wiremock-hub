@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZYHX0ZWJJV"></script>
@@ -14,21 +14,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <title>WireMock Hub - 分散WireMock管理GUI</title>
-  <meta name="description" content="複数のWireMockインスタンスを一元管理できる日本語対応GUIクライアント">
+  <title>WireMock Hub - Distributed WireMock Management GUI</title>
+  <meta name="description" content="A GUI client for centralized management of multiple WireMock instances">
 
   <!-- OGP -->
-  <meta property="og:title" content="WireMock Hub - 分散WireMock管理GUI">
-  <meta property="og:description" content="複数のWireMockインスタンスを一元管理できる日本語対応GUIクライアント">
+  <meta property="og:title" content="WireMock Hub - Distributed WireMock Management GUI">
+  <meta property="og:description" content="A GUI client for centralized management of multiple WireMock instances">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ykagano.github.io/wiremock-hub/">
   <meta property="og:image" content="https://ykagano.github.io/wiremock-hub/images/wiremock-hub-ogp.png">
-  <meta property="og:locale" content="ja_JP">
+  <meta property="og:locale" content="en_US">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WireMock Hub - 分散WireMock管理GUI">
-  <meta name="twitter:description" content="複数のWireMockインスタンスを一元管理できる日本語対応GUIクライアント">
+  <meta name="twitter:title" content="WireMock Hub - Distributed WireMock Management GUI">
+  <meta name="twitter:description" content="A GUI client for centralized management of multiple WireMock instances">
   <meta name="twitter:image" content="https://ykagano.github.io/wiremock-hub/images/wiremock-hub-ogp.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,7 +102,7 @@
       color: var(--primary);
     }
 
-    .lang-switch {
+    .lang-select {
       background: var(--primary);
       color: var(--white);
       border: none;
@@ -112,10 +112,22 @@
       font-size: 14px;
       font-weight: 500;
       transition: background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
     }
 
-    .lang-switch:hover {
-      background: var(--primary-dark);
+    .lang-select:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .lang-select option {
+      background: var(--white);
+      color: var(--text);
     }
 
     /* Mobile menu */
@@ -498,16 +510,22 @@
     <div class="container header-content">
       <a href="#" class="logo">WireMock Hub</a>
       <nav class="nav-links" id="nav-links">
-        <a href="#features" data-i18n="nav.features">機能</a>
-        <a href="#architecture" data-i18n="nav.architecture">アーキテクチャ</a>
-        <a href="#quickstart" data-i18n="nav.quickstart">クイックスタート</a>
-        <a href="#comparison" data-i18n="nav.comparison">ツール比較</a>
-        <a href="#usage" data-i18n="nav.usage">使い方</a>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#architecture" data-i18n="nav.architecture">Architecture</a>
+        <a href="#quickstart" data-i18n="nav.quickstart">Quick Start</a>
+        <a href="#comparison" data-i18n="nav.comparison">Tool Comparison</a>
+        <a href="#usage" data-i18n="nav.usage">How to Use</a>
         <a href="https://github.com/ykagano/wiremock-hub">GitHub</a>
-        <button class="lang-switch" onclick="toggleLanguage()">English</button>
+        <select class="lang-select" id="lang-select-desktop" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+        </select>
       </nav>
       <div class="mobile-controls">
-        <button class="lang-switch" onclick="toggleLanguage()">English</button>
+        <select class="lang-select" id="lang-select-mobile" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+        </select>
         <button class="hamburger" onclick="toggleMenu()">
           <span></span>
           <span></span>
@@ -520,54 +538,54 @@
   <section class="hero">
     <div class="container">
       <h1>WireMock Hub</h1>
-      <p data-i18n="hero.description">複数のWireMockインスタンスを一元管理できる<br>日本語対応GUIクライアント</p>
-      <a href="https://github.com/ykagano/wiremock-hub" class="btn btn-primary" data-i18n="hero.github">GitHub で見る</a>
-      <a href="#quickstart" class="btn btn-secondary" data-i18n="nav.quickstart">クイックスタート</a>
+      <p data-i18n="hero.description">A GUI client for<br>centralized management of multiple WireMock instances</p>
+      <a href="https://github.com/ykagano/wiremock-hub" class="btn btn-primary" data-i18n="hero.github">View on GitHub</a>
+      <a href="#quickstart" class="btn btn-secondary" data-i18n="nav.quickstart">Quick Start</a>
     </div>
   </section>
 
   <section class="screenshot">
     <div class="container">
       <figure class="screenshot-figure">
-        <img id="screenshot-img" src="images/jp/wiremock-hub.png" alt="WireMock Hub スクリーンショット" class="screenshot-img">
-        <figcaption class="screenshot-caption" data-i18n="screenshot.caption">プロジェクト一覧画面 - 複数のWireMock環境をプロジェクトとして管理</figcaption>
+        <img id="screenshot-img" src="images/en/wiremock-hub.png" alt="WireMock Hub Screenshot" class="screenshot-img">
+        <figcaption class="screenshot-caption" data-i18n="screenshot.caption">Projects List - Manage multiple WireMock environments as projects</figcaption>
       </figure>
     </div>
   </section>
 
   <section id="features" class="features">
     <div class="container">
-      <h2 class="section-title" data-i18n="nav.features">機能</h2>
+      <h2 class="section-title" data-i18n="nav.features">Features</h2>
       <div class="feature-grid">
         <div class="feature-card">
           <div class="feature-icon">&#127760;</div>
-          <h3 data-i18n="features.distributed.title">分散WireMock管理</h3>
-          <p data-i18n="features.distributed.desc">複数のWireMockインスタンスにスタブを一括デプロイ。ワンクリックで全インスタンスを同期できます。</p>
+          <h3 data-i18n="features.distributed.title">Distributed WireMock Management</h3>
+          <p data-i18n="features.distributed.desc">Deploy stubs to multiple WireMock instances at once. Sync all instances with a single click.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#128200;</div>
-          <h3 data-i18n="features.loadtest.title">負荷試験に最適化</h3>
-          <p data-i18n="features.loadtest.desc">複数のWireMockインスタンスを並列稼働させ、大規模な負荷試験環境を簡単に構築。</p>
+          <h3 data-i18n="features.loadtest.title">Load Testing Optimized</h3>
+          <p data-i18n="features.loadtest.desc">Run multiple WireMock instances in parallel to easily build large-scale load testing environments.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#128191;</div>
-          <h3 data-i18n="features.sqlite.title">SQLite永続化</h3>
-          <p data-i18n="features.sqlite.desc">外部データベース不要。シンプルなファイルベースの永続化でバックアップも簡単。</p>
+          <h3 data-i18n="features.sqlite.title">SQLite Persistence</h3>
+          <p data-i18n="features.sqlite.desc">No external database required. Simple file-based persistence makes backup easy.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#128483;</div>
-          <h3 data-i18n="features.i18n.title">日本語UI</h3>
-          <p data-i18n="features.i18n.desc">日本語・英語の切り替えに対応。シンプルで直感的なインターフェースでスタブを簡単に作成・管理。</p>
+          <div class="feature-icon">&#128229;</div>
+          <h3 data-i18n="features.import.title">Request to Stub Import</h3>
+          <p data-i18n="features.import.desc">Import recorded requests as stubs with one click. Quickly create stubs from actual API traffic.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#128051;</div>
-          <h3 data-i18n="features.docker.title">Dockerサポート</h3>
-          <p data-i18n="features.docker.desc">Dockerイメージとして配布。docker compose up で簡単に起動できます。</p>
+          <h3 data-i18n="features.docker.title">Docker Support</h3>
+          <p data-i18n="features.docker.desc">Distributed as a Docker image. Start easily with docker compose up.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#128218;</div>
-          <h3 data-i18n="features.project.title">プロジェクト管理</h3>
-          <p data-i18n="features.project.desc">開発・ステージング・本番など、環境ごとにスタブをプロジェクトとして管理。</p>
+          <h3 data-i18n="features.project.title">Project Management</h3>
+          <p data-i18n="features.project.desc">Manage stubs as projects for each environment: development, staging, production.</p>
         </div>
       </div>
     </div>
@@ -575,7 +593,7 @@
 
   <section id="architecture" class="architecture">
     <div class="container">
-      <h2 class="section-title" data-i18n="nav.architecture">アーキテクチャ</h2>
+      <h2 class="section-title" data-i18n="nav.architecture">Architecture</h2>
       <div class="arch-diagram">┌─────────────────────────────────────────────────────────────────┐
 │                        WireMock Hub                             │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
@@ -599,18 +617,18 @@
 
   <section id="quickstart" class="quickstart">
     <div class="container">
-      <h2 class="section-title" data-i18n="nav.quickstart">クイックスタート</h2>
+      <h2 class="section-title" data-i18n="nav.quickstart">Quick Start</h2>
       <div class="code-block">
-<span class="comment" data-i18n="quickstart.allinone.title"># WireMock Hub + WireMock 同梱イメージで試す（推奨）</span><br>
+<span class="comment" data-i18n="quickstart.allinone.title"># Try with WireMock Hub + WireMock bundled image (Recommended)</span><br>
 <span class="command">docker run -d -p 8080:80 ghcr.io/ykagano/wiremock-hub:latest</span><br>
 <span class="command">open http://localhost:8080/hub/</span><br>
 <br>
-<span class="comment" data-i18n="quickstart.allinone.url"># WireMockインスタンスのURL（プロジェクト作成後に登録）</span><br>
+<span class="comment" data-i18n="quickstart.allinone.url"># WireMock instance URL (register after creating a project)</span><br>
 <span class="command">http://localhost:8080</span>
       </div>
 
       <div class="code-block">
-<span class="comment" data-i18n="quickstart.standalone.title"># WireMock Hub 単体イメージで試す（既存のWireMockに接続）</span><br>
+<span class="comment" data-i18n="quickstart.standalone.title"># Try with WireMock Hub standalone image (connect to existing WireMock)</span><br>
 <span class="command">docker run -d -p 3000:3000 ghcr.io/ykagano/wiremock-hub-standalone:latest</span><br>
 <span class="command">open http://localhost:3000</span>
       </div>
@@ -619,11 +637,11 @@
 
   <section class="comparison">
     <div class="container">
-      <h2 class="section-title" data-i18n="comparison.title">ツール比較</h2>
+      <h2 class="section-title" data-i18n="comparison.title">Tool Comparison</h2>
       <table class="comparison-table">
         <thead>
           <tr>
-            <th data-i18n="comparison.feature">機能</th>
+            <th data-i18n="comparison.feature">Feature</th>
             <th>WireMock Hub</th>
             <th>WireMock</th>
             <th>WireMock Cloud</th>
@@ -637,31 +655,31 @@
             <td><span class="check">&#10003;</span></td>
           </tr>
           <tr>
-            <td data-i18n="comparison.distributed">分散インスタンス一括同期</td>
+            <td data-i18n="comparison.distributed">Distributed Instance Sync</td>
             <td><span class="check">&#10003;</span></td>
             <td><span class="cross">&#10005;</span></td>
             <td><span class="check">&#10003;</span></td>
           </tr>
           <tr>
-            <td data-i18n="comparison.japanese">日本語UI</td>
+            <td data-i18n="comparison.import">Request to Stub Import</td>
             <td><span class="check">&#10003;</span></td>
-            <td>-</td>
+            <td><span class="cross">&#10005;</span></td>
             <td><span class="cross">&#10005;</span></td>
           </tr>
           <tr>
-            <td data-i18n="comparison.opensource">オープンソース</td>
-            <td><span class="check">&#10003;</span></td>
-            <td><span class="check">&#10003;</span></td>
-            <td><span class="cross">&#10005;</span></td>
-          </tr>
-          <tr>
-            <td data-i18n="comparison.selfhost">セルフホスト</td>
+            <td data-i18n="comparison.opensource">Open Source</td>
             <td><span class="check">&#10003;</span></td>
             <td><span class="check">&#10003;</span></td>
             <td><span class="cross">&#10005;</span></td>
           </tr>
           <tr>
-            <td data-i18n="comparison.nodb">外部DB不要</td>
+            <td data-i18n="comparison.selfhost">Self-hosted</td>
+            <td><span class="check">&#10003;</span></td>
+            <td><span class="check">&#10003;</span></td>
+            <td><span class="cross">&#10005;</span></td>
+          </tr>
+          <tr>
+            <td data-i18n="comparison.nodb">No External DB Required</td>
             <td><span class="check">&#10003;</span></td>
             <td><span class="check">&#10003;</span></td>
             <td>-</td>
@@ -673,40 +691,40 @@
 
   <section id="usage" class="usage">
     <div class="container">
-      <h2 class="section-title" data-i18n="usage.title">使い方</h2>
+      <h2 class="section-title" data-i18n="usage.title">How to Use</h2>
 
       <div class="usage-step">
         <h3>
           <span class="usage-step-number">1</span>
-          <span data-i18n="usage.step1.title">プロジェクトとインスタンスを登録</span>
+          <span data-i18n="usage.step1.title">Register Projects and Instances</span>
         </h3>
         <p data-i18n="usage.step1.description">
-          プロジェクトを作成し、管理したいWireMockインスタンスを追加します。プロジェクトは環境（開発・ステージング・本番など）ごとに作成できます。各インスタンスのヘルスチェックで接続状態を確認できます。
+          Create a project and add the WireMock instances you want to manage. Projects can be created for each environment (development, staging, production, etc.). Use health checks to verify the connection status of each instance.
         </p>
-        <img id="usage-img-1" src="images/jp/project-detail.png" alt="プロジェクト詳細画面" class="usage-image">
+        <img id="usage-img-1" src="images/en/project-detail.png" alt="Project Detail Screen" class="usage-image">
       </div>
 
       <div class="usage-step">
         <h3>
           <span class="usage-step-number">2</span>
-          <span data-i18n="usage.step2.title">スタブマッピングを作成</span>
+          <span data-i18n="usage.step2.title">Create Stub Mappings</span>
         </h3>
         <p data-i18n="usage.step2.description">
-          モックしたいAPIのリクエスト条件とレスポンスを定義します。URLパターン、HTTPメソッド、ヘッダー、ボディなど詳細な条件を設定できます。作成したスタブはSQLiteに保存され、チームで共有できます。
+          Define request conditions and responses for the APIs you want to mock. You can configure detailed conditions such as URL patterns, HTTP methods, headers, and body. Created stubs are saved to SQLite and can be shared with your team.
         </p>
-        <img id="usage-img-2a" src="images/jp/create_stub.png" alt="スタブ作成画面" class="usage-image" style="margin-bottom: 24px;">
-        <img id="usage-img-2b" src="images/jp/stub-mapping.png" alt="スタブ一覧画面" class="usage-image">
+        <img id="usage-img-2a" src="images/en/create_stub.png" alt="Create Stub Screen" class="usage-image" style="margin-bottom: 24px;">
+        <img id="usage-img-2b" src="images/en/stub-mapping.png" alt="Stub List Screen" class="usage-image">
       </div>
 
       <div class="usage-step">
         <h3>
           <span class="usage-step-number">3</span>
-          <span data-i18n="usage.step3.title">全インスタンスに同期</span>
+          <span data-i18n="usage.step3.title">Sync to All Instances</span>
         </h3>
         <p data-i18n="usage.step3.description">
-          「全インスタンスに同期」ボタンで、作成したスタブを登録済みの全WireMockインスタンスに一括デプロイします。同期前にインスタンスをリセットするため、SQLiteとWireMockの状態が常に一致します。モックを使用後に記録されたリクエストログを画面で確認できます。
+          Click the "Sync All Instances" button to deploy created stubs to all registered WireMock instances at once. Instances are reset before syncing to ensure that SQLite and WireMock states are always consistent. You can view the recorded request logs on the screen after using the mock.
         </p>
-        <img id="usage-img-3" src="images/jp/request-log.png" alt="リクエストログ画面" class="usage-image">
+        <img id="usage-img-3" src="images/en/request-log.png" alt="Request Log Screen" class="usage-image">
       </div>
     </div>
   </section>
@@ -729,14 +747,14 @@
         'nav.quickstart': 'クイックスタート',
         'nav.usage': '使い方',
         'nav.comparison': 'ツール比較',
-        'hero.description': '複数のWireMockインスタンスを一元管理できる<br>日本語対応GUIクライアント',
+        'hero.description': '複数のWireMockインスタンスを一元管理できる<br>GUIクライアント',
         'hero.github': 'GitHub で見る',
         'features.distributed.title': '分散WireMock管理',
         'features.distributed.desc': '複数のWireMockインスタンスにスタブを一括デプロイ。ワンクリックで全インスタンスを同期できます。',
         'features.sqlite.title': 'SQLite永続化',
         'features.sqlite.desc': '外部データベース不要。シンプルなファイルベースの永続化でバックアップも簡単。',
-        'features.i18n.title': '日本語UI',
-        'features.i18n.desc': '日本語・英語の切り替えに対応。シンプルで直感的なインターフェースでスタブを簡単に作成・管理。',
+        'features.import.title': 'リクエストからスタブ登録',
+        'features.import.desc': 'リクエストログからワンクリックでスタブに登録可能。実際のAPIトラフィックから素早くスタブを作成。',
         'features.docker.title': 'Dockerサポート',
         'features.docker.desc': 'Dockerイメージとして配布。docker compose up で簡単に起動できます。',
         'features.loadtest.title': '負荷試験に最適化',
@@ -747,7 +765,7 @@
         'comparison.feature': '機能',
         'comparison.gui': 'GUI',
         'comparison.distributed': '分散インスタンス一括同期',
-        'comparison.japanese': '日本語UI',
+        'comparison.import': 'リクエストからスタブ登録',
         'comparison.opensource': 'オープンソース',
         'comparison.selfhost': 'セルフホスト',
         'comparison.nodb': '外部DB不要',
@@ -769,14 +787,14 @@
         'nav.quickstart': 'Quick Start',
         'nav.usage': 'How to Use',
         'nav.comparison': 'Tool Comparison',
-        'hero.description': 'A Japanese-friendly GUI client for<br>centralized management of multiple WireMock instances',
+        'hero.description': 'A GUI client for<br>centralized management of multiple WireMock instances',
         'hero.github': 'View on GitHub',
         'features.distributed.title': 'Distributed WireMock Management',
         'features.distributed.desc': 'Deploy stubs to multiple WireMock instances at once. Sync all instances with a single click.',
         'features.sqlite.title': 'SQLite Persistence',
         'features.sqlite.desc': 'No external database required. Simple file-based persistence makes backup easy.',
-        'features.i18n.title': 'Japanese UI',
-        'features.i18n.desc': 'Switch between Japanese and English. Simple and intuitive interface for easy stub creation and management.',
+        'features.import.title': 'Request to Stub Import',
+        'features.import.desc': 'Import recorded requests as stubs with one click. Quickly create stubs from actual API traffic.',
         'features.docker.title': 'Docker Support',
         'features.docker.desc': 'Distributed as a Docker image. Start easily with docker compose up.',
         'features.loadtest.title': 'Load Testing Optimized',
@@ -787,7 +805,7 @@
         'comparison.feature': 'Feature',
         'comparison.gui': 'GUI',
         'comparison.distributed': 'Distributed Instance Sync',
-        'comparison.japanese': 'Japanese UI',
+        'comparison.import': 'Request to Stub Import',
         'comparison.opensource': 'Open Source',
         'comparison.selfhost': 'Self-hosted',
         'comparison.nodb': 'No External DB Required',
@@ -805,7 +823,7 @@
       }
     };
 
-    let currentLang = 'ja';
+    let currentLang = 'en';
 
     function toggleMenu() {
       const nav = document.getElementById('nav-links');
@@ -820,12 +838,12 @@
       });
     });
 
-    function toggleLanguage() {
-      currentLang = currentLang === 'ja' ? 'en' : 'ja';
+    function changeLanguage(lang) {
+      currentLang = lang;
       applyTranslations();
-      // Update all lang-switch buttons
-      document.querySelectorAll('.lang-switch').forEach(btn => {
-        btn.textContent = currentLang === 'ja' ? 'English' : 'Japanese';
+      // Sync all language selects
+      document.querySelectorAll('.lang-select').forEach(select => {
+        select.value = currentLang;
       });
       document.documentElement.lang = currentLang;
 

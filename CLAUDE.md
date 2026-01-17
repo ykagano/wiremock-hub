@@ -1,22 +1,22 @@
-# WireMock Hub - 開発ガイド
+# WireMock Hub - Development Guide
 
-分散WireMock環境の一元管理に対応した、WireMock用日本語GUIクライアント。
+A GUI client for centralized management of distributed WireMock environments with Japanese/English support.
 
-## 主な機能
+## Key Features
 
-- **分散WireMock対応**: 複数のWireMockインスタンスにスタブを一括同期
-- **データ永続化**: SQLiteファイルに保存、外部DB不要でシンプル
-- **チーム共有**: DBファイルを共有またはDockerボリュームでマウント
-- **日本語/英語UI**: Element Plusによる多言語対応インターフェース
+- **Distributed WireMock Support**: Sync stubs to multiple WireMock instances at once
+- **Data Persistence**: Stored in SQLite file, no external DB required
+- **Team Sharing**: Share DB file or mount via Docker volume
+- **Japanese/English UI**: Multilingual interface powered by Element Plus
 
-## クイックスタート
+## Quick Start
 
-### Docker（推奨）
+### Docker (Recommended)
 
-最も簡単な方法は、All-in-One Dockerイメージを使用することです。
+The easiest way is to use the All-in-One Docker image.
 
 ```bash
-# All-in-One版（Hub + WireMock + nginx が同梱）
+# All-in-One version (Hub + WireMock + nginx bundled)
 docker run -d \
   -p 80:80 \
   -v $(pwd)/data:/app/packages/backend/data \
@@ -26,69 +26,69 @@ docker run -d \
 
 - UI: http://localhost/hub/
 - WireMock Admin API: http://localhost/__admin/
-- モックレスポンス: http://localhost/
+- Mock responses: http://localhost/
 
-詳細は [allinone/README.md](./allinone/README.md) を参照してください。
+See [allinone/README.md](./allinone/README.md) for details.
 
-### ローカル開発
+### Local Development
 
-#### 1. 前提条件
+#### 1. Prerequisites
 
-- Node.js 20.19.0以上 または 22.12.0以上
-- pnpm（`npm install -g pnpm`）
-- WireMock（オプション：スタブ同期時に必要）
+- Node.js 20.19.0+ or 22.12.0+
+- pnpm (`npm install -g pnpm`)
+- WireMock (optional: required for stub sync)
 
-#### 2. 初期セットアップ
+#### 2. Initial Setup
 
 ```bash
-# 依存パッケージインストール
+# Install dependencies
 pnpm install
 
-# 環境変数設定
+# Set environment variables
 cp packages/backend/.env.example packages/backend/.env
 
-# Prismaクライアント生成
+# Generate Prisma client
 pnpm run db:generate
 
-# DBマイグレーション実行
+# Run DB migration
 cd packages/backend
 npx prisma migrate dev
 
-# ルートに戻る
+# Return to root
 cd ../..
 ```
 
-#### 3. 開発サーバー起動
+#### 3. Start Development Server
 
 ```bash
-# 全サービス同時起動（推奨）
+# Start all services (recommended)
 pnpm run dev
 ```
 
-起動後のURL:
-- フロントエンド: http://localhost:5173
-- バックエンドAPI: http://localhost:3000
+URLs after startup:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000
 
-#### 4. 初回利用
+#### 4. First Use
 
-1. http://localhost:5173 にアクセス
-2. プロジェクトを作成（WireMock URL = ロードバランサーURL）
-3. WireMockインスタンスを追加（個別サーバーURL）
-4. スタブを作成
-5. 全インスタンスに同期
+1. Access http://localhost:5173
+2. Create a project (WireMock URL = load balancer URL)
+3. Add WireMock instances (individual server URLs)
+4. Create stubs
+5. Sync to all instances
 
-## アーキテクチャ
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        WireMock Hub                             │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
 │  │   Frontend   │ -> │   Backend    │ -> │    SQLite    │      │
-│  │   (Vue 3)    │    │  (Fastify)   │    │   (永続化)    │      │
+│  │   (Vue 3)    │    │  (Fastify)   │    │ (Persistence)│      │
 │  └──────────────┘    └──────────────┘    └──────────────┘      │
 └─────────────────────────────────────────────────────────────────┘
                               │
-                              │ Admin API経由で同期
+                              │ Sync via Admin API
                               ▼
          ┌────────────────────┼────────────────────┐
          │                    │                    │
@@ -100,18 +100,18 @@ pnpm run dev
    └──────────┘         └──────────┘         └──────────┘
 ```
 
-## デプロイ方法
+## Deployment
 
-### All-in-One Docker（推奨）
+### All-in-One Docker (Recommended)
 
-Hub + WireMock + nginx が同梱された単一コンテナです。
+A single container bundling Hub + WireMock + nginx.
 
-**特徴:**
-- 1つのコンテナで完結（ポート80のみ公開）
-- ECS/Fargateなど単一ポート制約がある環境に最適
-- 簡単セットアップ
+**Features:**
+- Complete in one container (only port 80 exposed)
+- Ideal for environments with single-port constraints like ECS/Fargate
+- Easy setup
 
-**起動方法:**
+**How to start:**
 
 ```bash
 docker run -d \
@@ -121,20 +121,20 @@ docker run -d \
   ghcr.io/youruser/wiremock-hub:latest
 ```
 
-**アクセスURL:**
+**Access URLs:**
 - Hub UI: `http://localhost/hub/`
 - WireMock Admin API: `http://localhost/__admin/`
-- モックレスポンス: `http://localhost/`
+- Mock responses: `http://localhost/`
 
-**追加のWireMockインスタンスを登録:**
-All-in-One版にも、UI から追加のWireMockインスタンスを登録できます。
-1台目はコンテナ内蔵、2台目以降は別サーバーで動作させて登録する形です。
+**Registering additional WireMock instances:**
+You can register additional WireMock instances from the UI even with All-in-One version.
+The first one is built-in, subsequent ones run on separate servers.
 
-詳細は [allinone/README.md](./allinone/README.md) を参照してください。
+See [allinone/README.md](./allinone/README.md) for details.
 
-### Standalone Docker（高度な用途）
+### Standalone Docker (Advanced)
 
-Hubのみを単体で起動し、既存のWireMockインフラと接続する場合に使用します。
+Use when running Hub standalone and connecting to existing WireMock infrastructure.
 
 ```bash
 docker run -d \
@@ -144,283 +144,283 @@ docker run -d \
   ghcr.io/youruser/wiremock-hub-standalone:latest
 ```
 
-その後、UIから既存のWireMockインスタンスを登録します。
+Then register existing WireMock instances from the UI.
 
 ### Docker Compose
 
 ```bash
-# All-in-One版（ローカルビルド）
+# All-in-One version (local build)
 cd allinone && docker compose up -d
 
-# Standalone版 + デモ用WireMock
+# Standalone version + demo WireMock
 docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 ```
 
-## データ永続化
+## Data Persistence
 
-SQLiteファイルは `packages/backend/data/wiremock-hub.db` に保存されます。
+SQLite file is stored at `packages/backend/data/wiremock-hub.db`.
 
-### ローカル開発
-- ファイルは自動生成されます
-- バックアップはファイルをコピーするだけ
+### Local Development
+- File is auto-generated
+- Backup by simply copying the file
 
-### Docker運用
+### Docker Operation
 ```yaml
 services:
   wiremock-hub:
     volumes:
-      - ./data:/app/packages/backend/data  # SQLiteファイルを永続化
+      - ./data:/app/packages/backend/data  # Persist SQLite file
     environment:
       - DATABASE_URL=file:./data/wiremock-hub.db
 ```
 
-**重要:** All-in-One版でも同様に、ボリュームマウントでデータを永続化できます。
+**Important:** Data can be persisted via volume mount in All-in-One version as well.
 
-## Docker イメージのリリース
+## Docker Image Release
 
-GitHub Actions で Docker イメージを自動ビルドし、GitHub Container Registry と Docker Hub に公開します。
+GitHub Actions automatically builds Docker images and publishes to GitHub Container Registry and Docker Hub.
 
-### リリース手順
+### Release Steps
 
 ```bash
-# バージョンタグを作成してプッシュ
+# Create and push version tag
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-### 自動公開されるイメージ
+### Auto-published Images
 
 #### GitHub Container Registry (ghcr.io)
 
-| イメージ | 説明 |
-|---------|------|
-| `ghcr.io/ykagano/wiremock-hub:latest` | All-in-One版（推奨） |
-| `ghcr.io/ykagano/wiremock-hub:0.1.0` | バージョン指定 |
-| `ghcr.io/ykagano/wiremock-hub-standalone:latest` | Hub単体版 |
+| Image | Description |
+|-------|-------------|
+| `ghcr.io/ykagano/wiremock-hub:latest` | All-in-One version (recommended) |
+| `ghcr.io/ykagano/wiremock-hub:0.1.0` | Version-specific |
+| `ghcr.io/ykagano/wiremock-hub-standalone:latest` | Hub standalone version |
 
 #### Docker Hub
 
-| イメージ | 説明 |
-|---------|------|
-| `ykagano/wiremock-hub:latest` | All-in-One版（推奨） |
-| `ykagano/wiremock-hub:0.1.0` | バージョン指定 |
-| `ykagano/wiremock-hub-standalone:latest` | Hub単体版 |
+| Image | Description |
+|-------|-------------|
+| `ykagano/wiremock-hub:latest` | All-in-One version (recommended) |
+| `ykagano/wiremock-hub:0.1.0` | Version-specific |
+| `ykagano/wiremock-hub-standalone:latest` | Hub standalone version |
 
-### GitHub Secrets の設定
+### GitHub Secrets Configuration
 
-Docker Hub への公開には以下の Secrets が必要です:
+The following Secrets are required for Docker Hub publishing:
 
-- `DOCKERHUB_USERNAME`: Docker Hub のユーザー名
-- `DOCKERHUB_TOKEN`: Docker Hub のアクセストークン
+- `DOCKERHUB_USERNAME`: Docker Hub username
+- `DOCKERHUB_TOKEN`: Docker Hub access token
 
-### リリース後の動作確認
+### Post-release Verification
 
 ```bash
-# GitHub Container Registry から起動
+# Start from GitHub Container Registry
 docker run -d -p 80:80 --name wiremock-hub-test ghcr.io/ykagano/wiremock-hub:latest
 
-# または Docker Hub から起動
+# Or start from Docker Hub
 docker run -d -p 80:80 --name wiremock-hub-test ykagano/wiremock-hub:latest
 
-# ブラウザで確認
+# Check in browser
 open http://localhost/hub/
 
-# 確認後にクリーンアップ
+# Cleanup after verification
 docker stop wiremock-hub-test && docker rm wiremock-hub-test
 ```
 
-### ワークフロー設定
+### Workflow Configuration
 
-`.github/workflows/docker-publish.yml` で定義されています。
+Defined in `.github/workflows/docker-publish.yml`.
 
-## プロジェクト構成
+## Project Structure
 
-モノレポ構成（pnpm workspace）：
-- `packages/frontend` - Vue 3フロントエンド
-- `packages/backend` - Fastify + Prisma APIサーバー
-- `packages/shared` - 共通型定義
-- `e2e` - Playwright E2Eテスト
+Monorepo structure (pnpm workspace):
+- `packages/frontend` - Vue 3 frontend
+- `packages/backend` - Fastify + Prisma API server
+- `packages/shared` - Shared type definitions
+- `e2e` - Playwright E2E tests
 
-## コマンド一覧
+## Commands
 
 ```bash
-# 依存パッケージインストール
+# Install dependencies
 pnpm install
 
-# 全パッケージビルド
+# Build all packages
 pnpm run build
 
-# フロントエンド開発サーバー起動（http://localhost:5173）
+# Start frontend dev server (http://localhost:5173)
 pnpm run dev:frontend
 
-# バックエンド開発サーバー起動（http://localhost:3000）
+# Start backend dev server (http://localhost:3000)
 pnpm run dev:backend
 
-# 全サービス同時起動
+# Start all services
 pnpm run dev
 ```
 
-### バックエンドコマンド
+### Backend Commands
 
 ```bash
 cd packages/backend
 
-# DBマイグレーション
+# DB migration
 npx prisma migrate dev
 
-# Prismaクライアント生成
+# Generate Prisma client
 pnpm run db:generate
 
-# DBスキーマをDBに直接反映（開発用）
+# Push DB schema directly (for development)
 pnpm run db:push
 
-# Prisma Studio（DBブラウザ）
+# Prisma Studio (DB browser)
 pnpm run db:studio
 ```
 
-## 技術スタック
+## Tech Stack
 
-### フロントエンド
+### Frontend
 - Vue 3 + TypeScript
-- Element Plus（UIライブラリ）
-- Pinia（状態管理）
-- Vue Router（ルーティング）
-- Vue I18n（日本語/英語対応）
-- Monaco Editor（JSONエディタ）
-- Axios（HTTP通信）
+- Element Plus (UI library)
+- Pinia (state management)
+- Vue Router (routing)
+- Vue I18n (Japanese/English support)
+- Monaco Editor (JSON editor)
+- Axios (HTTP client)
 
-### バックエンド
-- Fastify（Webフレームワーク）
-- Prisma（ORM）
-- SQLite（データベース）
-- Zod（バリデーション）
+### Backend
+- Fastify (web framework)
+- Prisma (ORM)
+- SQLite (database)
+- Zod (validation)
 
-## ディレクトリ構成
+## Directory Structure
 
 ```
 packages/
 ├── frontend/
 │   └── src/
-│       ├── i18n/           # 多言語対応（ja.json, en.json）
-│       ├── router/         # ルーティング設定
-│       ├── services/       # API通信
-│       ├── stores/         # Pinia ストア
-│       ├── types/          # TypeScript型定義
-│       └── views/          # ページコンポーネント
+│       ├── i18n/           # Internationalization (ja.json, en.json)
+│       ├── router/         # Routing configuration
+│       ├── services/       # API communication
+│       ├── stores/         # Pinia stores
+│       ├── types/          # TypeScript type definitions
+│       └── views/          # Page components
 ├── backend/
-│   ├── data/               # SQLiteデータベースファイル
-│   ├── prisma/             # DBスキーマ・マイグレーション
+│   ├── data/               # SQLite database file
+│   ├── prisma/             # DB schema & migrations
 │   └── src/
-│       ├── routes/         # APIルート（projects, stubs, wiremock-instances）
-│       └── index.ts        # エントリーポイント
+│       ├── routes/         # API routes (projects, stubs, wiremock-instances)
+│       └── index.ts        # Entry point
 └── shared/
-    └── src/types/          # 共通型定義
+    └── src/types/          # Shared type definitions
 ```
 
-## API エンドポイント
+## API Endpoints
 
-### プロジェクト
-- `GET /api/projects` - プロジェクト一覧
-- `POST /api/projects` - プロジェクト作成
-- `GET /api/projects/:id` - プロジェクト詳細
-- `PUT /api/projects/:id` - プロジェクト更新
-- `DELETE /api/projects/:id` - プロジェクト削除
+### Projects
+- `GET /api/projects` - List projects
+- `POST /api/projects` - Create project
+- `GET /api/projects/:id` - Get project details
+- `PUT /api/projects/:id` - Update project
+- `DELETE /api/projects/:id` - Delete project
 
-### スタブ
-- `GET /api/stubs?projectId=` - スタブ一覧
-- `POST /api/stubs` - スタブ作成
-- `PUT /api/stubs/:id` - スタブ更新
-- `DELETE /api/stubs/:id` - スタブ削除
-- `POST /api/stubs/:id/sync` - WireMockに同期
-- `POST /api/stubs/sync-all` - 全スタブをWireMockに同期（リセット後に登録）
+### Stubs
+- `GET /api/stubs?projectId=` - List stubs
+- `POST /api/stubs` - Create stub
+- `PUT /api/stubs/:id` - Update stub
+- `DELETE /api/stubs/:id` - Delete stub
+- `POST /api/stubs/:id/sync` - Sync to WireMock
+- `POST /api/stubs/sync-all` - Sync all stubs to WireMock (reset then register)
 
-### WireMockインスタンス
-- `GET /api/wiremock-instances?projectId=` - インスタンス一覧
-- `POST /api/wiremock-instances` - インスタンス登録
-- `GET /api/wiremock-instances/:id` - インスタンス詳細（ヘルスチェック含む）
-- `PUT /api/wiremock-instances/:id` - インスタンス更新
-- `DELETE /api/wiremock-instances/:id` - インスタンス削除
-- `GET /api/wiremock-instances/:id/mappings` - マッピング取得
-- `GET /api/wiremock-instances/:id/requests` - リクエストログ取得
-- `POST /api/wiremock-instances/:id/reset` - インスタンスリセット
+### WireMock Instances
+- `GET /api/wiremock-instances?projectId=` - List instances
+- `POST /api/wiremock-instances` - Register instance
+- `GET /api/wiremock-instances/:id` - Get instance details (includes health check)
+- `PUT /api/wiremock-instances/:id` - Update instance
+- `DELETE /api/wiremock-instances/:id` - Delete instance
+- `GET /api/wiremock-instances/:id/mappings` - Get mappings
+- `GET /api/wiremock-instances/:id/requests` - Get request logs
+- `POST /api/wiremock-instances/:id/reset` - Reset instance
 
-## WireMock連携
+## WireMock Integration
 
-### WireMockサーバー起動
+### Starting WireMock Server
 
 ```bash
-# Dockerを使う場合（推奨）
+# Using Docker (recommended)
 docker run -it --rm -p 8080:8080 wiremock/wiremock
 
-# JARファイルを使う場合
+# Using JAR file
 java -jar wiremock-standalone.jar --port 8080
 ```
 
-### プロジェクト vs インスタンス
+### Project vs Instance
 
-| 項目 | 用途 | 例 |
-|------|------|-----|
-| **プロジェクト WireMock URL** | クライアントがアクセスするロードバランサーURL | `http://api-mock.example.com` |
-| **インスタンスURL** | 個別サーバーの管理API用URL | `http://wiremock-1:8080` |
+| Item | Purpose | Example |
+|------|---------|---------|
+| **Project WireMock URL** | Load balancer URL accessed by clients | `http://api-mock.example.com` |
+| **Instance URL** | Admin API URL for individual servers | `http://wiremock-1:8080` |
 
-単一サーバー構成の場合は、両方同じURLで問題ありません。
+For single-server setups, both can be the same URL.
 
-### 同期の動作
+### Sync Behavior
 
-「全インスタンスに同期」ボタンをクリックすると:
-1. WireMockのマッピングを全削除（reset）
-2. SQLiteのスタブを全て登録
+When clicking "Sync All Instances":
+1. Delete all WireMock mappings (reset)
+2. Register all stubs from SQLite
 
-これにより、SQLiteとWireMockの状態が常に一致します。
+This ensures SQLite and WireMock states are always consistent.
 
-## E2Eテスト
+## E2E Tests
 
-Playwrightを使用したE2Eテスト。デモ用Dockerコンテナに対してテストを実行します。
+E2E tests using Playwright. Tests run against demo Docker containers.
 
-### テスト実行
+### Running Tests
 
 ```bash
-# デモ用Docker環境を起動
+# Start demo Docker environment
 docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 
-# E2Eテスト実行
+# Run E2E tests
 pnpm test:e2e
 
-# UIモードでテスト（デバッグ向け）
+# Run tests in UI mode (for debugging)
 pnpm test:e2e:ui
 
-# ブラウザ表示ありでテスト
+# Run tests with browser visible
 pnpm test:e2e:headed
 
-# テスト後にデータを残す（クリーンアップなし）
+# Keep data after tests (no cleanup)
 pnpm test:e2e:keep-data
 
-# ブラウザ表示あり + データを残す
+# Browser visible + keep data
 pnpm test:e2e:keep-data:headed
 ```
 
-### クリーンアップについて
+### About Cleanup
 
-通常のテストでは、テスト終了後に作成したプロジェクトを自動削除します。
-デバッグや動作確認のためにデータを残したい場合は `test:e2e:keep-data` を使用してください。
+Normal tests automatically delete created projects after completion.
+Use `test:e2e:keep-data` to keep data for debugging or verification.
 
-### テスト内容
+### Test Coverage
 
-- プロジェクト作成・編集・削除
-- WireMockインスタンスの追加・ヘルスチェック
-- スタブ作成・編集
-- 全インスタンスへの同期
-- フォームバリデーション
-- 言語切り替え
+- Project create/edit/delete
+- WireMock instance add/health check
+- Stub create/edit
+- Sync to all instances
+- Form validation
+- Language switching
 
-### デモ用インスタンス
+### Demo Instances
 
 - WireMock 1: http://localhost:8081
 - WireMock 2: http://localhost:8082
 
-## 注意事項
+## Notes
 
-- Node.js 20.19.0以上または22.12.0以上が必要
-- 認証なし：全員が全データにアクセス可能
-- スタブはSQLiteに保存され、Admin API経由でWireMockに同期される
-- SQLiteファイルは `packages/backend/data/` に保存（.gitignoreで除外済み）
+- Node.js 20.19.0+ or 22.12.0+ required
+- No authentication: all users can access all data
+- Stubs are stored in SQLite and synced to WireMock via Admin API
+- SQLite file is stored in `packages/backend/data/` (excluded in .gitignore)

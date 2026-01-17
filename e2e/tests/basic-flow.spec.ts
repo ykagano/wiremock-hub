@@ -29,7 +29,11 @@ async function cleanupProject(page: any, projectName: string) {
 }
 
 test.describe('WireMock Hub E2E Tests - UI', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
+    // Set up localStorage before page loads to ensure English locale
+    await context.addInitScript(() => {
+      localStorage.removeItem('wiremock-hub-locale')
+    })
     await page.goto('/')
   })
 
@@ -125,7 +129,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Check health
     const instanceCard = page.locator('.el-card', { hasText: 'Health Test Instance' })
     await instanceCard.locator('.el-dropdown').click()
-    await page.getByRole('menuitem', { name: /ヘルスチェック|Check Health|接続確認/ }).click()
+    await page.getByRole('menuitem', { name: /ヘルスチェック|Health Check|接続確認/ }).click()
 
     // Should show health status - look for success message
     await expect(page.getByText(/接続に成功|接続OK|Healthy|success/i).first()).toBeVisible({ timeout: 10000 })
@@ -166,7 +170,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Fill in stub using form
-    const urlInput = page.getByPlaceholder('/api/users')
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/sync-test')
 
@@ -181,7 +185,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail page via sidebar
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
     // Sync all instances
@@ -226,20 +230,20 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.locator('.el-select-dropdown__item:visible', { hasText: 'POST' }).click()
 
     // URL
-    const urlInput = page.getByPlaceholder('/api/users')
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/create-test')
 
     // Request Headers - add header (label is "ヘッダー")
     // Find the form item containing "ヘッダー" label but not "Query" or "レスポンス"
-    const headerSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' }).filter({ hasNotText: 'Query' }).filter({ hasNotText: 'レスポンス' })
-    await headerSection.getByRole('button', { name: /追加/ }).click()
+    const headerSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ }).filter({ hasNotText: 'Query' }).filter({ hasNotText: /レスポンス|Response/ })
+    await headerSection.getByRole('button', { name: /追加|Add/ }).click()
     await headerSection.getByPlaceholder('Key').fill('X-Request-ID')
     await headerSection.getByPlaceholder('Value').fill('test-request-123')
 
     // Query Parameters - add parameter
-    const queryParamSection = page.locator('.el-form-item', { hasText: 'Query Parameters' })
-    await queryParamSection.getByRole('button', { name: /追加/ }).click()
+    const queryParamSection = page.locator('.el-form-item', { hasText: /Query Parameters|クエリパラメータ/ })
+    await queryParamSection.getByRole('button', { name: /追加|Add/ }).click()
     await queryParamSection.getByPlaceholder('Key').fill('page')
     await queryParamSection.getByPlaceholder('Value').fill('1')
 
@@ -256,8 +260,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Response Headers - add header (label is "ヘッダー" on response tab too)
     // There's already a Content-Type header, so we add another one
-    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' })
-    await responseHeaderSection.getByRole('button', { name: /追加/ }).click()
+    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ })
+    await responseHeaderSection.getByRole('button', { name: /追加|Add/ }).click()
     // Fill the last (newly added) Key/Value pair
     await responseHeaderSection.getByPlaceholder('Key').last().fill('X-Response-ID')
     await responseHeaderSection.getByPlaceholder('Value').last().fill('resp-456')
@@ -274,13 +278,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await priorityInput.fill('10')
 
     // Scenario
-    await page.getByPlaceholder('login-flow').fill('create-flow')
-    await page.getByPlaceholder('Started').fill('Initial')
-    await page.getByPlaceholder('LoggedIn').fill('Created')
+    await page.getByPlaceholder('e.g. login-flow').fill('create-flow')
+    await page.getByPlaceholder('e.g. Started').fill('Initial')
+    await page.getByPlaceholder('e.g. LoggedIn').fill('Created')
 
     // Save the stub
     await page.getByRole('button', { name: /保存|Save/ }).click()
-    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
+    // Wait for redirect to mapping list and verify stub appears in table
+    await expect(page.locator('.el-table__row', { hasText: '/api/create-test' })).toBeVisible({ timeout: 10000 })
 
     // ========== Verify saved data by reopening ==========
     await page.locator('.el-table__row', { hasText: '/api/create-test' }).click()
@@ -328,11 +333,12 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // ========== Create simple stub first ==========
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
-    const urlInput = page.getByPlaceholder('/api/users')
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/simple-stub')
 
     await page.getByRole('button', { name: /保存|Save/ }).click()
-    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
+    // Wait for redirect to mapping list and verify stub appears in table
+    await expect(page.locator('.el-table__row', { hasText: '/api/simple-stub' })).toBeVisible({ timeout: 10000 })
 
     // ========== Open stub for editing ==========
     await page.locator('.el-table__row', { hasText: '/api/simple-stub' }).click()
@@ -345,19 +351,19 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.locator('.el-select-dropdown__item:visible', { hasText: 'PUT' }).click()
 
     // Change URL
-    const editUrlInput = page.getByPlaceholder('/api/users')
+    const editUrlInput = page.getByPlaceholder('e.g. /api/users')
     await editUrlInput.clear()
     await editUrlInput.fill('/api/edited-stub')
 
     // Add request header (label is "ヘッダー")
-    const requestHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' }).filter({ hasNotText: 'Query' }).filter({ hasNotText: 'レスポンス' })
-    await requestHeaderSection.getByRole('button', { name: /追加/ }).click()
+    const requestHeaderSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ }).filter({ hasNotText: 'Query' }).filter({ hasNotText: /レスポンス|Response/ })
+    await requestHeaderSection.getByRole('button', { name: /追加|Add/ }).click()
     await requestHeaderSection.getByPlaceholder('Key').fill('Authorization')
     await requestHeaderSection.getByPlaceholder('Value').fill('Bearer token123')
 
     // Add query parameter
-    const queryParamSection = page.locator('.el-form-item', { hasText: 'Query Parameters' })
-    await queryParamSection.getByRole('button', { name: /追加/ }).click()
+    const queryParamSection = page.locator('.el-form-item', { hasText: /Query Parameters|クエリパラメータ/ })
+    await queryParamSection.getByRole('button', { name: /追加|Add/ }).click()
     await queryParamSection.getByPlaceholder('Key').fill('limit')
     await queryParamSection.getByPlaceholder('Value').fill('50')
 
@@ -376,8 +382,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Add response header (label is "ヘッダー" on response tab too)
     // There's already a Content-Type header, so we add another one
-    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: 'ヘッダー' })
-    await responseHeaderSection.getByRole('button', { name: /追加/ }).click()
+    const responseHeaderSection = page.locator('.el-form-item').filter({ hasText: /ヘッダー|Headers/ })
+    await responseHeaderSection.getByRole('button', { name: /追加|Add/ }).click()
     // Fill the last (newly added) Key/Value pair
     await responseHeaderSection.getByPlaceholder('Key').last().fill('X-Error-Code')
     await responseHeaderSection.getByPlaceholder('Value').last().fill('ERR-404')
@@ -395,13 +401,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await priorityInput.fill('1')
 
     // Set scenario
-    await page.getByPlaceholder('login-flow').fill('error-flow')
-    await page.getByPlaceholder('Started').fill('Running')
-    await page.getByPlaceholder('LoggedIn').fill('Error')
+    await page.getByPlaceholder('e.g. login-flow').fill('error-flow')
+    await page.getByPlaceholder('e.g. Started').fill('Running')
+    await page.getByPlaceholder('e.g. LoggedIn').fill('Error')
 
     // Save the edited stub
     await page.getByRole('button', { name: /保存|Save/ }).click()
-    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
+    // Wait for redirect to mapping list and verify stub appears in table
+    await expect(page.locator('.el-table__row', { hasText: '/api/edited-stub' })).toBeVisible({ timeout: 10000 })
 
     // ========== Verify edited data by reopening ==========
     await page.locator('.el-table__row', { hasText: '/api/edited-stub' }).click()
@@ -500,7 +507,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -545,7 +552,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Fill in stub
-    const urlInput = page.getByPlaceholder('/api/users')
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/request-log-test')
 
@@ -560,7 +567,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail and sync
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
     // Sync all instances
@@ -580,7 +587,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Verify we're on request log page
@@ -619,7 +626,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Check health - should show unhealthy (error message will appear)
     const instanceCard = page.locator('.el-card', { hasText: 'Invalid Instance' })
     await instanceCard.locator('.el-dropdown').click()
-    await page.getByRole('menuitem', { name: /ヘルスチェック|Check Health|接続確認/ }).click()
+    await page.getByRole('menuitem', { name: /ヘルスチェック|Health Check|接続確認/ }).click()
 
     // Should show unhealthy status (接続エラー is shown in the card)
     await expect(page.getByText(/接続に失敗|接続エラー|Unhealthy|エラー|failed/i).first()).toBeVisible({ timeout: 10000 })
@@ -655,7 +662,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
     // Fill in stub
-    const urlInput = page.getByPlaceholder('/api/users')
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/reset-test')
 
@@ -670,7 +677,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back to project detail and sync
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
     // Sync all instances
@@ -743,7 +750,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -809,7 +816,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -860,7 +867,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page via sidebar
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
 
     // Click refresh button
@@ -908,7 +915,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Create 200 OK stub
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
-    await page.getByPlaceholder('/api/users').fill('/api/status-200')
+    await page.getByPlaceholder('e.g. /api/users').fill('/api/status-200')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.locator('.el-input-number').first().locator('input').fill('200')
     await page.getByRole('button', { name: /保存|Save/ }).click()
@@ -916,14 +923,14 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Create 404 Not Found stub
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
-    await page.getByPlaceholder('/api/users').fill('/api/status-404')
+    await page.getByPlaceholder('e.g. /api/users').fill('/api/status-404')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.locator('.el-input-number').first().locator('input').fill('404')
     await page.getByRole('button', { name: /保存|Save/ }).click()
     await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 5000 })
 
     // Navigate back and sync
-    await page.getByRole('menuitem', { name: /^プロジェクト$|^Projects$/ }).click()
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
     await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
@@ -938,7 +945,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
     await page.getByRole('button', { name: /更新|Refresh/ }).click()
     await page.waitForTimeout(500)
@@ -986,7 +993,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     }
 
     // Navigate to request log page
-    await page.locator('.el-aside').getByText(/リクエスト|Requests/).click()
+    await page.locator('.el-aside').getByText(/リクエストログ|Request Log/).click()
     await page.waitForTimeout(1000)
     await page.getByRole('button', { name: /更新|Refresh/ }).click()
     await page.waitForTimeout(500)

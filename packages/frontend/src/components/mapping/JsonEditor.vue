@@ -17,6 +17,9 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   modelValue: any
@@ -34,7 +37,7 @@ const emit = defineEmits<{
 const jsonText = ref('')
 const error = ref('')
 
-// 初期化
+// Initialization
 watch(() => props.modelValue, (value) => {
   if (value) {
     try {
@@ -59,7 +62,7 @@ function handleBlur() {
       error.value = ''
     }
   } catch (e: any) {
-    error.value = `JSON解析エラー: ${e.message}`
+    error.value = t('messages.json.parseError', { message: e.message })
   }
 }
 </script>
