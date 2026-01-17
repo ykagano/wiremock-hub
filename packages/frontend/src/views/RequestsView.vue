@@ -123,6 +123,12 @@ function onFilterChange(newFilter: FilterState) {
 
 function onRequestClick(request: LoggedRequest) {
   if (selectedInstanceId.value) {
+    // For unmatched requests (wasMatched is not strictly true), store the request data in Pinia store
+    // since WireMock API doesn't provide individual request lookup for unmatched requests
+    const isUnmatched = request.wasMatched !== true
+    if (isUnmatched) {
+      requestStore.setPendingRequestDetail(request)
+    }
     router.push({
       name: 'request-detail',
       params: {
