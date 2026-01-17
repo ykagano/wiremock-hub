@@ -6,7 +6,7 @@ const LOCALE_KEY = 'wiremock-hub-locale'
 
 export default createI18n({
   legacy: false,
-  locale: localStorage.getItem(LOCALE_KEY) || 'ja',
+  locale: localStorage.getItem(LOCALE_KEY) || 'en',
   fallbackLocale: 'en',
   messages: { ja, en }
 })
