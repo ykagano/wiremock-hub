@@ -65,8 +65,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 
-# Install all dependencies (prisma CLI needed for migrations)
-RUN pnpm install --frozen-lockfile
+# Install production dependencies only (prisma CLI needed for migrations)
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy built files
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
