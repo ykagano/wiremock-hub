@@ -7,6 +7,10 @@
           <el-icon><Refresh /></el-icon>
           {{ t('common.refresh') }}
         </el-button>
+        <el-button @click="handleImport" :loading="loading">
+          <el-icon><Upload /></el-icon>
+          {{ t('mappings.import') }}
+        </el-button>
         <el-button @click="handleExport" :loading="loading">
           <el-icon><Download /></el-icon>
           {{ t('mappings.export') }}
@@ -320,6 +324,36 @@ function confirmResetAll() {
 
 async function handleExport() {
   await mappingStore.exportStubs()
+}
+
+function handleImport() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json'
+  input.onchange = async (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0]
+    if (!file) return
+
+    // Check file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      ElMessage.error(t('messages.stub.importFileTooLarge'))
+      return
+    }
+
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      await mappingStore.importStubs(data)
+    } catch (e: any) {
+      if (e instanceof SyntaxError) {
+        ElMessage.error(t('messages.json.parseError', { message: e.message }))
+      } else {
+        ElMessage.error(e.message || t('messages.stub.importFailed'))
+      }
+    }
+  }
+  input.click()
 }
 
 // Initialization

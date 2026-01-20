@@ -242,6 +242,37 @@ export const useMappingStore = defineStore('mapping', () => {
     }
   }
 
+  // Import stubs from JSON file
+  async function importStubs(data: Record<string, unknown>): Promise<{ imported: number; skipped: number } | null> {
+    const projectStore = useProjectStore()
+    if (!projectStore.currentProjectId) {
+      ElMessage.warning(t('messages.project.notSelected'))
+      return null
+    }
+
+    loading.value = true
+    try {
+      const result = await stubApi.importStubs(projectStore.currentProjectId, data)
+
+      if (result.skipped === 0) {
+        ElMessage.success(t('messages.stub.importedCount', { count: result.imported }))
+      } else {
+        ElMessage.warning(t('messages.stub.importResult', { imported: result.imported, skipped: result.skipped }))
+      }
+
+      // Refresh the stub list
+      await fetchMappings()
+
+      return result
+    } catch (e: any) {
+      error.value = e.message || t('messages.stub.importFailed')
+      ElMessage.error(error.value!)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     stubs,
     mappings,
@@ -256,6 +287,7 @@ export const useMappingStore = defineStore('mapping', () => {
     clearMappings,
     getStubById,
     resetMappings,
-    exportStubs
+    exportStubs,
+    importStubs
   }
 })

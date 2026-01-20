@@ -76,6 +76,7 @@
     "search": "Search",
     "reset": "Reset All",
     "export": "Export",
+    "import": "Import",
     "save": "Save",
     "noMappings": "No stubs",
     "method": "Method",
@@ -301,7 +302,11 @@
       "resetSuccess": "All mappings have been reset",
       "resetFailed": "Failed to reset mappings",
       "exported": "Stubs exported successfully",
-      "exportFailed": "Failed to export stubs"
+      "exportFailed": "Failed to export stubs",
+      "importedCount": "Imported {count} stub(s) successfully",
+      "importResult": "Imported: {imported}, Skipped: {skipped}",
+      "importFailed": "Failed to import stubs",
+      "importFileTooLarge": "File is too large (max 10MB)"
     },
     "request": {
       "fetchFailed": "Failed to fetch request logs",

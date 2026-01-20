@@ -76,6 +76,7 @@
     "search": "検索",
     "reset": "すべてリセット",
     "export": "エクスポート",
+    "import": "インポート",
     "save": "保存",
     "noMappings": "スタブがありません",
     "method": "メソッド",
@@ -301,7 +302,11 @@
       "resetSuccess": "すべてのマッピングをリセットしました",
       "resetFailed": "マッピングのリセットに失敗しました",
       "exported": "スタブをエクスポートしました",
-      "exportFailed": "スタブのエクスポートに失敗しました"
+      "exportFailed": "スタブのエクスポートに失敗しました",
+      "importedCount": "{count}件のスタブをインポートしました",
+      "importResult": "インポート: {imported}件, スキップ: {skipped}件",
+      "importFailed": "スタブのインポートに失敗しました",
+      "importFileTooLarge": "ファイルが大きすぎます（最大10MB）"
     },
     "request": {
       "fetchFailed": "リクエストログの取得に失敗しました",
