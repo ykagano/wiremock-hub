@@ -70,8 +70,8 @@ FROM node:22-alpine
 # Latest stable: 3.13.2 (as of 2025-11-14)
 ARG WIREMOCK_VERSION=3.13.2
 
-# Install nginx, OpenJDK (for WireMock), supervisor, and CA certificates
-RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates
+# Install nginx, OpenJDK (for WireMock), supervisor, CA certificates, and sqlite for migrations
+RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates sqlite
 
 # Copy custom CA certificates for corporate proxy environments
 COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
@@ -92,12 +92,9 @@ COPY --from=backend-builder /app/packages/backend/package.json ./packages/backen
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
 
-# Copy backend build
+# Copy backend build (includes generated Prisma client in dist/)
 COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=backend-builder /app/packages/backend/prisma ./packages/backend/prisma
-
-# Generate Prisma client
-RUN cd packages/backend && pnpm exec prisma generate
 
 # Copy frontend build to backend's public directory
 COPY --from=frontend-builder /app/packages/frontend/dist ./packages/backend/public

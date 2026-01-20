@@ -46,8 +46,8 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Install CA certificates for SSL connections
-RUN apk add --no-cache ca-certificates
+# Install CA certificates and sqlite for migrations
+RUN apk add --no-cache ca-certificates sqlite
 
 # Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
 # Users can place .crt files in custom-certs/ directory
@@ -65,10 +65,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 
-# Install production dependencies only (includes prisma for migrations)
+# Install production dependencies only (no prisma CLI needed with Prisma v7)
 RUN pnpm install --frozen-lockfile --prod
 
-# Copy built files
+# Copy built files (includes generated Prisma client in dist/)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=builder /app/packages/backend/prisma ./packages/backend/prisma
@@ -93,9 +93,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/projects || exit 1
 
-# Generate Prisma client
-RUN cd packages/backend && pnpm exec prisma generate
-
-# Start the application
+# Start the application with sqlite3 migration (no prisma CLI needed)
 WORKDIR /app/packages/backend
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "if [ ! -f ./data/wiremock-hub.db ]; then cat prisma/migrations/*/migration.sql | sqlite3 ./data/wiremock-hub.db; fi && node dist/index.js"]
