@@ -38,6 +38,11 @@ __screenshots__/
 # SQLite database
 packages/backend/data/
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Custom CA certificates (for corporate proxy environments)
 custom-certs/*.crt
 custom-certs/*.pem
