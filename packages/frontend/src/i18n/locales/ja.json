@@ -37,7 +37,7 @@
     "title": "プロジェクト一覧",
     "add": "プロジェクト追加",
     "name": "プロジェクト名",
-    "baseUrl": "WireMock URL",
+    "overview": "概要",
     "edit": "編集",
     "delete": "削除",
     "select": "選択",
@@ -45,12 +45,10 @@
     "addFirst": "最初のプロジェクトを追加してください",
     "placeholder": {
       "name": "例: 開発環境",
-      "baseUrl": "例: http://localhost:8080"
+      "overview": "プロジェクトの概要（任意）"
     },
     "validation": {
-      "nameRequired": "プロジェクト名を入力してください",
-      "urlRequired": "URLを入力してください",
-      "urlInvalid": "有効なURLを入力してください"
+      "nameRequired": "プロジェクト名を入力してください"
     },
     "dialog": {
       "addTitle": "プロジェクト追加",

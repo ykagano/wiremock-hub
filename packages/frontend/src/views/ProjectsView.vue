@@ -58,9 +58,9 @@
           </div>
         </template>
 
-        <div class="project-info">
-          <el-icon class="info-icon"><Link /></el-icon>
-          <span class="project-url">{{ project.baseUrl }}</span>
+        <div v-if="project.overview" class="project-info">
+          <el-icon class="info-icon"><Document /></el-icon>
+          <span class="project-overview">{{ project.overview }}</span>
         </div>
 
         <div class="project-meta">
@@ -89,10 +89,12 @@
             :placeholder="t('projects.placeholder.name')"
           />
         </el-form-item>
-        <el-form-item :label="t('projects.baseUrl')" prop="baseUrl">
+        <el-form-item :label="t('projects.overview')" prop="overview">
           <el-input
-            v-model="formData.baseUrl"
-            :placeholder="t('projects.placeholder.baseUrl')"
+            v-model="formData.overview"
+            type="textarea"
+            :rows="3"
+            :placeholder="t('projects.placeholder.overview')"
           />
         </el-form-item>
       </el-form>
@@ -128,20 +130,12 @@ const formRef = ref<FormInstance>()
 
 const formData = reactive({
   name: '',
-  baseUrl: ''
+  overview: ''
 })
 
 const formRules = computed<FormRules>(() => ({
   name: [
     { required: true, message: t('projects.validation.nameRequired'), trigger: 'blur' }
-  ],
-  baseUrl: [
-    { required: true, message: t('projects.validation.urlRequired'), trigger: 'blur' },
-    {
-      pattern: /^https?:\/\/.+/,
-      message: t('projects.validation.urlInvalid'),
-      trigger: 'blur'
-    }
   ]
 }))
 
@@ -162,7 +156,7 @@ function goToProjectDetail(id: string) {
 function editProject(project: Project) {
   editingProject.value = project
   formData.name = project.name
-  formData.baseUrl = project.baseUrl
+  formData.overview = project.overview || ''
   showAddDialog.value = true
 }
 
@@ -202,7 +196,7 @@ function closeDialog() {
   showAddDialog.value = false
   editingProject.value = null
   formData.name = ''
-  formData.baseUrl = ''
+  formData.overview = ''
   formRef.value?.resetFields()
 }
 </script>
@@ -268,8 +262,7 @@ function closeDialog() {
   color: #909399;
 }
 
-.project-url {
-  font-family: monospace;
+.project-overview {
   font-size: 14px;
   color: #606266;
 }
