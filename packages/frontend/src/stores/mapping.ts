@@ -204,6 +204,44 @@ export const useMappingStore = defineStore('mapping', () => {
     }
   }
 
+  // Export stubs to JSON file
+  async function exportStubs(): Promise<boolean> {
+    const projectStore = useProjectStore()
+    if (!projectStore.currentProjectId) {
+      ElMessage.warning(t('messages.project.notSelected'))
+      return false
+    }
+
+    loading.value = true
+    try {
+      const blob = await stubApi.exportStubs(projectStore.currentProjectId)
+
+      // Generate filename for download
+      const projectName = projectStore.currentProject?.name || 'project'
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+      const filename = `${projectName.replace(/[^a-zA-Z0-9]/g, '-')}-stubs-${timestamp}.json`
+
+      // Download the file
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      ElMessage.success(t('messages.stub.exported'))
+      return true
+    } catch (e: any) {
+      error.value = e.message || t('messages.stub.exportFailed')
+      ElMessage.error(error.value!)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     stubs,
     mappings,
@@ -217,6 +255,7 @@ export const useMappingStore = defineStore('mapping', () => {
     syncAllToWiremock,
     clearMappings,
     getStubById,
-    resetMappings
+    resetMappings,
+    exportStubs
   }
 })

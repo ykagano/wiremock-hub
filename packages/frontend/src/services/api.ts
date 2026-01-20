@@ -222,6 +222,14 @@ export const stubApi = {
       resetBeforeSync
     })
     return response.data.data!
+  },
+
+  async exportStubs(projectId: string): Promise<Blob> {
+    const response = await apiClient.get('/stubs/export', {
+      params: { projectId },
+      responseType: 'blob'
+    })
+    return response.data
   }
 }
 

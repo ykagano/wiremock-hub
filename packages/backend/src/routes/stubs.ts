@@ -267,6 +267,46 @@ export async function stubRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // Export stubs for a project
+  fastify.get('/export', async (request: FastifyRequest<{ Querystring: { projectId: string } }>, reply: FastifyReply) => {
+    const { projectId } = request.query
+
+    if (!projectId) {
+      return reply.status(400).send({
+        success: false,
+        error: 'projectId is required'
+      })
+    }
+
+    const project = await checkProjectExists(projectId)
+    if (!project) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Project not found'
+      })
+    }
+
+    // Use createdAt asc to preserve the original creation order for import
+    const stubs = await fastify.prisma.stub.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'asc' }
+    })
+
+    const exportData = {
+      version: '1.0',
+      projectName: project.name,
+      exportedAt: new Date().toISOString(),
+      stubs: stubs.map(stub => ({
+        name: stub.name,
+        description: stub.description,
+        isActive: stub.isActive,
+        mapping: stub.mapping
+      }))
+    }
+
+    return reply.send(exportData)
+  })
+
   // Sync all stubs to a WireMock instance
   fastify.post('/sync-all', async (request: FastifyRequest, reply: FastifyReply) => {
     try {

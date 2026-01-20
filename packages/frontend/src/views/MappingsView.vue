@@ -7,6 +7,10 @@
           <el-icon><Refresh /></el-icon>
           {{ t('common.refresh') }}
         </el-button>
+        <el-button @click="handleExport" :loading="loading">
+          <el-icon><Download /></el-icon>
+          {{ t('mappings.export') }}
+        </el-button>
         <el-button type="danger" plain @click="confirmResetAll">
           <el-icon><Delete /></el-icon>
           {{ t('mappings.reset') }}
@@ -312,6 +316,10 @@ function confirmResetAll() {
   }).catch(() => {
     // Cancelled
   })
+}
+
+async function handleExport() {
+  await mappingStore.exportStubs()
 }
 
 // Initialization

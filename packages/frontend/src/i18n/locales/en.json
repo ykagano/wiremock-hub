@@ -75,6 +75,7 @@
     "test": "Test",
     "search": "Search",
     "reset": "Reset All",
+    "export": "Export",
     "save": "Save",
     "noMappings": "No stubs",
     "method": "Method",
@@ -298,7 +299,9 @@
       "syncedCount": "Synced {count} stub(s) to WireMock",
       "syncResult": "Success: {success}, Failed: {failed}",
       "resetSuccess": "All mappings have been reset",
-      "resetFailed": "Failed to reset mappings"
+      "resetFailed": "Failed to reset mappings",
+      "exported": "Stubs exported successfully",
+      "exportFailed": "Failed to export stubs"
     },
     "request": {
       "fetchFailed": "Failed to fetch request logs",
