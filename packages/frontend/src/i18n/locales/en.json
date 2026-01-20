@@ -37,7 +37,7 @@
     "title": "Projects",
     "add": "Add Project",
     "name": "Project Name",
-    "overview": "Overview",
+    "description": "Description",
     "edit": "Edit",
     "delete": "Delete",
     "select": "Select",
@@ -45,7 +45,7 @@
     "addFirst": "Add your first project",
     "placeholder": {
       "name": "e.g. Development",
-      "overview": "Project overview (optional)"
+      "description": "Project description (optional)"
     },
     "validation": {
       "nameRequired": "Project name is required"

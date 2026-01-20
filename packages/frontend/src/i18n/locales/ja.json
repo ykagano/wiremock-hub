@@ -37,7 +37,7 @@
     "title": "プロジェクト一覧",
     "add": "プロジェクト追加",
     "name": "プロジェクト名",
-    "overview": "概要",
+    "description": "説明",
     "edit": "編集",
     "delete": "削除",
     "select": "選択",
@@ -45,7 +45,7 @@
     "addFirst": "最初のプロジェクトを追加してください",
     "placeholder": {
       "name": "例: 開発環境",
-      "overview": "プロジェクトの概要（任意）"
+      "description": "プロジェクトの説明（任意）"
     },
     "validation": {
       "nameRequired": "プロジェクト名を入力してください"

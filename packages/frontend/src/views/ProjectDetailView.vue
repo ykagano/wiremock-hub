@@ -26,8 +26,8 @@
         <el-descriptions-item :label="t('projects.name')">
           {{ project.name }}
         </el-descriptions-item>
-        <el-descriptions-item :label="t('projects.overview')">
-          {{ project.overview || '-' }}
+        <el-descriptions-item :label="t('projects.description')">
+          {{ project.description || '-' }}
         </el-descriptions-item>
         <el-descriptions-item :label="t('projectDetail.createdAt')">
           {{ formatDate(project.createdAt) }}
@@ -171,12 +171,12 @@
         <el-form-item :label="t('projects.name')" prop="name">
           <el-input v-model="projectFormData.name" />
         </el-form-item>
-        <el-form-item :label="t('projects.overview')" prop="overview">
+        <el-form-item :label="t('projects.description')" prop="description">
           <el-input
-            v-model="projectFormData.overview"
+            v-model="projectFormData.description"
             type="textarea"
             :rows="3"
-            :placeholder="t('projects.placeholder.overview')"
+            :placeholder="t('projects.placeholder.description')"
           />
         </el-form-item>
       </el-form>
@@ -221,7 +221,7 @@ const instanceFormData = reactive({ name: '', url: '' })
 const showProjectDialog = ref(false)
 const savingProject = ref(false)
 const projectFormRef = ref<FormInstance>()
-const projectFormData = reactive({ name: '', overview: '' })
+const projectFormData = reactive({ name: '', description: '' })
 
 const instanceFormRules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('instances.validation.nameRequired'), trigger: 'blur' }],
@@ -276,7 +276,7 @@ function goBack() {
 function editProject() {
   if (!project.value) return
   projectFormData.name = project.value.name
-  projectFormData.overview = project.value.overview || ''
+  projectFormData.description = project.value.description || ''
   showProjectDialog.value = true
 }
 

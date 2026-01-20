@@ -58,9 +58,9 @@
           </div>
         </template>
 
-        <div v-if="project.overview" class="project-info">
+        <div v-if="project.description" class="project-info">
           <el-icon class="info-icon"><Document /></el-icon>
-          <span class="project-overview">{{ project.overview }}</span>
+          <span class="project-description">{{ project.description }}</span>
         </div>
 
         <div class="project-meta">
@@ -89,12 +89,12 @@
             :placeholder="t('projects.placeholder.name')"
           />
         </el-form-item>
-        <el-form-item :label="t('projects.overview')" prop="overview">
+        <el-form-item :label="t('projects.description')" prop="description">
           <el-input
-            v-model="formData.overview"
+            v-model="formData.description"
             type="textarea"
             :rows="3"
-            :placeholder="t('projects.placeholder.overview')"
+            :placeholder="t('projects.placeholder.description')"
           />
         </el-form-item>
       </el-form>
@@ -130,7 +130,7 @@ const formRef = ref<FormInstance>()
 
 const formData = reactive({
   name: '',
-  overview: ''
+  description: ''
 })
 
 const formRules = computed<FormRules>(() => ({
@@ -156,7 +156,7 @@ function goToProjectDetail(id: string) {
 function editProject(project: Project) {
   editingProject.value = project
   formData.name = project.name
-  formData.overview = project.overview || ''
+  formData.description = project.description || ''
   showAddDialog.value = true
 }
 
@@ -196,7 +196,7 @@ function closeDialog() {
   showAddDialog.value = false
   editingProject.value = null
   formData.name = ''
-  formData.overview = ''
+  formData.description = ''
   formRef.value?.resetFields()
 }
 </script>
@@ -262,7 +262,7 @@ function closeDialog() {
   color: #909399;
 }
 
-.project-overview {
+.project-description {
   font-size: 14px;
   color: #606266;
 }
