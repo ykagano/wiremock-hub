@@ -62,6 +62,9 @@ RUN pnpm --filter @wiremock-hub/shared build
 # Build backend
 RUN pnpm run build:backend
 
+# Prune devDependencies to reduce image size
+RUN pnpm prune --prod
+
 # Stage 3: Runtime image
 FROM node:22-alpine
 
