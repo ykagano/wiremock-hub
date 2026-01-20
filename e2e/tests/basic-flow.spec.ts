@@ -47,7 +47,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Verify project was created
@@ -72,7 +71,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -113,7 +111,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(healthTestProject)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -144,7 +141,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -204,7 +200,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -318,7 +313,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -444,7 +438,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Should show validation error for name field
     await expect(page.locator('.el-form-item__error').first()).toBeVisible()
 
-    // Fill in name and save should work (overview is optional)
     await page.getByLabel(/プロジェクト名|Name/).fill('Validation Test Project')
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
@@ -487,7 +480,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project - use wiremock-2 to avoid affecting other tests' logs
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -533,7 +525,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -674,7 +665,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(errorTestProject)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -705,7 +695,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -789,7 +778,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -840,7 +828,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -892,7 +879,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -967,7 +953,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -1021,7 +1006,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    // description field is optional, skip it for basic tests
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
