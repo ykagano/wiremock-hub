@@ -38,6 +38,9 @@ __screenshots__/
 # SQLite database
 packages/backend/data/
 
+# Prisma generated client
+packages/backend/src/generated/
+
 # Custom CA certificates (for corporate proxy environments)
 custom-certs/*.crt
 custom-certs/*.pem
