@@ -65,7 +65,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 
-# Install production dependencies only (prisma CLI needed for migrations)
+# Install production dependencies only (includes prisma for migrations)
 RUN pnpm install --frozen-lockfile --prod
 
 # Copy built files
@@ -76,9 +76,6 @@ COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
 
 # Remove favicon.ico if exists (Vue default) - we use favicon.svg
 RUN rm -f ./packages/frontend/dist/favicon.ico
-
-# Generate Prisma client
-RUN cd packages/backend && pnpm exec prisma generate
 
 # Create data directory for SQLite
 RUN mkdir -p /app/packages/backend/data
@@ -96,6 +93,9 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/projects || exit 1
 
+# Generate Prisma client
+RUN cd packages/backend && pnpm exec prisma generate
+
 # Start the application
 WORKDIR /app/packages/backend
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/index.js"]

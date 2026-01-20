@@ -7,7 +7,7 @@ echo "Starting WireMock Hub All-in-One Container..."
 if [ ! -f /app/packages/backend/data/wiremock-hub.db ]; then
     echo "Initializing database..."
     cd /app/packages/backend
-    npx prisma migrate deploy
+    pnpm exec prisma migrate deploy
     cd /app
 fi
 

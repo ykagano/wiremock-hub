@@ -62,9 +62,6 @@ RUN pnpm --filter @wiremock-hub/shared build
 # Build backend
 RUN pnpm run build:backend
 
-# Prune devDependencies to reduce image size
-RUN pnpm prune --prod
-
 # Stage 3: Runtime image
 FROM node:22-alpine
 
@@ -80,15 +77,27 @@ RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates
 COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
 RUN update-ca-certificates 2>/dev/null || true
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-# Copy backend build and dependencies
-COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
-COPY --from=backend-builder /app/packages/backend/package.json ./packages/backend/
-COPY --from=backend-builder /app/packages/backend/prisma ./packages/backend/prisma
-COPY --from=backend-builder /app/packages/backend/node_modules ./packages/backend/node_modules
-COPY --from=backend-builder /app/node_modules ./node_modules
+# Copy package files for production install
 COPY --from=backend-builder /app/package.json ./
+COPY --from=backend-builder /app/pnpm-lock.yaml ./
+COPY --from=backend-builder /app/pnpm-workspace.yaml ./
+COPY --from=backend-builder /app/packages/shared/package.json ./packages/shared/
+COPY --from=backend-builder /app/packages/backend/package.json ./packages/backend/
+
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy backend build
+COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
+COPY --from=backend-builder /app/packages/backend/prisma ./packages/backend/prisma
+
+# Generate Prisma client
+RUN cd packages/backend && pnpm exec prisma generate
 
 # Copy frontend build to backend's public directory
 COPY --from=frontend-builder /app/packages/frontend/dist ./packages/backend/public
