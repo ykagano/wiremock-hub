@@ -80,7 +80,8 @@
     "status": "ステータス",
     "priority": "優先度",
     "scenario": "シナリオ",
-    "confirmReset": "すべてのマッピングをリセットしますか？"
+    "confirmReset": "プロジェクト内のすべてのスタブを削除しますか？この操作は取り消せません。",
+    "confirmResetNote": "WireMock側のスタブも削除する場合は、削除後に「全インスタンスに同期」を実行してください。"
   },
   "editor": {
     "title": "スタブエディタ",
@@ -295,8 +296,9 @@
       "syncFailed": "WireMockへの同期に失敗しました",
       "syncedCount": "{count}件のスタブをWireMockに同期しました",
       "syncResult": "成功: {success}件, 失敗: {failed}件",
-      "resetSuccess": "すべてのマッピングをリセットしました",
-      "resetFailed": "マッピングのリセットに失敗しました"
+      "resetSuccess": "すべてのスタブを削除しました",
+      "resetSuccessNote": "WireMock側も同期するには「全インスタンスに同期」を実行してください",
+      "resetFailed": "スタブの削除に失敗しました"
     },
     "request": {
       "fetchFailed": "リクエストログの取得に失敗しました",

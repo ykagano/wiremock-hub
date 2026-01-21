@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { stubApi, wiremockInstanceApi, type Stub, type CreateStubInput, type UpdateStubInput } from '@/services/api'
+import { stubApi, type Stub, type CreateStubInput, type UpdateStubInput } from '@/services/api'
 import { useProjectStore } from './project'
 import { ElMessage } from 'element-plus'
 import { t } from '@/i18n'
@@ -156,7 +156,7 @@ export const useMappingStore = defineStore('mapping', () => {
     return stubs.value.find(s => s.id === id)
   }
 
-  // Reset WireMock instance mappings
+  // Delete all stubs from wiremock-hub
   async function resetMappings(): Promise<boolean> {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) {
@@ -164,37 +164,23 @@ export const useMappingStore = defineStore('mapping', () => {
       return false
     }
 
-    // Load instances if not already loaded
-    if (projectStore.wiremockInstances.length === 0) {
-      await projectStore.fetchWiremockInstances(projectStore.currentProjectId)
-    }
-
-    if (projectStore.wiremockInstances.length === 0) {
-      ElMessage.warning(t('messages.instance.notAvailable'))
-      return false
-    }
-
     loading.value = true
-    let successCount = 0
-    let failCount = 0
 
     try {
-      for (const instance of projectStore.wiremockInstances) {
-        if (!instance.isActive) continue
-        try {
-          await wiremockInstanceApi.reset(instance.id)
-          successCount++
-        } catch {
-          failCount++
-        }
-      }
-
-      if (failCount === 0) {
-        ElMessage.success(t('messages.stub.resetSuccess'))
-      } else {
-        ElMessage.warning(t('messages.stub.syncResult', { success: successCount, failed: failCount }))
-      }
-      return failCount === 0
+      await stubApi.deleteAll(projectStore.currentProjectId)
+      stubs.value = []
+      mappings.value = []
+      ElMessage({
+        type: 'success',
+        message: t('messages.stub.resetSuccess'),
+        duration: 5000
+      })
+      ElMessage({
+        type: 'info',
+        message: t('messages.stub.resetSuccessNote'),
+        duration: 5000
+      })
+      return true
     } catch (e: any) {
       error.value = e.message || t('messages.stub.resetFailed')
       ElMessage.error(error.value!)

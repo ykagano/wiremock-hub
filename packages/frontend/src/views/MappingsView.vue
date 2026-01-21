@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
@@ -295,7 +295,12 @@ function confirmDelete(mapping: Mapping) {
 
 function confirmResetAll() {
   ElMessageBox.confirm(
-    t('mappings.confirmReset'),
+    h('div', [
+      h('p', { style: 'margin: 0;' }, t('mappings.confirmReset')),
+      h('p', {
+        style: 'color: #909399; font-size: 12px; margin-top: 8px; margin-bottom: 0;'
+      }, t('mappings.confirmResetNote'))
+    ]),
     t('common.confirm'),
     {
       confirmButtonText: t('common.yes'),
@@ -305,7 +310,6 @@ function confirmResetAll() {
   ).then(async () => {
     try {
       await mappingStore.resetMappings()
-      ElMessage.success(t('common.success'))
     } catch (error) {
       console.error('Failed to reset mappings:', error)
     }
