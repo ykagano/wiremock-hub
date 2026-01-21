@@ -26,8 +26,8 @@
         <el-descriptions-item :label="t('projects.name')">
           {{ project.name }}
         </el-descriptions-item>
-        <el-descriptions-item :label="t('projects.baseUrl')">
-          <span class="url-text">{{ project.baseUrl }}</span>
+        <el-descriptions-item :label="t('projects.description')">
+          {{ project.description || '-' }}
         </el-descriptions-item>
         <el-descriptions-item :label="t('projectDetail.createdAt')">
           {{ formatDate(project.createdAt) }}
@@ -171,8 +171,13 @@
         <el-form-item :label="t('projects.name')" prop="name">
           <el-input v-model="projectFormData.name" />
         </el-form-item>
-        <el-form-item :label="t('projects.baseUrl')" prop="baseUrl">
-          <el-input v-model="projectFormData.baseUrl" />
+        <el-form-item :label="t('projects.description')" prop="description">
+          <el-input
+            v-model="projectFormData.description"
+            type="textarea"
+            :rows="3"
+            :placeholder="t('projects.placeholder.description')"
+          />
         </el-form-item>
       </el-form>
 
@@ -216,7 +221,7 @@ const instanceFormData = reactive({ name: '', url: '' })
 const showProjectDialog = ref(false)
 const savingProject = ref(false)
 const projectFormRef = ref<FormInstance>()
-const projectFormData = reactive({ name: '', baseUrl: '' })
+const projectFormData = reactive({ name: '', description: '' })
 
 const instanceFormRules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('instances.validation.nameRequired'), trigger: 'blur' }],
@@ -227,11 +232,7 @@ const instanceFormRules = computed<FormRules>(() => ({
 }))
 
 const projectFormRules = computed<FormRules>(() => ({
-  name: [{ required: true, message: t('projects.validation.nameRequired'), trigger: 'blur' }],
-  baseUrl: [
-    { required: true, message: t('projects.validation.urlRequired'), trigger: 'blur' },
-    { pattern: /^https?:\/\/.+/, message: t('projects.validation.urlInvalid'), trigger: 'blur' }
-  ]
+  name: [{ required: true, message: t('projects.validation.nameRequired'), trigger: 'blur' }]
 }))
 
 onMounted(async () => {
@@ -275,7 +276,7 @@ function goBack() {
 function editProject() {
   if (!project.value) return
   projectFormData.name = project.value.name
-  projectFormData.baseUrl = project.value.baseUrl
+  projectFormData.description = project.value.description || ''
   showProjectDialog.value = true
 }
 
@@ -435,11 +436,6 @@ function closeInstanceDialog() {
 
 .info-card {
   margin-bottom: 24px;
-}
-
-.url-text {
-  font-family: monospace;
-  color: #606266;
 }
 
 .instances-section {

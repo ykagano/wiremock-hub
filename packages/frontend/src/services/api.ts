@@ -37,7 +37,6 @@ export interface Project {
   id: string
   name: string
   description?: string
-  baseUrl: string
   createdAt: string
   updatedAt: string
   wiremockInstances?: WiremockInstance[]
@@ -47,13 +46,11 @@ export interface Project {
 export interface CreateProjectInput {
   name: string
   description?: string
-  baseUrl: string
 }
 
 export interface UpdateProjectInput {
   name?: string
   description?: string
-  baseUrl?: string
 }
 
 // Project API

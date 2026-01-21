@@ -37,7 +37,7 @@
     "title": "Projects",
     "add": "Add Project",
     "name": "Project Name",
-    "baseUrl": "WireMock URL",
+    "description": "Description",
     "edit": "Edit",
     "delete": "Delete",
     "select": "Select",
@@ -45,12 +45,10 @@
     "addFirst": "Add your first project",
     "placeholder": {
       "name": "e.g. Development",
-      "baseUrl": "e.g. http://localhost:8080"
+      "description": "Project description (optional)"
     },
     "validation": {
-      "nameRequired": "Project name is required",
-      "urlRequired": "URL is required",
-      "urlInvalid": "Please enter a valid URL"
+      "nameRequired": "Project name is required"
     },
     "dialog": {
       "addTitle": "Add Project",

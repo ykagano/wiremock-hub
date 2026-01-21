@@ -3,14 +3,12 @@ import { z } from 'zod'
 
 const createProjectSchema = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
-  baseUrl: z.string().url()
+  description: z.string().optional()
 })
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).optional(),
-  description: z.string().optional(),
-  baseUrl: z.string().url().optional()
+  description: z.string().optional()
 })
 
 export async function projectRoutes(fastify: FastifyInstance) {

@@ -72,7 +72,7 @@ URLs after startup:
 #### 4. First Use
 
 1. Access http://localhost:5173
-2. Create a project (WireMock URL = load balancer URL)
+2. Create a project (name and optional description)
 3. Add WireMock instances (individual server URLs)
 4. Create stubs
 5. Sync to all instances
@@ -360,10 +360,10 @@ java -jar wiremock-standalone.jar --port 8080
 
 | Item | Purpose | Example |
 |------|---------|---------|
-| **Project WireMock URL** | Load balancer URL accessed by clients | `http://api-mock.example.com` |
+| **Project** | Container for organizing stubs and instances | `My API Mock` |
 | **Instance URL** | Admin API URL for individual servers | `http://wiremock-1:8080` |
 
-For single-server setups, both can be the same URL.
+A project can have multiple WireMock instances for distributed environments.
 
 ### Sync Behavior
 
