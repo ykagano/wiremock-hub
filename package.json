@@ -6,6 +6,9 @@
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["prisma", "better-sqlite3", "@prisma/engines"]
+  },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "dev:frontend": "pnpm --filter @wiremock-hub/frontend dev",

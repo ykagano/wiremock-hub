@@ -43,6 +43,9 @@ packages/backend/data/
 .env.local
 .env.*.local
 
+# Prisma generated client
+packages/backend/src/generated/
+
 # Custom CA certificates (for corporate proxy environments)
 custom-certs/*.crt
 custom-certs/*.pem
