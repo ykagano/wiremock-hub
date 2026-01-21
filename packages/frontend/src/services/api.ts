@@ -212,7 +212,10 @@ export const stubApi = {
     const response = await apiClient.delete<ApiResponse<{ deletedCount: number }>>('/stubs', {
       params: { projectId }
     })
-    return response.data.data!
+    if (!response.data.data) {
+      throw new Error('Failed to delete stubs: unexpected response')
+    }
+    return response.data.data
   },
 
   async sync(id: string, instanceId: string): Promise<void> {
