@@ -1,7 +1,9 @@
+import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
-import { PrismaClient } from '@prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaClient } from './generated/prisma/client.js'
 import { projectRoutes } from './routes/projects.js'
 import { stubRoutes } from './routes/stubs.js'
 import { wiremockInstanceRoutes } from './routes/wiremock-instances.js'
@@ -12,7 +14,11 @@ import { existsSync } from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const prisma = new PrismaClient()
+// Initialize Prisma with better-sqlite3 driver adapter (Prisma v7)
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL || 'file:./data/wiremock-hub.db',
+})
+const prisma = new PrismaClient({ adapter })
 
 const fastify = Fastify({
   logger: true

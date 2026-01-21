@@ -17,7 +17,10 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
-    monacoEditorPlugin({})
+    monacoEditorPlugin({
+      // Only include JSON worker to reduce bundle size (saves ~15MB)
+      languageWorkers: ['json', 'editorWorkerService']
+    })
   ],
   resolve: {
     alias: {
