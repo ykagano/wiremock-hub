@@ -73,6 +73,8 @@
     "test": "Test",
     "search": "Search",
     "reset": "Reset All",
+    "export": "Export",
+    "import": "Import",
     "save": "Save",
     "noMappings": "No stubs",
     "method": "Method",
@@ -297,7 +299,13 @@
       "syncedCount": "Synced {count} stub(s) to WireMock",
       "syncResult": "Success: {success}, Failed: {failed}",
       "resetSuccess": "All stubs have been deleted",
-      "resetFailed": "Failed to delete stubs"
+      "resetFailed": "Failed to delete stubs",
+      "exported": "Stubs exported successfully",
+      "exportFailed": "Failed to export stubs",
+      "importedCount": "Imported {count} stub(s) successfully",
+      "importResult": "Imported: {imported}, Skipped: {skipped}",
+      "importFailed": "Failed to import stubs",
+      "importFileTooLarge": "File is too large (max 10MB)"
     },
     "request": {
       "fetchFailed": "Failed to fetch request logs",

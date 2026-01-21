@@ -298,6 +298,117 @@ export async function stubRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // Export stubs for a project
+  fastify.get('/export', async (request: FastifyRequest<{ Querystring: { projectId: string } }>, reply: FastifyReply) => {
+    const { projectId } = request.query
+
+    if (!projectId) {
+      return reply.status(400).send({
+        success: false,
+        error: 'projectId is required'
+      })
+    }
+
+    const project = await checkProjectExists(projectId)
+    if (!project) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Project not found'
+      })
+    }
+
+    // Use createdAt asc to preserve the original creation order for import
+    const stubs = await fastify.prisma.stub.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'asc' }
+    })
+
+    const exportData = {
+      version: '1.0',
+      projectName: project.name,
+      exportedAt: new Date().toISOString(),
+      stubs: stubs.map(stub => ({
+        name: stub.name,
+        description: stub.description,
+        isActive: stub.isActive,
+        mapping: stub.mapping
+      }))
+    }
+
+    return reply.send(exportData)
+  })
+
+  // Import stubs for a project
+  fastify.post('/import', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const importSchema = z.object({
+        projectId: z.string().uuid(),
+        data: z.object({
+          version: z.string().optional(),
+          projectName: z.string().optional(),
+          exportedAt: z.string().optional(),
+          stubs: z.array(z.object({
+            name: z.string().nullable().optional(),
+            description: z.string().nullable().optional(),
+            isActive: z.boolean().optional().default(true),
+            mapping: z.object({
+              request: z.object({}).passthrough(),
+              response: z.object({}).passthrough()
+            }).passthrough()
+          }))
+        })
+      })
+
+      const body = importSchema.parse(request.body)
+
+      const project = await checkProjectExists(body.projectId)
+      if (!project) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Project not found'
+        })
+      }
+
+      const results = {
+        imported: 0,
+        skipped: 0,
+        errors: [] as string[]
+      }
+
+      for (const stubData of body.data.stubs) {
+        try {
+          await fastify.prisma.stub.create({
+            data: {
+              projectId: body.projectId,
+              name: stubData.name,
+              description: stubData.description,
+              isActive: stubData.isActive,
+              mapping: stubData.mapping as object
+            }
+          })
+          results.imported++
+        } catch (e: any) {
+          results.skipped++
+          results.errors.push(e.message || 'Unknown error')
+        }
+      }
+
+      return reply.send({
+        success: true,
+        data: results
+      })
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation error',
+          details: error.errors
+        })
+      }
+      throw error
+    }
+  })
+
   // Sync all stubs to a WireMock instance
   fastify.post('/sync-all', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
