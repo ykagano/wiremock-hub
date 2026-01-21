@@ -34,7 +34,7 @@ See [allinone/README.md](./allinone/README.md) for details.
 
 #### 1. Prerequisites
 
-- Node.js 20.19.0+ or 22.12.0+
+- Node.js 22.12.0+
 - pnpm (`npm install -g pnpm`)
 - WireMock (optional: required for stub sync)
 
@@ -380,7 +380,9 @@ E2E tests using Playwright. Tests run against demo Docker containers.
 ### Running Tests
 
 ```bash
-# Start demo Docker environment
+# Build and start demo Docker environment (clean state)
+docker compose -f docker-compose.yml -f docker-compose.demo.yml build --no-cache
+docker compose -f docker-compose.yml -f docker-compose.demo.yml down -v
 docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 
 # Run E2E tests
@@ -418,9 +420,73 @@ Use `test:e2e:keep-data` to keep data for debugging or verification.
 - WireMock 1: http://localhost:8081
 - WireMock 2: http://localhost:8082
 
+## Backend Tests
+
+Backend API tests using Vitest with Fastify's inject method.
+
+### Running Tests
+
+```bash
+cd packages/backend
+
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run specific test file
+pnpm test routes/projects.test.ts
+```
+
+### Test Structure
+
+```
+packages/backend/
+├── tests/
+│   ├── setup.ts           # Test setup (creates isolated test DB)
+│   └── routes/
+│       └── projects.test.ts  # API route tests
+└── vitest.config.ts       # Vitest configuration
+```
+
+### Writing Tests
+
+Tests use Fastify's `inject` method for HTTP request simulation:
+
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest'
+import { getTestApp } from '../setup.js'
+
+describe('POST /api/projects', () => {
+  it('should create a project', async () => {
+    const app = await getTestApp()
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/projects',
+      payload: {
+        name: 'Test Project',
+        description: 'Test description'
+      }
+    })
+
+    expect(response.statusCode).toBe(201)
+    const result = response.json()
+    expect(result.success).toBe(true)
+  })
+})
+```
+
+### Test Database
+
+- Tests use an isolated SQLite database (`packages/backend/data-test/test.db`)
+- Database is automatically created and cleaned up for each test run
+- Tests run sequentially (`singleFork: true`) to avoid database conflicts
+
 ## Notes
 
-- Node.js 20.19.0+ or 22.12.0+ required
+- Node.js 22.12.0+ required (Prisma 7.x requires Node.js 22.12.0+)
 - No authentication: all users can access all data
 - Stubs are stored in SQLite and synced to WireMock via Admin API
 - SQLite file is stored in `packages/backend/data/` (excluded in .gitignore)
