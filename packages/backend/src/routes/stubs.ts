@@ -188,6 +188,37 @@ export async function stubRoutes(fastify: FastifyInstance) {
     })
   })
 
+  // Delete all stubs for a project
+  fastify.delete('/', async (request: FastifyRequest<{ Querystring: { projectId: string } }>, reply: FastifyReply) => {
+    const { projectId } = request.query
+
+    if (!projectId) {
+      return reply.status(400).send({
+        success: false,
+        error: 'projectId is required'
+      })
+    }
+
+    const project = await checkProjectExists(projectId)
+    if (!project) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Project not found'
+      })
+    }
+
+    const result = await fastify.prisma.stub.deleteMany({
+      where: { projectId }
+    })
+
+    return reply.send({
+      success: true,
+      data: {
+        deletedCount: result.count
+      }
+    })
+  })
+
   // Sync stub to WireMock instance
   fastify.post('/:id/sync', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     try {
