@@ -207,16 +207,24 @@ export async function stubRoutes(fastify: FastifyInstance) {
       })
     }
 
-    const result = await fastify.prisma.stub.deleteMany({
-      where: { projectId }
-    })
+    try {
+      const result = await fastify.prisma.stub.deleteMany({
+        where: { projectId }
+      })
 
-    return reply.send({
-      success: true,
-      data: {
-        deletedCount: result.count
-      }
-    })
+      return reply.send({
+        success: true,
+        data: {
+          deletedCount: result.count
+        }
+      })
+    } catch (error) {
+      fastify.log.error(error)
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to delete stubs'
+      })
+    }
   })
 
   // Sync stub to WireMock instance
