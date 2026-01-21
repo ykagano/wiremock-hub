@@ -43,14 +43,17 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
   test('should create and delete project', async ({ page }) => {
     const testProjectName = `UI Test Project ${Date.now()}`
+    const testDescription = 'Test project description for E2E testing'
 
-    // Create project
+    // Create project with description
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/説明|Description/).fill(testDescription)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
-    // Verify project was created
+    // Verify project was created with description
     await expect(page.getByText(testProjectName)).toBeVisible()
+    await expect(page.getByText(testDescription)).toBeVisible()
 
     // Delete project
     const projectCard = page.locator('.el-card', { hasText: testProjectName })
