@@ -1079,7 +1079,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -1127,7 +1126,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
@@ -1208,7 +1206,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create source project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(sourceProjectName)
-    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to source project detail
@@ -1259,7 +1256,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.goto('/projects')
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(targetProjectName)
-    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to target project detail
@@ -1292,7 +1288,6 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Create project
     await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
     await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
-    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
 
     // Go to project detail
