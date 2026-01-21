@@ -219,6 +219,22 @@ export const stubApi = {
       resetBeforeSync
     })
     return response.data.data!
+  },
+
+  async exportStubs(projectId: string): Promise<Blob> {
+    const response = await apiClient.get('/stubs/export', {
+      params: { projectId },
+      responseType: 'blob'
+    })
+    return response.data
+  },
+
+  async importStubs(projectId: string, data: Record<string, unknown>): Promise<{ imported: number; skipped: number; errors: string[] }> {
+    const response = await apiClient.post<ApiResponse<{ imported: number; skipped: number; errors: string[] }>>('/stubs/import', {
+      projectId,
+      data
+    })
+    return response.data.data!
   }
 }
 

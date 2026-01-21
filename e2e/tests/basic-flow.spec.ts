@@ -1072,4 +1072,255 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     // Clean up
     await cleanupProject(page, testProjectName)
   })
+
+  test('should export stubs to JSON file', async ({ page }) => {
+    const testProjectName = `Export Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab and create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+
+    // Fill in stub
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput).toBeVisible()
+    await urlInput.fill('/api/export-test')
+
+    // Go to response tab and fill in response body
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await expect(responseTextarea).toBeVisible()
+    await responseTextarea.fill('{"message": "Export test response"}')
+
+    // Save the stub
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/export-test' })).toBeVisible({ timeout: 10000 })
+
+    // Click export button and wait for download
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: /エクスポート|Export/ }).click()
+    const download = await downloadPromise
+
+    // Verify download filename contains project name
+    const filename = download.suggestedFilename()
+    expect(filename).toMatch(/.*-stubs-.*\.json/)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should import stubs from JSON file', async ({ page }) => {
+    const testProjectName = `Import Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    // Prepare import data
+    const importData = {
+      version: '1.0',
+      projectName: 'Test Project',
+      exportedAt: new Date().toISOString(),
+      stubs: [
+        {
+          name: 'Imported Stub 1',
+          description: 'First imported stub',
+          isActive: true,
+          mapping: {
+            request: {
+              method: 'GET',
+              urlPath: '/api/imported-1'
+            },
+            response: {
+              status: 200,
+              jsonBody: { message: 'Imported stub 1' },
+              headers: { 'Content-Type': 'application/json' }
+            }
+          }
+        },
+        {
+          name: 'Imported Stub 2',
+          description: 'Second imported stub',
+          isActive: true,
+          mapping: {
+            request: {
+              method: 'POST',
+              urlPath: '/api/imported-2'
+            },
+            response: {
+              status: 201,
+              jsonBody: { id: 123 },
+              headers: { 'Content-Type': 'application/json' }
+            }
+          }
+        }
+      ]
+    }
+
+    // Set up filechooser listener BEFORE clicking the button
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: /インポート|Import/ }).click()
+    const fileChooser = await fileChooserPromise
+
+    // Create a temporary file with import data
+    const buffer = Buffer.from(JSON.stringify(importData))
+    await fileChooser.setFiles({
+      name: 'test-import.json',
+      mimeType: 'application/json',
+      buffer: buffer
+    })
+
+    // Verify imported stubs appear in the list
+    await expect(page.locator('.el-table__row', { hasText: '/api/imported-1' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: '/api/imported-2' })).toBeVisible({ timeout: 10000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should export and import stubs between projects', async ({ page }) => {
+    const sourceProjectName = `Export Source ${Date.now()}`
+    const targetProjectName = `Import Target ${Date.now()}`
+
+    // Create source project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(sourceProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to source project detail
+    let projectCard = page.locator('.el-card', { hasText: sourceProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab and create stubs
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    // Create first stub
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+
+    const urlInput1 = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput1).toBeVisible()
+    await urlInput1.fill('/api/roundtrip-1')
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea1 = page.getByPlaceholder('{"message": "success"}')
+    await expect(responseTextarea1).toBeVisible()
+    await responseTextarea1.fill('{"data": "roundtrip-1"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-1' })).toBeVisible({ timeout: 10000 })
+
+    // Create second stub
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+
+    const urlInput2 = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput2).toBeVisible()
+    await urlInput2.fill('/api/roundtrip-2')
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea2 = page.getByPlaceholder('{"message": "success"}')
+    await expect(responseTextarea2).toBeVisible()
+    await responseTextarea2.fill('{"data": "roundtrip-2"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-2' })).toBeVisible({ timeout: 10000 })
+
+    // Export stubs
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: /エクスポート|Export/ }).click()
+    const download = await downloadPromise
+
+    // Save download to temporary path
+    const downloadPath = await download.path()
+    expect(downloadPath).toBeTruthy()
+
+    // Create target project
+    await page.goto('/projects')
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(targetProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to target project detail
+    projectCard = page.locator('.el-card', { hasText: targetProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    // Import the exported file
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: /インポート|Import/ }).click()
+    const fileChooser = await fileChooserPromise
+    await fileChooser.setFiles(downloadPath!)
+
+    // Verify imported stubs appear in the target project
+    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-1' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-2' })).toBeVisible({ timeout: 10000 })
+
+    // Clean up both projects
+    await cleanupProject(page, targetProjectName)
+    await cleanupProject(page, sourceProjectName)
+  })
+
+  test('should show error for invalid import file', async ({ page }) => {
+    const testProjectName = `Invalid Import Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/WireMock URL|Base URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    // Try to import invalid JSON
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: /インポート|Import/ }).click()
+    const fileChooser = await fileChooserPromise
+
+    // Create invalid JSON file
+    const invalidBuffer = Buffer.from('{ invalid json }')
+    await fileChooser.setFiles({
+      name: 'invalid.json',
+      mimeType: 'application/json',
+      buffer: invalidBuffer
+    })
+
+    // Wait for error message
+    await expect(page.getByText(/エラー|error|parse|JSON/i).first()).toBeVisible({ timeout: 10000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
 })
