@@ -72,7 +72,7 @@
     "copy": "Duplicate",
     "test": "Test",
     "search": "Search",
-    "reset": "Reset All",
+    "reset": "Delete All",
     "export": "Export",
     "import": "Import",
     "save": "Save",

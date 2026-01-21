@@ -750,7 +750,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await expect(page.locator('code', { hasText: '/api/reset-test' }).first()).toBeVisible({ timeout: 5000 })
 
     // Click reset all button
-    await page.getByRole('button', { name: /すべてリセット|Reset All/ }).click()
+    await page.getByRole('button', { name: /すべて削除|Delete All/ }).click()
 
     // Verify confirmation dialog shows the new message with note
     await expect(page.locator('.el-message-box')).toContainText(/プロジェクト内のすべてのスタブを削除|Delete all stubs in this project/)
@@ -767,7 +767,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.waitForTimeout(1000)
     await expect(page.locator('code', { hasText: '/api/reset-test' })).not.toBeVisible()
 
-    // Verify stub is STILL accessible on WireMock (Reset All only deletes wiremock-hub stubs, not WireMock mappings)
+    // Verify stub is STILL accessible on WireMock (Delete All only deletes wiremock-hub stubs, not WireMock mappings)
     const responseAfterReset = await request.get('http://localhost:8082/api/reset-test')
     // WireMock still has the mapping until user runs "Sync All Instances"
     expect(responseAfterReset.status()).toBe(200)
