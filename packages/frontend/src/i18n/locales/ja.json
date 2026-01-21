@@ -59,10 +59,12 @@
   },
   "projectDetail": {
     "info": "プロジェクト情報",
+    "projectId": "プロジェクトID",
     "instances": "インスタンス",
     "stubs": "スタブ",
     "createdAt": "作成日時",
-    "updatedAt": "更新日時"
+    "updatedAt": "更新日時",
+    "copyProjectId": "プロジェクトIDをコピーしました"
   },
   "mappings": {
     "title": "スタブマッピング",

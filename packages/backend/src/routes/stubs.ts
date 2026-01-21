@@ -296,7 +296,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       version: '1.0',
       projectName: project.name,
       exportedAt: new Date().toISOString(),
-      stubs: stubs.map(stub => ({
+      stubs: stubs.map((stub: typeof stubs[number]) => ({
         name: stub.name,
         description: stub.description,
         isActive: stub.isActive,
@@ -442,7 +442,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       for (let i = 0; i < stubs.length; i += chunkSize) {
         const chunk = stubs.slice(i, i + chunkSize)
         const chunkResults = await Promise.allSettled(
-          chunk.map(async (stub) => {
+          chunk.map(async (stub: typeof stubs[number]) => {
             const mapping = stub.mapping as unknown as Mapping
             const wiremockUrl = `${instance.url}/__admin/mappings`
             // Always POST since we reset mappings

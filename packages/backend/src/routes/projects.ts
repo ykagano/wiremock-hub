@@ -35,7 +35,7 @@ export async function projectRoutes(fastify: FastifyInstance) {
 
     return reply.send({
       success: true,
-      data: projects.map(p => ({
+      data: projects.map((p: typeof projects[number]) => ({
         ...p,
         stubCount: p._count.stubs
       }))
@@ -182,36 +182,34 @@ export async function projectRoutes(fastify: FastifyInstance) {
       }
 
       // Use transaction to delete all existing instances and create new ones
-      const result = await fastify.prisma.$transaction(async (tx) => {
-        // Count existing instances before deletion
-        const deletedCount = await tx.wiremockInstance.count({
-          where: { projectId: id }
-        })
-
-        // Delete all existing instances for this project
-        await tx.wiremockInstance.deleteMany({
-          where: { projectId: id }
-        })
-
-        // Create new instances
-        const createdInstances = await Promise.all(
-          body.instances.map((instance) =>
-            tx.wiremockInstance.create({
-              data: {
-                projectId: id,
-                name: instance.name,
-                url: instance.url
-              }
-            })
-          )
-        )
-
-        return {
-          deleted: deletedCount,
-          created: createdInstances.length,
-          instances: createdInstances
-        }
+      // Count existing instances before deletion
+      const deletedCount = await fastify.prisma.wiremockInstance.count({
+        where: { projectId: id }
       })
+
+      // Delete all existing instances for this project
+      await fastify.prisma.wiremockInstance.deleteMany({
+        where: { projectId: id }
+      })
+
+      // Create new instances
+      const createdInstances = await Promise.all(
+        body.instances.map((instance) =>
+          fastify.prisma.wiremockInstance.create({
+            data: {
+              projectId: id,
+              name: instance.name,
+              url: instance.url
+            }
+          })
+        )
+      )
+
+      const result = {
+        deleted: deletedCount,
+        created: createdInstances.length,
+        instances: createdInstances
+      }
 
       return reply.send({
         success: true,
