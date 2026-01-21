@@ -683,7 +683,7 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await cleanupProject(page, errorTestProject)
   })
 
-  test('should reset stubs on WireMock instance', async ({ page, request }) => {
+  test('should reset all stubs in wiremock-hub', async ({ page, request }) => {
     const testProjectName = `Reset Stubs Test ${Date.now()}`
 
     // Create project
@@ -751,16 +751,26 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Click reset all button
     await page.getByRole('button', { name: /すべてリセット|Reset All/ }).click()
+
+    // Verify confirmation dialog shows the new message with note
+    await expect(page.locator('.el-message-box')).toContainText(/プロジェクト内のすべてのスタブを削除|Delete all stubs in this project/)
+    await expect(page.locator('.el-message-box')).toContainText(/全インスタンスに同期|Sync All Instances/)
+
     await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes|確認/ }).click()
 
-    // Wait for reset to complete
-    await expect(page.getByText(/成功|success|リセット/i).first()).toBeVisible({ timeout: 10000 })
-    await page.waitForTimeout(1000)
+    // Wait for reset to complete - should show success message
+    await expect(page.getByText(/すべてのスタブを削除しました|All stubs have been deleted/i).first()).toBeVisible({ timeout: 10000 })
+    // Should also show note about syncing WireMock
+    await expect(page.getByText(/全インスタンスに同期|Sync All Instances/i).first()).toBeVisible({ timeout: 5000 })
 
-    // Verify stub is no longer accessible on WireMock (should return 404 or similar)
+    // Verify stub list in wiremock-hub is now empty
+    await page.waitForTimeout(1000)
+    await expect(page.locator('code', { hasText: '/api/reset-test' })).not.toBeVisible()
+
+    // Verify stub is STILL accessible on WireMock (Reset All only deletes wiremock-hub stubs, not WireMock mappings)
     const responseAfterReset = await request.get('http://localhost:8082/api/reset-test')
-    // After reset, WireMock returns 404 for non-existent mappings
-    expect(responseAfterReset.status()).toBe(404)
+    // WireMock still has the mapping until user runs "Sync All Instances"
+    expect(responseAfterReset.status()).toBe(200)
 
     // Clean up
     await cleanupProject(page, testProjectName)
