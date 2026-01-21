@@ -30,13 +30,8 @@ beforeAll(async () => {
   }
   await mkdir(TEST_DB_DIR, { recursive: true })
 
-  // Build app with test database
-  app = await buildApp({
-    logger: false,
-    databaseUrl: TEST_DB_URL,
-  })
-
-  // Run migrations using Prisma db push (creates tables from schema)
+  // Run migrations using Prisma db push BEFORE building the app
+  // This creates the database file and tables
   const { execSync } = await import('child_process')
   execSync(`npx prisma db push --url "${TEST_DB_URL}"`, {
     cwd: path.join(__dirname, '..'),
@@ -45,6 +40,12 @@ beforeAll(async () => {
       DATABASE_URL: TEST_DB_URL,
     },
     stdio: 'pipe',
+  })
+
+  // Build app with test database
+  app = await buildApp({
+    logger: false,
+    databaseUrl: TEST_DB_URL,
   })
 
   await app.ready()

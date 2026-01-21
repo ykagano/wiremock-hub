@@ -11,6 +11,15 @@ const updateProjectSchema = z.object({
   description: z.string().optional()
 })
 
+const bulkUpdateInstancesSchema = z.object({
+  instances: z.array(
+    z.object({
+      name: z.string().min(1),
+      url: z.string().url()
+    })
+  )
+})
+
 export async function projectRoutes(fastify: FastifyInstance) {
   // List projects
   fastify.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -152,5 +161,71 @@ export async function projectRoutes(fastify: FastifyInstance) {
       success: true,
       message: 'Project deleted successfully'
     })
+  })
+
+  // Bulk update instances for a project
+  fastify.post('/:id/instances/bulk-update', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    try {
+      const { id } = request.params
+      const body = bulkUpdateInstancesSchema.parse(request.body)
+
+      // Check if project exists
+      const existing = await fastify.prisma.project.findUnique({
+        where: { id }
+      })
+
+      if (!existing) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Project not found'
+        })
+      }
+
+      // Use transaction to delete all existing instances and create new ones
+      const result = await fastify.prisma.$transaction(async (tx) => {
+        // Count existing instances before deletion
+        const deletedCount = await tx.wiremockInstance.count({
+          where: { projectId: id }
+        })
+
+        // Delete all existing instances for this project
+        await tx.wiremockInstance.deleteMany({
+          where: { projectId: id }
+        })
+
+        // Create new instances
+        const createdInstances = await Promise.all(
+          body.instances.map((instance) =>
+            tx.wiremockInstance.create({
+              data: {
+                projectId: id,
+                name: instance.name,
+                url: instance.url
+              }
+            })
+          )
+        )
+
+        return {
+          deleted: deletedCount,
+          created: createdInstances.length,
+          instances: createdInstances
+        }
+      })
+
+      return reply.send({
+        success: true,
+        data: result
+      })
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation error',
+          details: error.errors
+        })
+      }
+      throw error
+    }
   })
 }
