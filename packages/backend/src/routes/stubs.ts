@@ -163,7 +163,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // Delete all stubs for a project (must be defined before /:id route)
+  // Delete all stubs for a project
   fastify.delete('/', async (request: FastifyRequest<{ Querystring: { projectId: string } }>, reply: FastifyReply) => {
     const { projectId } = request.query
 
@@ -327,7 +327,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       version: '1.0',
       projectName: project.name,
       exportedAt: new Date().toISOString(),
-      stubs: stubs.map(stub => ({
+      stubs: stubs.map((stub: typeof stubs[number]) => ({
         name: stub.name,
         description: stub.description,
         isActive: stub.isActive,

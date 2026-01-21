@@ -317,9 +317,9 @@ function confirmResetAll() {
     }
   ).then(async () => {
     try {
-      await mappingStore.resetMappings()
+      await mappingStore.deleteAllStubs()
     } catch (error) {
-      console.error('Failed to reset mappings:', error)
+      console.error('Failed to delete all stubs:', error)
     }
   }).catch(() => {
     // Cancelled

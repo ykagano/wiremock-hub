@@ -157,7 +157,7 @@ export const useMappingStore = defineStore('mapping', () => {
   }
 
   // Delete all stubs from wiremock-hub
-  async function resetMappings(): Promise<boolean> {
+  async function deleteAllStubs(): Promise<boolean> {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) {
       ElMessage.warning(t('messages.project.notSelected'))
@@ -263,7 +263,7 @@ export const useMappingStore = defineStore('mapping', () => {
     syncAllToWiremock,
     clearMappings,
     getStubById,
-    resetMappings,
+    deleteAllStubs,
     exportStubs,
     importStubs
   }
