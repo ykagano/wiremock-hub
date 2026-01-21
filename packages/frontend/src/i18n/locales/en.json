@@ -297,7 +297,6 @@
       "syncedCount": "Synced {count} stub(s) to WireMock",
       "syncResult": "Success: {success}, Failed: {failed}",
       "resetSuccess": "All stubs have been deleted",
-      "resetSuccessNote": "Run \"Sync All Instances\" to sync WireMock",
       "resetFailed": "Failed to delete stubs"
     },
     "request": {

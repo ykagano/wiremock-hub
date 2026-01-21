@@ -170,16 +170,7 @@ export const useMappingStore = defineStore('mapping', () => {
       await stubApi.deleteAll(projectStore.currentProjectId)
       stubs.value = []
       mappings.value = []
-      ElMessage({
-        type: 'success',
-        message: t('messages.stub.resetSuccess'),
-        duration: 5000
-      })
-      ElMessage({
-        type: 'info',
-        message: t('messages.stub.resetSuccessNote'),
-        duration: 5000
-      })
+      ElMessage.success(t('messages.stub.resetSuccess'))
       return true
     } catch (e: any) {
       error.value = e.message || t('messages.stub.resetFailed')
