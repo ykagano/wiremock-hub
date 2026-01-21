@@ -25,7 +25,7 @@
       <el-descriptions :column="2" border>
         <el-descriptions-item :label="t('projectDetail.projectId')" :span="2">
           <div class="project-id-cell">
-            <code class="project-id">{{ project.id }}</code>
+            <span class="project-id">{{ project.id }}</span>
             <el-button size="small" text @click="copyProjectId">
               <el-icon><CopyDocument /></el-icon>
             </el-button>
@@ -463,11 +463,6 @@ function closeInstanceDialog() {
 }
 
 .project-id {
-  font-family: monospace;
-  font-size: 13px;
-  background-color: #f5f7fa;
-  padding: 4px 8px;
-  border-radius: 4px;
   color: #606266;
 }
 
