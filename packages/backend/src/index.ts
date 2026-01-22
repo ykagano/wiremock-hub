@@ -1,47 +1,14 @@
 import 'dotenv/config'
-import Fastify from 'fastify'
-import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-import { PrismaClient } from './generated/prisma/client.js'
-import { projectRoutes } from './routes/projects.js'
-import { stubRoutes } from './routes/stubs.js'
-import { wiremockInstanceRoutes } from './routes/wiremock-instances.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { existsSync } from 'fs'
+import { buildApp } from './app.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Initialize Prisma with better-sqlite3 driver adapter (Prisma v7)
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || 'file:./data/wiremock-hub.db',
-})
-const prisma = new PrismaClient({ adapter })
-
-const fastify = Fastify({
-  logger: true
-})
-
-// Register plugins
-await fastify.register(cors, {
-  origin: true,
-  credentials: true
-})
-
-// Decorate fastify with prisma
-fastify.decorate('prisma', prisma)
-
-// Register routes
-await fastify.register(projectRoutes, { prefix: '/api/projects' })
-await fastify.register(stubRoutes, { prefix: '/api/stubs' })
-await fastify.register(wiremockInstanceRoutes, { prefix: '/api/wiremock-instances' })
-
-// Health check
-fastify.get('/api/health', async () => {
-  return { status: 'ok', timestamp: new Date().toISOString() }
-})
+const fastify = await buildApp({ logger: true })
 
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
@@ -71,7 +38,6 @@ if (process.env.NODE_ENV === 'production') {
 const closeGracefully = async (signal: string) => {
   console.log(`Received signal to terminate: ${signal}`)
   await fastify.close()
-  await prisma.$disconnect()
   process.exit(0)
 }
 
@@ -93,10 +59,3 @@ const start = async () => {
 }
 
 start()
-
-// Type augmentation for Fastify
-declare module 'fastify' {
-  interface FastifyInstance {
-    prisma: PrismaClient
-  }
-}

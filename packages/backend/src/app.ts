@@ -1,0 +1,57 @@
+import Fastify, { FastifyInstance } from 'fastify'
+import cors from '@fastify/cors'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaClient } from './generated/prisma/client.js'
+import { projectRoutes } from './routes/projects.js'
+import { stubRoutes } from './routes/stubs.js'
+import { wiremockInstanceRoutes } from './routes/wiremock-instances.js'
+
+export interface BuildAppOptions {
+  logger?: boolean
+  databaseUrl?: string
+}
+
+export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
+  const { logger = false, databaseUrl } = options
+
+  // Initialize Prisma with better-sqlite3 driver adapter (Prisma v7)
+  const adapter = new PrismaBetterSqlite3({
+    url: databaseUrl || process.env.DATABASE_URL || 'file:./data/wiremock-hub.db',
+  })
+  const prisma = new PrismaClient({ adapter })
+
+  const fastify = Fastify({ logger })
+
+  // Register plugins
+  await fastify.register(cors, {
+    origin: true,
+    credentials: true
+  })
+
+  // Decorate fastify with prisma
+  fastify.decorate('prisma', prisma)
+
+  // Register routes
+  await fastify.register(projectRoutes, { prefix: '/api/projects' })
+  await fastify.register(stubRoutes, { prefix: '/api/stubs' })
+  await fastify.register(wiremockInstanceRoutes, { prefix: '/api/wiremock-instances' })
+
+  // Health check
+  fastify.get('/api/health', async () => {
+    return { status: 'ok', timestamp: new Date().toISOString() }
+  })
+
+  // Add hook for graceful shutdown
+  fastify.addHook('onClose', async () => {
+    await prisma.$disconnect()
+  })
+
+  return fastify
+}
+
+// Type augmentation for Fastify
+declare module 'fastify' {
+  interface FastifyInstance {
+    prisma: PrismaClient
+  }
+}

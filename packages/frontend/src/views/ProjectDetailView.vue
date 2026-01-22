@@ -23,6 +23,14 @@
         <span>{{ t('projectDetail.info') }}</span>
       </template>
       <el-descriptions :column="2" border>
+        <el-descriptions-item :label="t('projectDetail.projectId')" :span="2">
+          <div class="project-id-cell">
+            <span class="project-id">{{ project.id }}</span>
+            <el-button size="small" text @click="copyProjectId">
+              <el-icon><CopyDocument /></el-icon>
+            </el-button>
+          </div>
+        </el-descriptions-item>
         <el-descriptions-item :label="t('projects.name')">
           {{ project.name }}
         </el-descriptions-item>
@@ -272,6 +280,16 @@ function goBack() {
   router.push('/projects')
 }
 
+async function copyProjectId() {
+  if (!project.value) return
+  try {
+    await navigator.clipboard.writeText(project.value.id)
+    ElMessage.success(t('projectDetail.copyProjectId'))
+  } catch {
+    ElMessage.error(t('common.error'))
+  }
+}
+
 // Project
 function editProject() {
   if (!project.value) return
@@ -436,6 +454,16 @@ function closeInstanceDialog() {
 
 .info-card {
   margin-bottom: 24px;
+}
+
+.project-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-id {
+  color: #606266;
 }
 
 .instances-section {

@@ -59,10 +59,12 @@
   },
   "projectDetail": {
     "info": "Project Info",
+    "projectId": "Project ID",
     "instances": "Instances",
     "stubs": "Stubs",
     "createdAt": "Created At",
-    "updatedAt": "Updated At"
+    "updatedAt": "Updated At",
+    "copyProjectId": "Project ID copied to clipboard"
   },
   "mappings": {
     "title": "Stub Mappings",

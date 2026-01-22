@@ -80,6 +80,19 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     const projectCard = page.locator('.el-card', { hasText: testProjectName })
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
 
+    // Verify Project ID is displayed and copy button works
+    const projectIdCell = page.locator('.project-id-cell')
+    await expect(projectIdCell).toBeVisible()
+    const projectIdCode = projectIdCell.locator('span.project-id')
+    await expect(projectIdCode).toBeVisible()
+    // Project ID should be a UUID format
+    const projectIdText = await projectIdCode.textContent()
+    expect(projectIdText).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+
+    // Click copy button and verify success message
+    await projectIdCell.locator('button').click()
+    await expect(page.getByText(/プロジェクトIDをコピーしました|Project ID copied to clipboard/i).first()).toBeVisible({ timeout: 5000 })
+
     // Add instance
     await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
     await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Test Instance')
