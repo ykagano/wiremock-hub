@@ -181,11 +181,6 @@ export async function projectRoutes(fastify: FastifyInstance) {
         })
       }
 
-      // Count existing instances before deletion
-      const deletedCount = await fastify.prisma.wiremockInstance.count({
-        where: { projectId: id }
-      })
-
       // Use batch transaction to delete and create atomically
       // Note: Using batch transaction instead of interactive transaction
       // due to Prisma 7 type inference issues with transaction client in Docker builds
@@ -199,7 +194,7 @@ export async function projectRoutes(fastify: FastifyInstance) {
         })
       )
 
-      const [, ...createdInstances] = await fastify.prisma.$transaction([
+      const [deleteResult, ...createdInstances] = await fastify.prisma.$transaction([
         fastify.prisma.wiremockInstance.deleteMany({
           where: { projectId: id }
         }),
@@ -207,7 +202,7 @@ export async function projectRoutes(fastify: FastifyInstance) {
       ])
 
       const result = {
-        deleted: deletedCount,
+        deleted: deleteResult.count,
         created: createdInstances.length,
         instances: createdInstances
       }
