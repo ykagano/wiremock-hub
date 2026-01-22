@@ -27,7 +27,7 @@ describe('POST /api/projects/:id/instances/bulk-update', () => {
     const app = await getTestApp()
 
     // First, add some initial instances
-    await app.inject({
+    const old1Response = await app.inject({
       method: 'POST',
       url: '/api/wiremock-instances',
       payload: {
@@ -36,8 +36,9 @@ describe('POST /api/projects/:id/instances/bulk-update', () => {
         url: 'http://old-1:8080'
       }
     })
+    const old1Id = old1Response.json().data.id
 
-    await app.inject({
+    const old2Response = await app.inject({
       method: 'POST',
       url: '/api/wiremock-instances',
       payload: {
@@ -46,6 +47,7 @@ describe('POST /api/projects/:id/instances/bulk-update', () => {
         url: 'http://old-2:8080'
       }
     })
+    const old2Id = old2Response.json().data.id
 
     // Bulk update with new instances
     const response = await app.inject({
@@ -69,6 +71,28 @@ describe('POST /api/projects/:id/instances/bulk-update', () => {
     expect(result.data.instances).toHaveLength(3)
     expect(result.data.instances[0].name).toBe('10.0.1.100:8080')
     expect(result.data.instances[0].url).toBe('http://10.0.1.100:8080')
+
+    // Verify old instances are actually deleted from DB
+    const oldInstance1Response = await app.inject({
+      method: 'GET',
+      url: `/api/wiremock-instances/${old1Id}`
+    })
+    expect(oldInstance1Response.statusCode).toBe(404)
+
+    const oldInstance2Response = await app.inject({
+      method: 'GET',
+      url: `/api/wiremock-instances/${old2Id}`
+    })
+    expect(oldInstance2Response.statusCode).toBe(404)
+
+    // Verify new instances have correct projectId
+    const newInstance = result.data.instances[0]
+    const newInstanceResponse = await app.inject({
+      method: 'GET',
+      url: `/api/wiremock-instances/${newInstance.id}`
+    })
+    expect(newInstanceResponse.statusCode).toBe(200)
+    expect(newInstanceResponse.json().data.projectId).toBe(projectId)
   })
 
   it('should delete all instances when empty array is provided', async () => {

@@ -182,34 +182,36 @@ export async function projectRoutes(fastify: FastifyInstance) {
       }
 
       // Use transaction to delete all existing instances and create new ones
-      // Count existing instances before deletion
-      const deletedCount = await fastify.prisma.wiremockInstance.count({
-        where: { projectId: id }
-      })
+      const result = await fastify.prisma.$transaction(async (tx) => {
+        // Count existing instances before deletion
+        const deletedCount = await tx.wiremockInstance.count({
+          where: { projectId: id }
+        })
 
-      // Delete all existing instances for this project
-      await fastify.prisma.wiremockInstance.deleteMany({
-        where: { projectId: id }
-      })
+        // Delete all existing instances for this project
+        await tx.wiremockInstance.deleteMany({
+          where: { projectId: id }
+        })
 
-      // Create new instances
-      const createdInstances = await Promise.all(
-        body.instances.map((instance) =>
-          fastify.prisma.wiremockInstance.create({
-            data: {
-              projectId: id,
-              name: instance.name,
-              url: instance.url
-            }
-          })
+        // Create new instances
+        const createdInstances = await Promise.all(
+          body.instances.map((instance) =>
+            tx.wiremockInstance.create({
+              data: {
+                projectId: id,
+                name: instance.name,
+                url: instance.url
+              }
+            })
+          )
         )
-      )
 
-      const result = {
-        deleted: deletedCount,
-        created: createdInstances.length,
-        instances: createdInstances
-      }
+        return {
+          deleted: deletedCount,
+          created: createdInstances.length,
+          instances: createdInstances
+        }
+      })
 
       return reply.send({
         success: true,
