@@ -34,7 +34,7 @@ See [allinone/README.md](./allinone/README.md) for details.
 
 #### 1. Prerequisites
 
-- Node.js 22.12.0+
+- Node.js 20.19.0+ or 22.12.0+ (Prisma 7 requirement)
 - pnpm (`npm install -g pnpm`)
 - WireMock (optional: required for stub sync)
 
@@ -487,7 +487,7 @@ describe('POST /api/projects', () => {
 
 ## Notes
 
-- Node.js 22.12.0+ required (Prisma 7.x requires Node.js 22.12.0+)
+- Node.js 20.19.0+ or 22.12.0+ required (Prisma 7 requirement)
 - No authentication: all users can access all data
 - Stubs are stored in SQLite and synced to WireMock via Admin API
 - SQLite file is stored in `packages/backend/data/` (excluded in .gitignore)
