@@ -72,7 +72,7 @@
     "copy": "Duplicate",
     "test": "Test",
     "search": "Search",
-    "reset": "Reset All",
+    "reset": "Delete All",
     "export": "Export",
     "import": "Import",
     "save": "Save",
@@ -82,7 +82,8 @@
     "status": "Status",
     "priority": "Priority",
     "scenario": "Scenario",
-    "confirmReset": "Are you sure you want to reset all mappings?"
+    "confirmReset": "Delete all stubs in this project? This action cannot be undone.",
+    "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion."
   },
   "editor": {
     "title": "Stub Editor",
@@ -297,8 +298,8 @@
       "syncFailed": "Failed to sync to WireMock",
       "syncedCount": "Synced {count} stub(s) to WireMock",
       "syncResult": "Success: {success}, Failed: {failed}",
-      "resetSuccess": "All mappings have been reset",
-      "resetFailed": "Failed to reset mappings",
+      "resetSuccess": "All stubs have been deleted",
+      "resetFailed": "Failed to delete stubs",
       "exported": "Stubs exported successfully",
       "exportFailed": "Failed to export stubs",
       "importedCount": "Imported {count} stub(s) successfully",

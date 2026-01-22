@@ -26,7 +26,7 @@ export async function projectRoutes(fastify: FastifyInstance) {
 
     return reply.send({
       success: true,
-      data: projects.map(p => ({
+      data: projects.map((p: typeof projects[number]) => ({
         ...p,
         stubCount: p._count.stubs
       }))

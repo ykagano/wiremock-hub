@@ -163,6 +163,37 @@ export async function stubRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // Delete all stubs for a project
+  fastify.delete('/', async (request: FastifyRequest<{ Querystring: { projectId: string } }>, reply: FastifyReply) => {
+    const { projectId } = request.query
+
+    if (!projectId) {
+      return reply.status(400).send({
+        success: false,
+        error: 'projectId is required'
+      })
+    }
+
+    const project = await checkProjectExists(projectId)
+    if (!project) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Project not found'
+      })
+    }
+
+    const result = await fastify.prisma.stub.deleteMany({
+      where: { projectId }
+    })
+
+    return reply.send({
+      success: true,
+      data: {
+        deletedCount: result.count
+      }
+    })
+  })
+
   // Delete stub
   fastify.delete('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params
@@ -296,7 +327,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       version: '1.0',
       projectName: project.name,
       exportedAt: new Date().toISOString(),
-      stubs: stubs.map(stub => ({
+      stubs: stubs.map((stub: typeof stubs[number]) => ({
         name: stub.name,
         description: stub.description,
         isActive: stub.isActive,
@@ -442,7 +473,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       for (let i = 0; i < stubs.length; i += chunkSize) {
         const chunk = stubs.slice(i, i + chunkSize)
         const chunkResults = await Promise.allSettled(
-          chunk.map(async (stub) => {
+          chunk.map(async (stub: typeof stubs[number]) => {
             const mapping = stub.mapping as unknown as Mapping
             const wiremockUrl = `${instance.url}/__admin/mappings`
             // Always POST since we reset mappings
