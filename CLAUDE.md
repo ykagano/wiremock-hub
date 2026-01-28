@@ -19,7 +19,7 @@ The easiest way is to use the All-in-One Docker image.
 # All-in-One version (Hub + WireMock + nginx bundled)
 docker run -d \
   -p 80:80 \
-  -v $(pwd)/data:/app/packages/backend/data \
+  -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub:latest
 ```
@@ -116,7 +116,7 @@ A single container bundling Hub + WireMock + nginx.
 ```bash
 docker run -d \
   -p 80:80 \
-  -v $(pwd)/data:/app/packages/backend/data \
+  -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub:latest
 ```
@@ -139,7 +139,7 @@ Use when running Hub standalone and connecting to existing WireMock infrastructu
 ```bash
 docker run -d \
   -p 3000:3000 \
-  -v $(pwd)/data:/app/packages/backend/data \
+  -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub-standalone:latest
 ```
@@ -169,9 +169,9 @@ SQLite file is stored at `packages/backend/data/wiremock-hub.db`.
 services:
   wiremock-hub:
     volumes:
-      - ./data:/app/packages/backend/data  # Persist SQLite file
+      - ./data:/data  # Persist SQLite file
     environment:
-      - DATABASE_URL=file:./data/wiremock-hub.db
+      - DATABASE_URL=file:/data/wiremock-hub.db
 ```
 
 **Important:** Data can be persisted via volume mount in All-in-One version as well.
