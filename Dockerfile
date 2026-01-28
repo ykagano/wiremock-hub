@@ -6,8 +6,8 @@ ARG APP_VERSION=0.1.0
 
 WORKDIR /app
 
-# Install CA certificates for SSL connections
-RUN apk add --no-cache ca-certificates
+# Install CA certificates and build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache ca-certificates python3 make g++
 
 # Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
 # Users can place .crt files in custom-certs/ directory
@@ -46,8 +46,8 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Install CA certificates and sqlite for migrations
-RUN apk add --no-cache ca-certificates sqlite
+# Install CA certificates, sqlite for migrations, and build tools
+RUN apk add --no-cache ca-certificates sqlite python3 make g++
 
 # Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
 # Users can place .crt files in custom-certs/ directory
@@ -66,7 +66,8 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 
 # Install production dependencies only (no prisma CLI needed with Prisma v7)
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod && \
+    apk del python3 make g++
 
 # Copy built files (includes generated Prisma client in dist/)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist

@@ -10,6 +10,16 @@ ARG APP_VERSION=0.1.0
 
 WORKDIR /app
 
+# Install build dependencies for native modules (better-sqlite3) and CA certificates
+RUN apk add --no-cache python3 make g++ ca-certificates
+
+# Copy custom CA certificates for corporate proxy environments
+COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
+RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
@@ -32,8 +42,8 @@ RUN pnpm run build:frontend
 FROM node:22-alpine AS backend-builder
 WORKDIR /app
 
-# Install CA certificates for SSL connections
-RUN apk add --no-cache ca-certificates
+# Install CA certificates and build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache ca-certificates python3 make g++
 
 # Copy custom CA certificates for corporate proxy environments (Zscaler, Netskope, etc.)
 # Users can place .crt files in custom-certs/ directory
@@ -70,12 +80,15 @@ FROM node:22-alpine
 # Latest stable: 3.13.2 (as of 2025-11-14)
 ARG WIREMOCK_VERSION=3.13.2
 
-# Install nginx, OpenJDK (for WireMock), supervisor, CA certificates, and sqlite for migrations
-RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates sqlite
+# Install nginx, OpenJDK (for WireMock), supervisor, CA certificates, sqlite for migrations, and build tools
+RUN apk add --no-cache nginx openjdk17-jre supervisor ca-certificates sqlite python3 make g++
 
 # Copy custom CA certificates for corporate proxy environments
 COPY custom-certs/*.crt* /usr/local/share/ca-certificates/
 RUN update-ca-certificates 2>/dev/null || true
+
+# Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -90,7 +103,8 @@ COPY --from=backend-builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=backend-builder /app/packages/backend/package.json ./packages/backend/
 
 # Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod && \
+    apk del python3 make g++
 
 # Copy backend build (includes generated Prisma client in dist/)
 COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
