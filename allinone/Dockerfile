@@ -107,7 +107,7 @@ RUN wget -O /app/wiremock-standalone.jar \
     https://repo1.maven.org/maven2/org/wiremock/wiremock-standalone/${WIREMOCK_VERSION}/wiremock-standalone-${WIREMOCK_VERSION}.jar
 
 # Create necessary directories
-RUN mkdir -p /app/packages/backend/data \
+RUN mkdir -p /data \
     /run/nginx \
     /var/log/supervisor
 
@@ -123,7 +123,7 @@ RUN chmod +x /app/entrypoint.sh
 
 # Environment variables
 ENV NODE_ENV=production
-ENV DATABASE_URL=file:./data/wiremock-hub.db
+ENV DATABASE_URL=file:/data/wiremock-hub.db
 ENV PORT=3000
 ENV WIREMOCK_PORT=8080
 

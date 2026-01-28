@@ -17,6 +17,6 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../packages/backend/data:/app/packages/backend/data
+      - ../data:/data
     environment:
-      - DATABASE_URL=file:./data/wiremock-hub.db
+      - DATABASE_URL=file:/data/wiremock-hub.db

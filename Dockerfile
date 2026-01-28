@@ -78,11 +78,11 @@ COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
 RUN rm -f ./packages/frontend/dist/favicon.ico
 
 # Create data directory for SQLite
-RUN mkdir -p /app/packages/backend/data
+RUN mkdir -p /data
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV DATABASE_URL=file:./data/wiremock-hub.db
+ENV DATABASE_URL=file:/data/wiremock-hub.db
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
@@ -95,4 +95,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start the application with sqlite3 migration (no prisma CLI needed)
 WORKDIR /app/packages/backend
-CMD ["sh", "-c", "if [ ! -f ./data/wiremock-hub.db ]; then cat prisma/migrations/*/migration.sql | sqlite3 ./data/wiremock-hub.db; fi && node dist/index.js"]
+CMD ["sh", "-c", "if [ ! -f /data/wiremock-hub.db ]; then cat prisma/migrations/*/migration.sql | sqlite3 /data/wiremock-hub.db; fi && node dist/index.js"]
