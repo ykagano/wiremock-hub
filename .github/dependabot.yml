@@ -1,0 +1,95 @@
+version: 2
+updates:
+  # Root package.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Frontend
+  - package-ecosystem: "npm"
+    directory: "/packages/frontend"
+    schedule:
+      interval: "weekly"
+    groups:
+      vue-ecosystem:
+        patterns:
+          - "vue*"
+          - "@vue/*"
+          - "pinia"
+          - "vue-router"
+          - "vue-i18n"
+      element-plus:
+        patterns:
+          - "element-plus"
+          - "@element-plus/*"
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Backend
+  - package-ecosystem: "npm"
+    directory: "/packages/backend"
+    schedule:
+      interval: "weekly"
+    groups:
+      fastify:
+        patterns:
+          - "fastify"
+          - "@fastify/*"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Shared
+  - package-ecosystem: "npm"
+    directory: "/packages/shared"
+    schedule:
+      interval: "weekly"
+
+  # E2E tests
+  - package-ecosystem: "npm"
+    directory: "/e2e"
+    schedule:
+      interval: "weekly"
+    groups:
+      playwright:
+        patterns:
+          - "@playwright/*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Docker (allinone)
+  - package-ecosystem: "docker"
+    directory: "/allinone"
+    schedule:
+      interval: "weekly"
+
+  # Docker (root)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
