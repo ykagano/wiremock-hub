@@ -155,7 +155,7 @@ pnpm run dev
 
 ```bash
 # packages/backend/.env
-DATABASE_URL="file:./data/wiremock-hub.db"
+DATABASE_URL="file:../../data/wiremock-hub.db"
 ```
 
 ## Usage

@@ -120,8 +120,9 @@ RUN rm -f ./packages/backend/public/favicon.ico
 RUN wget -O /app/wiremock-standalone.jar \
     https://repo1.maven.org/maven2/org/wiremock/wiremock-standalone/${WIREMOCK_VERSION}/wiremock-standalone-${WIREMOCK_VERSION}.jar
 
-# Create necessary directories
+# Create necessary directories (including old path for backward compatibility)
 RUN mkdir -p /data \
+    /app/packages/backend/data \
     /run/nginx \
     /var/log/supervisor
 

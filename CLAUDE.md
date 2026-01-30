@@ -158,10 +158,10 @@ docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 
 ## Data Persistence
 
-SQLite file is stored at `packages/backend/data/wiremock-hub.db`.
+SQLite file is stored at `data/wiremock-hub.db` (project root).
 
 ### Local Development
-- File is auto-generated
+- File is auto-generated in project root `data/` directory
 - Backup by simply copying the file
 
 ### Docker Operation
@@ -491,4 +491,4 @@ describe('POST /api/projects', () => {
 - Node.js 20.19.0+ or 22.12.0+ required (Prisma 7 requirement)
 - No authentication: all users can access all data
 - Stubs are stored in SQLite and synced to WireMock via Admin API
-- SQLite file is stored in `packages/backend/data/` (excluded in .gitignore)
+- SQLite file is stored in project root `data/` directory (excluded in .gitignore)

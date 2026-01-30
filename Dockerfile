@@ -78,8 +78,8 @@ COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
 # Remove favicon.ico if exists (Vue default) - we use favicon.svg
 RUN rm -f ./packages/frontend/dist/favicon.ico
 
-# Create data directory for SQLite
-RUN mkdir -p /data
+# Create data directories for SQLite (new path + old path for backward compatibility)
+RUN mkdir -p /data /app/packages/backend/data
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -94,6 +94,17 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/projects || exit 1
 
-# Start the application with sqlite3 migration (no prisma CLI needed)
+# Start the application with database migration and initialization
 WORKDIR /app/packages/backend
-CMD ["sh", "-c", "if [ ! -f /data/wiremock-hub.db ]; then cat prisma/migrations/*/migration.sql | sqlite3 /data/wiremock-hub.db; fi && node dist/index.js"]
+CMD ["sh", "-c", "\
+  # Migrate from old path if exists (backward compatibility with v0.x) \n\
+  if [ -f /app/packages/backend/data/wiremock-hub.db ] && [ ! -f /data/wiremock-hub.db ]; then \
+    echo '[Migration] Copying database from old location...'; \
+    cp /app/packages/backend/data/wiremock-hub.db /data/wiremock-hub.db; \
+    echo '[Migration] Done. Update your volume mount to -v ./data:/data'; \
+  fi && \
+  # Initialize database if it doesn't exist \n\
+  if [ ! -f /data/wiremock-hub.db ]; then \
+    cat prisma/migrations/*/migration.sql | sqlite3 /data/wiremock-hub.db; \
+  fi && \
+  node dist/index.js"]
