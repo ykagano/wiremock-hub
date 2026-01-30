@@ -102,9 +102,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - wiremock-hub-data:/app/packages/backend/data
+      - wiremock-hub-data:/data
     environment:
-      - DATABASE_URL=file:./data/wiremock-hub.db
+      - DATABASE_URL=file:/data/wiremock-hub.db
     restart: unless-stopped
 
 volumes:
@@ -120,9 +120,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - wiremock-hub-data:/app/packages/backend/data
+      - wiremock-hub-data:/data
     environment:
-      - DATABASE_URL=file:./data/wiremock-hub.db
+      - DATABASE_URL=file:/data/wiremock-hub.db
     restart: unless-stopped
 
 volumes:
@@ -155,7 +155,7 @@ pnpm run dev
 
 ```bash
 # packages/backend/.env
-DATABASE_URL="file:./data/wiremock-hub.db"
+DATABASE_URL="file:../../data/wiremock-hub.db"
 ```
 
 ## Usage

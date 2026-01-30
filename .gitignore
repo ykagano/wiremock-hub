@@ -36,7 +36,7 @@ coverage
 __screenshots__/
 
 # SQLite database
-packages/backend/data/
+data/
 
 # Environment variables
 .env
