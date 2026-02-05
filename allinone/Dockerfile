@@ -26,8 +26,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy all packages
 COPY packages ./packages
 
-# Install pnpm and dependencies
-RUN corepack enable pnpm && \
+# Install pnpm via corepack (version from packageManager field in package.json) and dependencies
+RUN corepack enable && corepack install && \
     pnpm install --frozen-lockfile
 
 # Build shared package first (frontend depends on it)
@@ -59,12 +59,12 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy packages
 COPY packages ./packages
 
-# Install pnpm and dependencies
-RUN corepack enable pnpm && \
+# Install pnpm via corepack (version from packageManager field in package.json) and dependencies
+RUN corepack enable && corepack install && \
     pnpm install --frozen-lockfile
 
 # Generate Prisma client
-RUN cd packages/backend && npx prisma generate
+RUN cd packages/backend && pnpm exec prisma generate
 
 # Build shared package first (backend depends on it)
 RUN pnpm --filter @wiremock-hub/shared build
@@ -90,9 +90,6 @@ RUN update-ca-certificates 2>/dev/null || true
 # Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
 ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 WORKDIR /app
 
 # Copy package files for production install
@@ -101,6 +98,9 @@ COPY --from=backend-builder /app/pnpm-lock.yaml ./
 COPY --from=backend-builder /app/pnpm-workspace.yaml ./
 COPY --from=backend-builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=backend-builder /app/packages/backend/package.json ./packages/backend/
+
+# Install pnpm via corepack (version from packageManager field in package.json)
+RUN corepack enable && corepack install
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod && \
