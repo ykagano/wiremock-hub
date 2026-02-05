@@ -3,7 +3,7 @@
 # Single port (80) deployment ready for ECS
 
 # Stage 1: Build frontend
-FROM node:22-alpine AS frontend-builder
+FROM node:25-alpine AS frontend-builder
 
 # App version from CI/CD (git tag)
 ARG APP_VERSION=0.1.0
@@ -39,7 +39,7 @@ ENV VITE_APP_VERSION=${APP_VERSION}
 RUN pnpm run build:frontend
 
 # Stage 2: Build backend
-FROM node:22-alpine AS backend-builder
+FROM node:25-alpine AS backend-builder
 WORKDIR /app
 
 # Install CA certificates and build dependencies for native modules (better-sqlite3)
@@ -73,7 +73,7 @@ RUN pnpm --filter @wiremock-hub/shared build
 RUN pnpm run build:backend
 
 # Stage 3: Runtime image
-FROM node:22-alpine
+FROM node:25-alpine
 
 # WireMock version - update this when upgrading
 # IMPORTANT: Test API compatibility before upgrading
