@@ -55,7 +55,7 @@ Access URLs:
       "mountPoints": [
         {
           "sourceVolume": "wiremock-data",
-          "containerPath": "/app/packages/backend/data"
+          "containerPath": "/data"
         }
       ],
       "logConfiguration": {
@@ -82,17 +82,17 @@ Access URLs:
 
 ## Data Persistence
 
-SQLite database is stored at `/app/packages/backend/data/wiremock-hub.db`.
+SQLite database is stored at `/data/wiremock-hub.db`.
 
 Docker Compose uses the volume mount defined in `docker-compose.yml`.
-For ECS/Fargate, mount an EFS volume (see task definition example above).
+For ECS/Fargate, mount an EFS volume to `/data` (see task definition example above).
 
 ## Environment Variables
 
 | Variable | Default Value | Description |
 |----------|--------------|-------------|
 | `NODE_ENV` | `production` | Runtime environment |
-| `DATABASE_URL` | `file:./data/wiremock-hub.db` | Database connection URL |
+| `DATABASE_URL` | `file:/data/wiremock-hub.db` | Database connection URL |
 | `PORT` | `3000` | Hub API port (internal) |
 | `WIREMOCK_PORT` | `8080` | WireMock port (internal) |
 

@@ -19,7 +19,7 @@ The easiest way is to use the All-in-One Docker image.
 # All-in-One version (Hub + WireMock + nginx bundled)
 docker run -d \
   -p 80:80 \
-  -v $(pwd)/data:/app/packages/backend/data \
+  -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub:latest
 ```
@@ -116,7 +116,7 @@ A single container bundling Hub + WireMock + nginx.
 ```bash
 docker run -d \
   -p 80:80 \
-  -v $(pwd)/data:/app/packages/backend/data \
+  -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub:latest
 ```
@@ -139,7 +139,7 @@ Use when running Hub standalone and connecting to existing WireMock infrastructu
 ```bash
 docker run -d \
   -p 3000:3000 \
-  -v $(pwd)/data:/app/packages/backend/data \
+  -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub-standalone:latest
 ```
@@ -158,10 +158,10 @@ docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 
 ## Data Persistence
 
-SQLite file is stored at `packages/backend/data/wiremock-hub.db`.
+SQLite file is stored at `data/wiremock-hub.db` (project root).
 
 ### Local Development
-- File is auto-generated
+- File is auto-generated in project root `data/` directory
 - Backup by simply copying the file
 
 ### Docker Operation
@@ -169,9 +169,9 @@ SQLite file is stored at `packages/backend/data/wiremock-hub.db`.
 services:
   wiremock-hub:
     volumes:
-      - ./data:/app/packages/backend/data  # Persist SQLite file
+      - ./data:/data  # Persist SQLite file
     environment:
-      - DATABASE_URL=file:./data/wiremock-hub.db
+      - DATABASE_URL=file:/data/wiremock-hub.db
 ```
 
 **Important:** Data can be persisted via volume mount in All-in-One version as well.
@@ -491,4 +491,4 @@ describe('POST /api/projects', () => {
 - Node.js 20.19.0+ or 22.12.0+ required (Prisma 7 requirement)
 - No authentication: all users can access all data
 - Stubs are stored in SQLite and synced to WireMock via Admin API
-- SQLite file is stored in `packages/backend/data/` (excluded in .gitignore)
+- SQLite file is stored in project root `data/` directory (excluded in .gitignore)
