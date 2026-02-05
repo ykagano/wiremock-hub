@@ -52,7 +52,7 @@ pnpm run db:generate
 
 # Run DB migration
 cd packages/backend
-npx prisma migrate dev
+pnpm exec prisma migrate dev
 
 # Return to root
 cd ../..
@@ -266,7 +266,7 @@ pnpm run dev
 cd packages/backend
 
 # DB migration
-npx prisma migrate dev
+pnpm exec prisma migrate dev
 
 # Generate Prisma client
 pnpm run db:generate
