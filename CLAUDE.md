@@ -35,7 +35,7 @@ See [allinone/README.md](./allinone/README.md) for details.
 #### 1. Prerequisites
 
 - Node.js 20.19.0+ or 22.12.0+ (Prisma 7 requirement)
-- pnpm (`npm install -g pnpm`)
+- pnpm (`corepack enable` で有効化)
 - WireMock (optional: required for stub sync)
 
 #### 2. Initial Setup
