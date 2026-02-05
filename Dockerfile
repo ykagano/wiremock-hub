@@ -26,8 +26,9 @@ COPY packages/frontend ./packages/frontend
 # Install pnpm via corepack (version from packageManager field in package.json)
 RUN corepack enable && corepack install
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (pnpm store cached across builds via BuildKit cache mount)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 # Generate Prisma client first (required for TypeScript build)
 RUN cd packages/backend && pnpm exec prisma generate

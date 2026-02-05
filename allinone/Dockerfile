@@ -27,8 +27,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages ./packages
 
 # Install pnpm via corepack (version from packageManager field in package.json) and dependencies
-RUN corepack enable && corepack install && \
-    pnpm install --frozen-lockfile
+RUN corepack enable && corepack install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 # Build shared package first (frontend depends on it)
 RUN pnpm --filter @wiremock-hub/shared build
@@ -60,8 +61,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages ./packages
 
 # Install pnpm via corepack (version from packageManager field in package.json) and dependencies
-RUN corepack enable && corepack install && \
-    pnpm install --frozen-lockfile
+RUN corepack enable && corepack install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 # Generate Prisma client
 RUN cd packages/backend && pnpm exec prisma generate
