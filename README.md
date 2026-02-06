@@ -145,7 +145,7 @@ pnpm install
 pnpm run db:generate
 
 # Run database migration
-cd packages/backend && npx prisma migrate dev
+cd packages/backend && pnpm exec prisma migrate dev
 
 # Start development server
 pnpm run dev

@@ -35,7 +35,7 @@ See [allinone/README.md](./allinone/README.md) for details.
 #### 1. Prerequisites
 
 - Node.js 20.19.0+ or 22.12.0+ (Prisma 7 requirement)
-- pnpm (`npm install -g pnpm`)
+- pnpm (activate via `corepack enable`)
 - WireMock (optional: required for stub sync)
 
 #### 2. Initial Setup
@@ -52,7 +52,7 @@ pnpm run db:generate
 
 # Run DB migration
 cd packages/backend
-npx prisma migrate dev
+pnpm exec prisma migrate dev
 
 # Return to root
 cd ../..
@@ -266,7 +266,7 @@ pnpm run dev
 cd packages/backend
 
 # DB migration
-npx prisma migrate dev
+pnpm exec prisma migrate dev
 
 # Generate Prisma client
 pnpm run db:generate

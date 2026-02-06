@@ -17,25 +17,21 @@ RUN update-ca-certificates 2>/dev/null || true
 # Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
 ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy package files
+# Copy package files and source code
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/backend/package.json ./packages/backend/
-COPY packages/frontend/package.json ./packages/frontend/
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Copy source code
 COPY packages/shared ./packages/shared
 COPY packages/backend ./packages/backend
 COPY packages/frontend ./packages/frontend
 
+# Install pnpm via corepack (version from packageManager field in package.json)
+RUN corepack enable && corepack install
+
+# Install dependencies (pnpm store cached across builds via BuildKit cache mount)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
+
 # Generate Prisma client first (required for TypeScript build)
-RUN cd packages/backend && npx prisma generate
+RUN cd packages/backend && pnpm exec prisma generate
 
 # Build all packages with version from tag
 ENV VITE_APP_VERSION=${APP_VERSION}
@@ -57,13 +53,13 @@ RUN update-ca-certificates 2>/dev/null || true
 # Set NODE_EXTRA_CA_CERTS for Node.js to use system certificates
 ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
+
+# Install pnpm via corepack (version from packageManager field in package.json)
+RUN corepack enable && corepack install
 
 # Install production dependencies only (no prisma CLI needed with Prisma v7)
 RUN pnpm install --frozen-lockfile --prod && \

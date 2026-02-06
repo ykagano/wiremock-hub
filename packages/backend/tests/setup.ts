@@ -33,7 +33,7 @@ beforeAll(async () => {
   // Run migrations using Prisma db push BEFORE building the app
   // This creates the database file and tables
   const { execSync } = await import('child_process')
-  execSync(`npx prisma db push --url "${TEST_DB_URL}"`, {
+  execSync(`pnpm exec prisma db push --url "${TEST_DB_URL}"`, {
     cwd: path.join(__dirname, '..'),
     env: {
       ...process.env,
