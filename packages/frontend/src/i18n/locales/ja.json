@@ -115,9 +115,9 @@
     "persistent": "永続化",
     "placeholder": {
       "url": "例: /api/users",
-      "scenario": "例: ログインフロー",
-      "requiredState": "例: 開始",
-      "newState": "例: ログイン済み"
+      "scenario": "例: login-flow",
+      "requiredState": "例: Started",
+      "newState": "例: LoggedIn"
     }
   },
   "requests": {
