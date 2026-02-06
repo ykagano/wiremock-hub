@@ -1,0 +1,76 @@
+name: E2E Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  COMPOSE_FILE: docker-compose.yml:docker-compose.demo.yml
+
+jobs:
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @wiremock-hub/e2e exec playwright install --with-deps chromium
+
+      - name: Build and start Docker containers
+        run: |
+          docker compose build
+          docker compose up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for WireMock Hub..."
+          timeout 120 bash -c 'until curl -sf http://localhost:3000/api/projects > /dev/null 2>&1; do sleep 2; done'
+          echo "WireMock Hub is ready!"
+
+          echo "Waiting for WireMock instances..."
+          timeout 60 bash -c 'until curl -sf http://localhost:8081/__admin > /dev/null 2>&1; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:8082/__admin > /dev/null 2>&1; do sleep 2; done'
+          echo "All WireMock instances are ready!"
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 30
+
+      - name: Upload test screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-screenshots
+          path: e2e/test-results/
+          retention-days: 7
+
+      - name: Dump Docker logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+
+      - name: Stop Docker containers
+        if: always()
+        run: docker compose down -v
