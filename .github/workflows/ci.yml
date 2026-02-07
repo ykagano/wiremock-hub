@@ -124,8 +124,8 @@ jobs:
           push: false
           build-args: |
             APP_VERSION=dev-test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=allinone-linux-amd64
+          cache-to: type=gha,mode=max,scope=allinone-linux-amd64
 
   docker-build-standalone:
     name: Docker Build - Standalone
@@ -147,5 +147,5 @@ jobs:
           push: false
           build-args: |
             APP_VERSION=dev-test
-          cache-from: type=gha,scope=standalone
-          cache-to: type=gha,mode=max,scope=standalone
+          cache-from: type=gha,scope=standalone-linux-amd64
+          cache-to: type=gha,mode=max,scope=standalone-linux-amd64
