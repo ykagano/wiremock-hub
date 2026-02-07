@@ -171,6 +171,7 @@ describe('Projects API', () => {
       const result = response.json()
       expect(result.success).toBe(false)
       expect(result.error).toBe('Validation error')
+      expect(result.details).toBeDefined()
     })
 
     it('should return 400 for empty name', async () => {
@@ -186,6 +187,7 @@ describe('Projects API', () => {
       const result = response.json()
       expect(result.success).toBe(false)
       expect(result.error).toBe('Validation error')
+      expect(result.details).toBeDefined()
     })
   })
 
@@ -272,6 +274,7 @@ describe('Projects API', () => {
       const result = response.json()
       expect(result.success).toBe(false)
       expect(result.error).toBe('Validation error')
+      expect(result.details).toBeDefined()
     })
   })
 
@@ -483,6 +486,7 @@ describe('Projects API', () => {
       const result = response.json()
       expect(result.success).toBe(false)
       expect(result.error).toBe('Validation error')
+      expect(result.details).toBeDefined()
     })
 
     it('should return 400 for empty instance name', async () => {
@@ -503,6 +507,7 @@ describe('Projects API', () => {
       const result = response.json()
       expect(result.success).toBe(false)
       expect(result.error).toBe('Validation error')
+      expect(result.details).toBeDefined()
     })
   })
 })

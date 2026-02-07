@@ -130,7 +130,7 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -168,7 +168,7 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -225,11 +225,11 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         success: true,
         data: response.data
       })
-    } catch (error: any) {
+    } catch (error) {
       return reply.status(502).send({
         success: false,
         error: 'Failed to fetch mappings from WireMock',
-        details: error.message
+        details: axios.isAxiosError(error) ? error.message : 'Unknown error'
       })
     }
   })
@@ -263,11 +263,11 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         success: true,
         data: response.data
       })
-    } catch (error: any) {
+    } catch (error) {
       return reply.status(502).send({
         success: false,
         error: 'Failed to fetch requests from WireMock',
-        details: error.message
+        details: axios.isAxiosError(error) ? error.message : 'Unknown error'
       })
     }
   })
@@ -297,8 +297,8 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         success: true,
         data: response.data
       })
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         return reply.status(404).send({
           success: false,
           error: 'Request not found'
@@ -307,7 +307,7 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
       return reply.status(502).send({
         success: false,
         error: 'Failed to fetch request from WireMock',
-        details: error.message
+        details: axios.isAxiosError(error) ? error.message : 'Unknown error'
       })
     }
   })
@@ -350,8 +350,8 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
           timeout: 10000
         })
         wiremockRequest = response.data
-      } catch (error: any) {
-        if (error.response?.status === 404) {
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
           return reply.status(404).send({
             success: false,
             error: 'Request not found'
@@ -381,7 +381,7 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -413,11 +413,11 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         success: true,
         message: 'Request log cleared successfully'
       })
-    } catch (error: any) {
+    } catch (error) {
       return reply.status(502).send({
         success: false,
         error: 'Failed to clear requests from WireMock',
-        details: error.message
+        details: axios.isAxiosError(error) ? error.message : 'Unknown error'
       })
     }
   })
@@ -448,11 +448,11 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         success: true,
         message: 'WireMock instance reset successfully'
       })
-    } catch (error: any) {
+    } catch (error) {
       return reply.status(502).send({
         success: false,
         error: 'Failed to reset WireMock instance',
-        details: error.message
+        details: axios.isAxiosError(error) ? error.message : 'Unknown error'
       })
     }
   })

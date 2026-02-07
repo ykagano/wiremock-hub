@@ -7,13 +7,13 @@ const createStubSchema = z.object({
   projectId: z.string().uuid(),
   name: z.string().optional(),
   description: z.string().optional(),
-  mapping: z.object({}).passthrough() // WireMock mapping JSON
+  mapping: z.any()
 })
 
 const updateStubSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
-  mapping: z.object({}).passthrough().optional(),
+  mapping: z.any().optional(),
   isActive: z.boolean().optional()
 })
 
@@ -113,7 +113,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -156,7 +156,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -269,7 +269,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
             await fastify.prisma.stub.update({
               where: { id },
               data: {
-                mapping: { ...mapping, id: response.data.id } as object
+                mapping: { ...mapping, id: response.data.id } as any
               }
             })
           }
@@ -291,7 +291,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -351,10 +351,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
             name: z.string().nullable().optional(),
             description: z.string().nullable().optional(),
             isActive: z.boolean().optional().default(true),
-            mapping: z.object({
-              request: z.object({}).passthrough(),
-              response: z.object({}).passthrough()
-            }).passthrough()
+            mapping: z.object({}).passthrough()
           }))
         })
       })
@@ -383,7 +380,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
               name: stubData.name,
               description: stubData.description,
               isActive: stubData.isActive,
-              mapping: stubData.mapping as object
+              mapping: stubData.mapping as any
             }
           })
           results.imported++
@@ -402,7 +399,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
@@ -446,11 +443,11 @@ export async function stubRoutes(fastify: FastifyInstance) {
           await axios.post(`${instance.url}/__admin/mappings/reset`, {}, {
             timeout: 10000
           })
-        } catch (error: any) {
+        } catch (error) {
           return reply.status(502).send({
             success: false,
             error: 'Failed to reset WireMock mappings',
-            details: error.message
+            details: axios.isAxiosError(error) ? error.message : 'Unknown error'
           })
         }
       }
@@ -501,7 +498,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({
           success: false,
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         })
       }
       throw error
