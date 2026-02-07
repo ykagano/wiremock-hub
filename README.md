@@ -1,7 +1,7 @@
 # WireMock Hub
 
 [![Release](https://img.shields.io/github/v/release/ykagano/wiremock-hub?color=blue)](https://github.com/ykagano/wiremock-hub/releases)
-[![Main](https://github.com/ykagano/wiremock-hub/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/ykagano/wiremock-hub/actions/workflows/docker-publish.yml)
+[![Main](https://github.com/ykagano/wiremock-hub/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ykagano/wiremock-hub/actions/workflows/ci.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/yukagano/wiremock-hub)](https://hub.docker.com/r/yukagano/wiremock-hub)
 
 Extends [WireMock](https://wiremock.org/) with a graphical user interface for centralized management of distributed WireMock environments.
