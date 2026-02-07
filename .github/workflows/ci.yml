@@ -105,8 +105,11 @@ jobs:
         run: docker compose down -v
 
   docker-build-allinone:
-    name: Docker Build - All-in-One
+    name: Docker Build - All-in-One (${{ matrix.platform }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
 
     steps:
       - name: Checkout
@@ -114,22 +117,32 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Set platform suffix
+        id: platform
+        run: |
+          PLATFORM_PAIR=${{ matrix.platform }}
+          PLATFORM_SUFFIX=${PLATFORM_PAIR//\//-}
+          echo "suffix=${PLATFORM_SUFFIX}" >> $GITHUB_OUTPUT
 
       - name: Build All-in-One image (test only)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./allinone/Dockerfile
-          platforms: linux/amd64
+          platforms: ${{ matrix.platform }}
           push: false
           build-args: |
             APP_VERSION=dev-test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=allinone-${{ steps.platform.outputs.suffix }}
+          cache-to: type=gha,mode=max,scope=allinone-${{ steps.platform.outputs.suffix }}
 
   docker-build-standalone:
-    name: Docker Build - Standalone
+    name: Docker Build - Standalone (${{ matrix.platform }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
 
     steps:
       - name: Checkout
@@ -138,14 +151,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Set platform suffix
+        id: platform
+        run: |
+          PLATFORM_PAIR=${{ matrix.platform }}
+          PLATFORM_SUFFIX=${PLATFORM_PAIR//\//-}
+          echo "suffix=${PLATFORM_SUFFIX}" >> $GITHUB_OUTPUT
+
       - name: Build Standalone image (test only)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64
+          platforms: ${{ matrix.platform }}
           push: false
           build-args: |
             APP_VERSION=dev-test
-          cache-from: type=gha,scope=standalone
-          cache-to: type=gha,mode=max,scope=standalone
+          cache-from: type=gha,scope=standalone-${{ steps.platform.outputs.suffix }}
+          cache-to: type=gha,mode=max,scope=standalone-${{ steps.platform.outputs.suffix }}
