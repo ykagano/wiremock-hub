@@ -1,24 +1,12 @@
 version: 2
 updates:
-  # Root package.json
+  # All npm packages (pnpm workspace - single lockfile at root)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
     groups:
-      dev-dependencies:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # Frontend
-  - package-ecosystem: "npm"
-    directory: "/packages/frontend"
-    schedule:
-      interval: "weekly"
-    groups:
+      # Frontend packages
       vue-ecosystem:
         patterns:
           - "vue*"
@@ -30,18 +18,7 @@ updates:
         patterns:
           - "element-plus"
           - "@element-plus/*"
-      dev-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # Backend
-  - package-ecosystem: "npm"
-    directory: "/packages/backend"
-    schedule:
-      interval: "weekly"
-    groups:
+      # Backend packages
       fastify:
         patterns:
           - "fastify"
@@ -50,27 +27,17 @@ updates:
         patterns:
           - "prisma"
           - "@prisma/*"
-      dev-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # Shared
-  - package-ecosystem: "npm"
-    directory: "/packages/shared"
-    schedule:
-      interval: "weekly"
-
-  # E2E tests
-  - package-ecosystem: "npm"
-    directory: "/e2e"
-    schedule:
-      interval: "weekly"
-    groups:
+      # E2E packages
       playwright:
         patterns:
           - "@playwright/*"
+      # All other minor/patch updates
+      minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
