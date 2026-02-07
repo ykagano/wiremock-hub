@@ -7,6 +7,7 @@ import { PrismaClient } from './generated/prisma/client.js'
 import { projectRoutes } from './routes/projects.js'
 import { stubRoutes } from './routes/stubs.js'
 import { wiremockInstanceRoutes } from './routes/wiremock-instances.js'
+import { healthRoutes } from './routes/health.js'
 import { getDatabaseUrl, migrateDatabase } from './utils/database.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -45,11 +46,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await fastify.register(projectRoutes, { prefix: '/api/projects' })
   await fastify.register(stubRoutes, { prefix: '/api/stubs' })
   await fastify.register(wiremockInstanceRoutes, { prefix: '/api/wiremock-instances' })
-
-  // Health check
-  fastify.get('/api/health', async () => {
-    return { status: 'ok', timestamp: new Date().toISOString() }
-  })
+  await fastify.register(healthRoutes, { prefix: '/api/health' })
 
   // Add hook for graceful shutdown
   fastify.addHook('onClose', async () => {
