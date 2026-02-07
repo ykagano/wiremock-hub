@@ -55,11 +55,9 @@ export const useMappingStore = defineStore('mapping', () => {
       const created = await stubApi.create(input)
       stubs.value.push(created)
       mappings.value.push({ ...mapping, id: created.id })
-      ElMessage.success(t('messages.stub.created'))
       return created
     } catch (e: any) {
       error.value = e.message || t('messages.stub.createFailed')
-      ElMessage.error(error.value!)
       throw e
     } finally {
       loading.value = false
@@ -80,11 +78,9 @@ export const useMappingStore = defineStore('mapping', () => {
         stubs.value[index] = updated
         mappings.value[index] = { ...mapping, id: updated.id }
       }
-      ElMessage.success(t('messages.stub.updated'))
       return updated
     } catch (e: any) {
       error.value = e.message || t('messages.stub.updateFailed')
-      ElMessage.error(error.value!)
       throw e
     } finally {
       loading.value = false
