@@ -484,7 +484,10 @@ describe('POST /api/projects', () => {
 
 - Tests use an isolated SQLite database (`packages/backend/data-test/test.db`)
 - Database is automatically created and cleaned up for each test run
-- Tests run sequentially (`singleFork: true`) to avoid database conflicts
+- Tests run sequentially (`maxWorkers: 1, isolate: false`) to avoid SQLite file locking issues
+  - **Vitest 4 migration**: Replaced deprecated `poolOptions.forks.singleFork: true` with top-level options
+  - This configuration prevents `SQLITE_READONLY_DBMOVED` errors in CI environments
+  - All test files share the same app instance and database connection
 
 ## Notes
 
