@@ -7,6 +7,11 @@ describe('Stubs API', () => {
   beforeEach(async () => {
     const app = await getTestApp()
 
+    // Clean up all data before each test
+    await app.prisma.stub.deleteMany()
+    await app.prisma.wiremockInstance.deleteMany()
+    await app.prisma.project.deleteMany()
+
     // Create a test project
     const createResponse = await app.inject({
       method: 'POST',

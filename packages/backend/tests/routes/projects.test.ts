@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { getTestApp } from '../setup.js'
 
 describe('Projects API', () => {
+  beforeEach(async () => {
+    const app = await getTestApp()
+    // Clean up all data before each test
+    await app.prisma.stub.deleteMany()
+    await app.prisma.wiremockInstance.deleteMany()
+    await app.prisma.project.deleteMany()
+  })
+
   describe('GET /api/projects', () => {
     it('should return empty array when no projects exist', async () => {
       const app = await getTestApp()
@@ -15,6 +23,7 @@ describe('Projects API', () => {
       const result = response.json()
       expect(result.success).toBe(true)
       expect(Array.isArray(result.data)).toBe(true)
+      expect(result.data).toHaveLength(0)
     })
 
     it('should return list of projects with stub count', async () => {
