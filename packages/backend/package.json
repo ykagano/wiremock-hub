@@ -20,7 +20,7 @@
     "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@wiremock-hub/shared": "workspace:*",
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.2.4",
     "fastify": "^5.7.4",
