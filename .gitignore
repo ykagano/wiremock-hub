@@ -51,3 +51,6 @@ custom-certs/*.crt
 custom-certs/*.pem
 !custom-certs/.dummy.crt
 !custom-certs/README.md
+
+# Task specs (local only)
+tasks/
