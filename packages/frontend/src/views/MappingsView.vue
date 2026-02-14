@@ -15,9 +15,9 @@
           <el-icon><Download /></el-icon>
           {{ t('mappings.export') }}
         </el-button>
-        <el-button type="success" @click="confirmSyncAll" :loading="syncing" :disabled="mappings.length === 0">
+        <el-button type="success" @click="handleSyncAll" :loading="syncing" :disabled="mappings.length === 0">
           <el-icon><Refresh /></el-icon>
-          {{ t('mappings.syncAllInstances') }}
+          {{ t('instances.syncAll') }}
         </el-button>
         <el-button type="danger" plain @click="confirmResetAll">
           <el-icon><Delete /></el-icon>
@@ -178,7 +178,7 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useMappingStore } from '@/stores/mapping'
 import { useProjectStore } from '@/stores/project'
-import { wiremockInstanceApi, stubApi, type WiremockInstance } from '@/services/api'
+import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Mapping, MappingRequest } from '@/types/wiremock'
 
@@ -187,7 +187,7 @@ const router = useRouter()
 const mappingStore = useMappingStore()
 const { mappings, loading } = storeToRefs(mappingStore)
 const projectStore = useProjectStore()
-const syncing = ref(false)
+const { syncing, confirmAndSyncAll } = useSyncAllInstances()
 
 const searchQuery = ref('')
 const filterMethod = ref('')
@@ -368,64 +368,12 @@ function handleImport() {
   input.click()
 }
 
-async function confirmSyncAll() {
+function handleSyncAll() {
   if (!projectStore.currentProjectId) {
     ElMessage.warning(t('messages.project.notSelected'))
     return
   }
-
-  let instances: WiremockInstance[]
-  try {
-    instances = await wiremockInstanceApi.list(projectStore.currentProjectId)
-  } catch (error: any) {
-    ElMessage.error(error.message || t('common.error'))
-    return
-  }
-
-  const activeInstances = instances.filter(i => i.isActive !== false)
-
-  if (activeInstances.length === 0) {
-    ElMessage.warning(t('mappings.syncAllNoInstances'))
-    return
-  }
-
-  ElMessageBox.confirm(
-    t('mappings.syncAllConfirm'),
-    t('common.confirm'),
-    {
-      confirmButtonText: t('common.yes'),
-      cancelButtonText: t('common.no'),
-      type: 'info'
-    }
-  ).then(async () => {
-    await syncAllInstances(activeInstances)
-  }).catch(() => {
-    // Cancelled
-  })
-}
-
-async function syncAllInstances(instances: WiremockInstance[]) {
-  if (!projectStore.currentProjectId) return
-
-  syncing.value = true
-  let totalSuccess = 0
-  let totalFailed = 0
-  try {
-    for (const instance of instances) {
-      try {
-        const result = await stubApi.syncAll(projectStore.currentProjectId, instance.id)
-        totalSuccess += result.success
-        totalFailed += result.failed
-      } catch {
-        totalFailed++
-      }
-    }
-    ElMessage.success(
-      t('instances.syncAllSuccess', { success: totalSuccess, failed: totalFailed })
-    )
-  } finally {
-    syncing.value = false
-  }
+  confirmAndSyncAll(projectStore.currentProjectId)
 }
 
 // Initialization

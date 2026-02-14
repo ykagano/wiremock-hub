@@ -85,10 +85,7 @@
     "priority": "優先度",
     "scenario": "シナリオ",
     "confirmReset": "プロジェクト内のすべてのスタブを削除しますか？この操作は取り消せません。",
-    "confirmResetNote": "WireMock側のスタブも削除する場合は、削除後に「全インスタンスに同期」を実行してください。",
-    "syncAllInstances": "すべてのインスタンスを同期",
-    "syncAllConfirm": "プロジェクトの全インスタンスにスタブを同期しますか？既存のWireMockマッピングはリセットされ、現在のスタブで置き換えられます。",
-    "syncAllNoInstances": "このプロジェクトにはWireMockインスタンスが登録されていません。プロジェクト詳細からインスタンスを追加してください。"
+    "confirmResetNote": "WireMock側のスタブも削除する場合は、削除後に「全インスタンスに同期」を実行してください。"
   },
   "editor": {
     "title": "スタブエディタ",
@@ -213,6 +210,8 @@
     "delete": "削除",
     "sync": "同期",
     "syncAll": "全インスタンスに同期",
+    "syncAllConfirm": "プロジェクトの全インスタンスにスタブを同期しますか？既存のWireMockマッピングはリセットされ、現在のスタブで置き換えられます。",
+    "syncAllNoInstances": "このプロジェクトにはWireMockインスタンスが登録されていません。プロジェクト詳細からインスタンスを追加してください。",
     "checkHealth": "ヘルスチェック",
     "name": "インスタンス名",
     "url": "URL",

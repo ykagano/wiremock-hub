@@ -85,10 +85,7 @@
     "priority": "Priority",
     "scenario": "Scenario",
     "confirmReset": "Delete all stubs in this project? This action cannot be undone.",
-    "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion.",
-    "syncAllInstances": "Sync All Instances",
-    "syncAllConfirm": "Sync stubs to all instances? Existing WireMock mappings will be reset and replaced with current stubs.",
-    "syncAllNoInstances": "No WireMock instances are registered for this project. Please add instances from Project Detail."
+    "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion."
   },
   "editor": {
     "title": "Stub Editor",
@@ -213,6 +210,8 @@
     "delete": "Delete",
     "sync": "Sync",
     "syncAll": "Sync All Instances",
+    "syncAllConfirm": "Sync stubs to all instances? Existing WireMock mappings will be reset and replaced with current stubs.",
+    "syncAllNoInstances": "No WireMock instances are registered for this project. Please add instances from Project Detail.",
     "checkHealth": "Health Check",
     "name": "Instance Name",
     "url": "URL",
