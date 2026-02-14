@@ -202,9 +202,22 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
 
     // Wait for sync to complete
-    await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 })
+
+    // Also test sync from Mappings view
+    await page.locator('.el-aside').getByText(/スタブマッピング|マッピング|Mappings/).click()
+    await page.waitForTimeout(1000)
+
+    // Click sync all instances button on mappings view
+    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
+
+    // Verify confirmation dialog appears and confirm
+    await expect(page.locator('.el-message-box')).toBeVisible()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 })
 
     // Clean up
     await cleanupProject(page, testProjectName)
@@ -572,7 +585,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
-    await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
 
     // Make a matched request (stub exists)
@@ -742,7 +756,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
-    await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
 
     // Verify stub is accessible on WireMock (use localhost:8082 for wiremock-2)
@@ -933,7 +948,8 @@ test.describe('WireMock Hub E2E Tests - UI', () => {
     await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
-    await expect(page.getByText(/同期完了|Sync|成功/i).first()).toBeVisible({ timeout: 15000 })
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
 
     // Make requests to both endpoints
