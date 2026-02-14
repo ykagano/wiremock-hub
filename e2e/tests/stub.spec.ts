@@ -411,6 +411,59 @@ test.describe('Stub', () => {
     await cleanupProject(page, testProjectName)
   })
 
+  test('should delete individual stub', async ({ page }) => {
+    const testProjectName = `Stub Delete Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    // Create first stub
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput1 = page.getByPlaceholder('e.g. /api/users')
+    await urlInput1.fill('/api/delete-test-1')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/delete-test-1' })).toBeVisible({ timeout: 10000 })
+
+    // Create second stub
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput2 = page.getByPlaceholder('e.g. /api/users')
+    await urlInput2.fill('/api/delete-test-2')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/delete-test-2' })).toBeVisible({ timeout: 10000 })
+
+    // Verify both stubs exist
+    await expect(page.locator('.el-table__row')).toHaveCount(2)
+
+    // Delete the first stub using the delete button in the row
+    const row1 = page.locator('.el-table__row', { hasText: '/api/delete-test-1' })
+    await row1.locator('.el-button--danger').click()
+
+    // Confirm deletion
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes|確認/ }).click()
+
+    // Wait for deletion to complete
+    await expect(page.locator('.el-message-box')).not.toBeVisible()
+    await page.waitForTimeout(500)
+
+    // Verify first stub is deleted and second remains
+    await expect(page.locator('.el-table__row', { hasText: '/api/delete-test-1' })).not.toBeVisible()
+    await expect(page.locator('.el-table__row', { hasText: '/api/delete-test-2' })).toBeVisible()
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
   test('should export stubs to JSON file', async ({ page }) => {
     const testProjectName = `Export Test ${Date.now()}`
 
