@@ -58,21 +58,20 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach(async (to, _from, next) => {
-  // Pages that require project selection
-  if (to.meta.requiresProject) {
-    const projectStore = useProjectStore()
+  const projectStore = useProjectStore()
 
-    // If projects not loaded yet, load them first
-    if (projectStore.projects.length === 0) {
-      await projectStore.fetchProjects()
-      // Try to restore current project from localStorage
-      projectStore.loadCurrentProject()
-    }
+  // Restore project from localStorage on all routes
+  if (projectStore.projects.length === 0) {
+    await projectStore.fetchProjects()
+  }
+  if (!projectStore.currentProject) {
+    await projectStore.loadCurrentProject()
+  }
 
-    if (!projectStore.currentProject) {
-      next('/projects')
-      return
-    }
+  // Redirect to projects page if project is required but not selected
+  if (to.meta.requiresProject && !projectStore.currentProject) {
+    next('/projects')
+    return
   }
 
   next()

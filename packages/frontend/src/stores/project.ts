@@ -96,11 +96,11 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   // Restore saved current project
-  function loadCurrentProject() {
+  async function loadCurrentProject() {
     try {
       const stored = localStorage.getItem(CURRENT_PROJECT_KEY)
       if (stored && projects.value.some(p => p.id === stored)) {
-        setCurrentProject(stored)
+        await setCurrentProject(stored)
       }
     } catch (error) {
       console.error('Failed to load current project:', error)
