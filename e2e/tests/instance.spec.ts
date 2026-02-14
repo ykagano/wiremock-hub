@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { WIREMOCK_1_URL, cleanupProject } from './helpers'
+import { WIREMOCK_1_URL, WIREMOCK_2_URL, cleanupProject } from './helpers'
 
 test.describe('WireMock Instance', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -90,6 +90,165 @@ test.describe('WireMock Instance', () => {
 
     // Clean up
     await cleanupProject(page, healthTestProject)
+  })
+
+  test('should edit instance name and URL', async ({ page }) => {
+    const testProjectName = `Instance Edit Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Original Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Verify instance was created
+    await expect(page.locator('.el-card', { hasText: 'Original Instance' })).toBeVisible()
+
+    // Wait for success message to disappear
+    await page.waitForTimeout(1500)
+
+    // Open edit dialog via dropdown menu
+    const instanceCard = page.locator('.el-card', { hasText: 'Original Instance' })
+    await instanceCard.locator('.el-dropdown').click()
+    await page.getByRole('menuitem', { name: /編集|Edit/ }).click()
+
+    // Edit name and URL
+    const nameInput = page.locator('.el-dialog').getByLabel(/インスタンス名|Name/)
+    await nameInput.clear()
+    await nameInput.fill('Updated Instance')
+    const urlInput = page.locator('.el-dialog').getByLabel(/URL/)
+    await urlInput.clear()
+    await urlInput.fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Verify instance was updated
+    await expect(page.locator('.el-card', { hasText: 'Updated Instance' })).toBeVisible()
+    await expect(page.locator('.el-card', { hasText: 'Original Instance' })).not.toBeVisible()
+    // Verify URL is updated in the card
+    await expect(page.locator('.instance-url', { hasText: WIREMOCK_2_URL })).toBeVisible()
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should sync to individual instance', async ({ page, request }) => {
+    const testProjectName = `Individual Sync Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add two instances
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Sync Instance 1')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Sync Instance 2')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Navigate to stubs tab and create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput).toBeVisible()
+    await urlInput.fill('/api/individual-sync-test')
+
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea.fill('{"message": "Individual sync test"}')
+
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/individual-sync-test' })).toBeVisible({ timeout: 10000 })
+
+    // Navigate back to project detail
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
+    await page.waitForTimeout(500)
+
+    // Click Sync button on Instance 1 only
+    const instance1Card = page.locator('.el-card', { hasText: 'Sync Instance 1' })
+    await instance1Card.getByRole('button', { name: /同期|Sync/ }).click()
+
+    // Wait for sync success message
+    await expect(page.getByText(/同期|sync/i).first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(1000)
+
+    // Verify stub is accessible on Instance 1 (localhost:8081)
+    const response1 = await request.get('http://localhost:8081/api/individual-sync-test')
+    expect(response1.status()).toBe(200)
+    const body1 = await response1.json()
+    expect(body1.message).toBe('Individual sync test')
+
+    // Verify stub is NOT synced to Instance 2 (localhost:8082)
+    const response2 = await request.get('http://localhost:8082/api/individual-sync-test')
+    expect(response2.status()).not.toBe(200)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should validate instance form inputs', async ({ page }) => {
+    const testProjectName = `Instance Validation Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Open instance add dialog
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+
+    // Try to save without filling anything
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Should show validation errors for name and URL
+    await expect(page.locator('.el-form-item__error').first()).toBeVisible()
+
+    // Fill name but leave URL empty
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Test Instance')
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-form-item__error').first()).toBeVisible()
+
+    // Fill invalid URL format
+    const urlInput = page.locator('.el-dialog').getByLabel(/URL/)
+    await urlInput.fill('not-a-valid-url')
+    await urlInput.blur()
+    await page.waitForTimeout(500)
+    await expect(page.locator('.el-form-item__error').first()).toBeVisible()
+
+    // Fill valid URL - validation should pass
+    await urlInput.clear()
+    await urlInput.fill('http://valid-host:8080')
+    await urlInput.blur()
+    await page.waitForTimeout(500)
+
+    // Close dialog
+    await page.locator('.el-dialog').getByRole('button', { name: /キャンセル|Cancel/ }).click()
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
   })
 
   test('should handle invalid WireMock instance gracefully', async ({ page }) => {
