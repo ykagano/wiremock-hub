@@ -15,6 +15,10 @@
           <el-icon><Download /></el-icon>
           {{ t('mappings.export') }}
         </el-button>
+        <el-button type="success" @click="handleSyncAll" :loading="syncing" :disabled="mappings.length === 0">
+          <el-icon><Refresh /></el-icon>
+          {{ t('instances.syncAll') }}
+        </el-button>
         <el-button type="danger" plain @click="confirmResetAll">
           <el-icon><Delete /></el-icon>
           {{ t('mappings.reset') }}
@@ -173,6 +177,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useMappingStore } from '@/stores/mapping'
+import { useProjectStore } from '@/stores/project'
+import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Mapping, MappingRequest } from '@/types/wiremock'
 
@@ -180,6 +186,8 @@ const { t } = useI18n()
 const router = useRouter()
 const mappingStore = useMappingStore()
 const { mappings, loading } = storeToRefs(mappingStore)
+const projectStore = useProjectStore()
+const { syncing, confirmAndSyncAll } = useSyncAllInstances()
 
 const searchQuery = ref('')
 const filterMethod = ref('')
@@ -358,6 +366,14 @@ function handleImport() {
     }
   }
   input.click()
+}
+
+function handleSyncAll() {
+  if (!projectStore.currentProjectId) {
+    ElMessage.warning(t('messages.project.notSelected'))
+    return
+  }
+  confirmAndSyncAll(projectStore.currentProjectId)
 }
 
 // Initialization

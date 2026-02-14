@@ -49,7 +49,7 @@
     <!-- Instance list -->
     <div class="instances-section">
       <div class="section-header">
-        <el-button type="success" @click="syncAllInstances" :loading="syncing" :disabled="instances.length === 0">
+        <el-button type="success" @click="handleSyncAll" :loading="syncing" :disabled="instances.length === 0">
           <el-icon><Refresh /></el-icon>
           {{ t('instances.syncAll') }}
         </el-button>
@@ -204,6 +204,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/project'
+import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
 import { projectApi, wiremockInstanceApi, stubApi, type Project, type WiremockInstance } from '@/services/api'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import dayjs from 'dayjs'
@@ -215,7 +216,7 @@ const projectStore = useProjectStore()
 
 const project = ref<Project | null>(null)
 const instances = ref<WiremockInstance[]>([])
-const syncing = ref(false)
+const { syncing, confirmAndSyncAllWithInstances } = useSyncAllInstances()
 const syncingIds = ref(new Set<string>())
 
 // Instance dialog
@@ -360,22 +361,9 @@ async function syncInstance(instance: WiremockInstance) {
   }
 }
 
-async function syncAllInstances() {
-  if (!project.value || instances.value.length === 0) return
-  syncing.value = true
-  let totalSuccess = 0, totalFailed = 0
-  try {
-    for (const instance of instances.value.filter(i => i.isActive !== false)) {
-      try {
-        const result = await stubApi.syncAll(project.value.id, instance.id)
-        totalSuccess += result.success
-        totalFailed += result.failed
-      } catch { totalFailed++ }
-    }
-    ElMessage.success(t('instances.syncAllSuccess', { success: totalSuccess, failed: totalFailed }))
-  } finally {
-    syncing.value = false
-  }
+function handleSyncAll() {
+  if (!project.value) return
+  confirmAndSyncAllWithInstances(project.value.id, instances.value)
 }
 
 function editInstance(instance: WiremockInstance) {
