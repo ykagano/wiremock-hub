@@ -54,3 +54,6 @@ custom-certs/*.pem
 
 # Task specs (local only)
 tasks/
+
+# Claude Code
+.claude/
