@@ -485,6 +485,224 @@ describe('Stubs API', () => {
     })
   })
 
+  describe('POST /api/stubs/:id/test', () => {
+    it('should return 404 for non-existent stub', async () => {
+      const app = await getTestApp()
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/00000000-0000-0000-0000-000000000000/test',
+        payload: {}
+      })
+      expect(response.statusCode).toBe(404)
+      expect(response.json().error).toBe('Stub not found')
+    })
+
+    it('should return 400 when no active instances exist', async () => {
+      const app = await getTestApp()
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Test Stub',
+          mapping: { request: { method: 'GET', url: '/api/test' }, response: { status: 200 } }
+        }
+      })
+      const stubId = createResponse.json().data.id
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      })
+      expect(response.statusCode).toBe(400)
+      expect(response.json().error).toBe('No active WireMock instances found in this project')
+    })
+
+    it('should return 400 for urlPattern without URL override', async () => {
+      const app = await getTestApp()
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Pattern Stub',
+          mapping: {
+            request: { method: 'GET', urlPattern: '/api/users/.*' },
+            response: { status: 200 }
+          }
+        }
+      })
+      const stubId = createResponse.json().data.id
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: { projectId, name: 'Test WM', url: 'http://localhost:9999' }
+      })
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      })
+      expect(response.statusCode).toBe(400)
+      expect(response.json().error).toContain('URL override is required')
+    })
+
+    it('should return 400 for urlPathPattern without URL override', async () => {
+      const app = await getTestApp()
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Path Pattern Stub',
+          mapping: {
+            request: { method: 'POST', urlPathPattern: '/api/items/[0-9]+' },
+            response: { status: 201 }
+          }
+        }
+      })
+      const stubId = createResponse.json().data.id
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: { projectId, name: 'Test WM', url: 'http://localhost:9999' }
+      })
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      })
+      expect(response.statusCode).toBe(400)
+      expect(response.json().error).toContain('URL override is required')
+    })
+
+    it('should accept urlPattern with URL override and attempt test (connection error expected)', async () => {
+      const app = await getTestApp()
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Pattern Stub with Override',
+          mapping: {
+            request: { method: 'GET', urlPattern: '/api/users/.*' },
+            response: { status: 200, body: 'OK' }
+          }
+        }
+      })
+      const stubId = createResponse.json().data.id
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: { projectId, name: 'Test WM', url: 'http://localhost:9999' }
+      })
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: { url: '/api/users/123' }
+      })
+      expect(response.statusCode).toBe(200)
+      const result = response.json()
+      expect(result.success).toBe(true)
+      expect(result.data.stubId).toBe(stubId)
+      expect(result.data.request.method).toBe('GET')
+      expect(result.data.request.url).toBe('/api/users/123')
+      expect(result.data.results).toHaveLength(1)
+      expect(result.data.results[0].success).toBe(false)
+      expect(result.data.results[0].error).toBeDefined()
+      expect(result.data.summary.total).toBe(1)
+      expect(result.data.summary.failed).toBe(1)
+    })
+
+    it('should extract headers and body from mapping for test request', async () => {
+      const app = await getTestApp()
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Full Stub',
+          mapping: {
+            request: {
+              method: 'POST',
+              url: '/api/data',
+              headers: {
+                'Content-Type': { equalTo: 'application/json' },
+                'Authorization': { equalTo: 'Bearer token123' }
+              },
+              queryParameters: {
+                'page': { equalTo: '1' },
+                'limit': { equalTo: '10' }
+              },
+              bodyPatterns: [{ equalToJson: '{"key":"value"}' }]
+            },
+            response: { status: 201, body: '{"id":1}' }
+          }
+        }
+      })
+      const stubId = createResponse.json().data.id
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: { projectId, name: 'Test WM', url: 'http://localhost:9999' }
+      })
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      })
+
+      expect(response.statusCode).toBe(200)
+      const result = response.json()
+      expect(result.data.request.method).toBe('POST')
+      expect(result.data.request.url).toBe('/api/data')
+      expect(result.data.request.headers['Content-Type']).toBe('application/json')
+      expect(result.data.request.headers['Authorization']).toBe('Bearer token123')
+      expect(result.data.request.body).toBe('{"key":"value"}')
+    })
+
+    it('should use GET as default method when not specified', async () => {
+      const app = await getTestApp()
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'No Method Stub',
+          mapping: {
+            request: { url: '/api/default' },
+            response: { status: 200 }
+          }
+        }
+      })
+      const stubId = createResponse.json().data.id
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: { projectId, name: 'Test WM', url: 'http://localhost:9999' }
+      })
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      })
+
+      expect(response.statusCode).toBe(200)
+      expect(response.json().data.request.method).toBe('GET')
+    })
+  })
+
   describe('GET /api/stubs/export', () => {
     it('should export stubs for a project', async () => {
       const app = await getTestApp()

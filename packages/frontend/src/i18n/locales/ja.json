@@ -309,7 +309,8 @@
       "importedCount": "{count}件のスタブをインポートしました",
       "importResult": "インポート: {imported}件, スキップ: {skipped}件",
       "importFailed": "スタブのインポートに失敗しました",
-      "importFileTooLarge": "ファイルが大きすぎます（最大10MB）"
+      "importFileTooLarge": "ファイルが大きすぎます（最大10MB）",
+      "testFailed": "スタブテストに失敗しました"
     },
     "request": {
       "fetchFailed": "リクエストログの取得に失敗しました",
@@ -327,6 +328,38 @@
     "json": {
       "parseError": "JSON解析エラー: {message}"
     }
+  },
+  "stubTest": {
+    "title": "スタブテスト",
+    "testButton": "テスト",
+    "sendButton": "テスト送信",
+    "sending": "送信中...",
+    "requestPreview": "リクエストプレビュー",
+    "method": "メソッド",
+    "url": "URL",
+    "headers": "ヘッダー",
+    "body": "ボディ",
+    "queryParameters": "クエリパラメータ",
+    "urlRequired": "正規表現パターンの場合、具体的なURLを入力してください",
+    "urlPlaceholder": "例: /api/users/123",
+    "results": "テスト結果",
+    "summary": "{passed}/{total} インスタンスが合格",
+    "instanceName": "インスタンス",
+    "status": "ステータス",
+    "passed": "合格",
+    "failed": "不合格",
+    "expectedStatus": "期待",
+    "actualStatus": "実際",
+    "expectedBody": "期待ボディ",
+    "actualBody": "実際ボディ",
+    "responseTime": "応答時間",
+    "error": "エラー",
+    "noInstances": "このプロジェクトにはアクティブなWireMockインスタンスがありません",
+    "connectionError": "接続エラー",
+    "bodyMatch": "一致",
+    "bodyMismatch": "不一致",
+    "bodyNA": "—",
+    "bodyColumn": "ボディ"
   },
   "labels": {
     "patternType": "パターンタイプ",

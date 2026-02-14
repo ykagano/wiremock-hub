@@ -309,7 +309,8 @@
       "importedCount": "Imported {count} stub(s) successfully",
       "importResult": "Imported: {imported}, Skipped: {skipped}",
       "importFailed": "Failed to import stubs",
-      "importFileTooLarge": "File is too large (max 10MB)"
+      "importFileTooLarge": "File is too large (max 10MB)",
+      "testFailed": "Stub test failed"
     },
     "request": {
       "fetchFailed": "Failed to fetch request logs",
@@ -327,6 +328,38 @@
     "json": {
       "parseError": "JSON parse error: {message}"
     }
+  },
+  "stubTest": {
+    "title": "Stub Test",
+    "testButton": "Test",
+    "sendButton": "Send Test",
+    "sending": "Sending...",
+    "requestPreview": "Request Preview",
+    "method": "Method",
+    "url": "URL",
+    "headers": "Headers",
+    "body": "Body",
+    "queryParameters": "Query Parameters",
+    "urlRequired": "Please enter a specific URL for pattern-based matching",
+    "urlPlaceholder": "e.g. /api/users/123",
+    "results": "Test Results",
+    "summary": "{passed}/{total} instances passed",
+    "instanceName": "Instance",
+    "status": "Status",
+    "passed": "Pass",
+    "failed": "Fail",
+    "expectedStatus": "Expected",
+    "actualStatus": "Actual",
+    "expectedBody": "Expected Body",
+    "actualBody": "Actual Body",
+    "responseTime": "Response Time",
+    "error": "Error",
+    "noInstances": "No active WireMock instances in this project",
+    "connectionError": "Connection error",
+    "bodyMatch": "Match",
+    "bodyMismatch": "Mismatch",
+    "bodyNA": "—",
+    "bodyColumn": "Body"
   },
   "labels": {
     "patternType": "Pattern Type",

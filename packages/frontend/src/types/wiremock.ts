@@ -112,3 +112,6 @@ export interface RequestsResponse {
     total: number
   }
 }
+
+// Stub test types are defined in @wiremock-hub/shared (single source of truth)
+export type { StubTestRequest, StubTestInstanceResult, StubTestResponse } from '@wiremock-hub/shared'

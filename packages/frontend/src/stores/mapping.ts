@@ -4,12 +4,15 @@ import { stubApi, type Stub, type CreateStubInput, type UpdateStubInput } from '
 import { useProjectStore } from './project'
 import { ElMessage } from 'element-plus'
 import { t } from '@/i18n'
-import type { Mapping } from '@/types/wiremock'
+import type { Mapping, StubTestRequest, StubTestResponse } from '@/types/wiremock'
 
 export const useMappingStore = defineStore('mapping', () => {
   const stubs = ref<Stub[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const testResult = ref<StubTestResponse | null>(null)
+  const testing = ref(false)
+  const testError = ref<string | null>(null)
 
   // Expose mappings for backward compatibility (generated from stub's mapping field)
   const mappings = ref<Mapping[]>([])
@@ -246,11 +249,36 @@ export const useMappingStore = defineStore('mapping', () => {
     }
   }
 
+  // Test stub against all WireMock instances
+  async function testStub(stubId: string, overrides?: StubTestRequest): Promise<StubTestResponse | null> {
+    testing.value = true
+    testResult.value = null
+    testError.value = null
+    try {
+      const result = await stubApi.testStub(stubId, overrides)
+      testResult.value = result
+      return result
+    } catch (e: any) {
+      testError.value = e.message || 'Test failed'
+      return null
+    } finally {
+      testing.value = false
+    }
+  }
+
+  function clearTestResult() {
+    testResult.value = null
+    testError.value = null
+  }
+
   return {
     stubs,
     mappings,
     loading,
     error,
+    testResult,
+    testError,
+    testing,
     fetchMappings,
     createMapping,
     updateMapping,
@@ -261,6 +289,8 @@ export const useMappingStore = defineStore('mapping', () => {
     getStubById,
     deleteAllStubs,
     exportStubs,
-    importStubs
+    importStubs,
+    testStub,
+    clearTestResult
   }
 })
