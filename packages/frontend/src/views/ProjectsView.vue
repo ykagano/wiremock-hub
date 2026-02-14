@@ -142,7 +142,6 @@ const formRules = computed<FormRules>(() => ({
 // Fetch project list on initialization
 onMounted(async () => {
   await projectStore.fetchProjects()
-  projectStore.loadCurrentProject()
 })
 
 function formatDate(dateString: string) {
