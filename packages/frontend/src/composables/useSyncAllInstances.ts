@@ -16,26 +16,7 @@ export function useSyncAllInstances() {
       return
     }
 
-    const activeInstances = instances.filter(i => i.isActive !== false)
-
-    if (activeInstances.length === 0) {
-      ElMessage.warning(t('instances.syncAllNoInstances'))
-      return
-    }
-
-    ElMessageBox.confirm(
-      t('instances.syncAllConfirm'),
-      t('common.confirm'),
-      {
-        confirmButtonText: t('common.yes'),
-        cancelButtonText: t('common.no'),
-        type: 'info'
-      }
-    ).then(async () => {
-      await executeSyncAll(projectId, activeInstances)
-    }).catch(() => {
-      // Cancelled
-    })
+    confirmAndSyncAllWithInstances(projectId, instances)
   }
 
   async function confirmAndSyncAllWithInstances(projectId: string, instances: WiremockInstance[]) {
@@ -75,9 +56,12 @@ export function useSyncAllInstances() {
           totalFailed++
         }
       }
-      ElMessage.success(
-        t('instances.syncAllSuccess', { success: totalSuccess, failed: totalFailed })
-      )
+      const message = t('instances.syncAllSuccess', { success: totalSuccess, failed: totalFailed })
+      if (totalFailed > 0) {
+        ElMessage.warning(message)
+      } else {
+        ElMessage.success(message)
+      }
     } finally {
       syncing.value = false
     }
