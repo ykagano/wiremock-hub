@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
+import type { StubTestRequest, StubTestResponse } from '@/types/wiremock'
 
 // Use relative path for API calls to work with nginx proxy in all-in-one mode
 // In development: proxied by Vite to localhost:3000
@@ -244,6 +245,11 @@ export const stubApi = {
       projectId,
       data
     })
+    return response.data.data!
+  },
+
+  async testStub(id: string, overrides?: StubTestRequest): Promise<StubTestResponse> {
+    const response = await apiClient.post<ApiResponse<StubTestResponse>>(`/stubs/${id}/test`, overrides || {})
     return response.data.data!
   }
 }

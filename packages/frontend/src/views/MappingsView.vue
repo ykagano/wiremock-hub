@@ -131,9 +131,16 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="t('common.actions')" width="180" fixed="right">
+      <el-table-column :label="t('common.actions')" width="220" fixed="right">
         <template #default="{ row }">
           <el-button-group>
+            <el-button
+              size="small"
+              type="success"
+              @click.stop="openTestDialog(row)"
+            >
+              <el-icon><CaretRight /></el-icon>
+            </el-button>
             <el-button
               size="small"
               @click.stop="editMapping(row)"
@@ -168,6 +175,8 @@
         layout="total, sizes, prev, pager, next, jumper"
       />
     </div>
+
+    <StubTestDialog v-model="testDialogVisible" :stub-id="testTargetStubId" />
   </div>
 </template>
 
@@ -179,6 +188,7 @@ import { storeToRefs } from 'pinia'
 import { useMappingStore } from '@/stores/mapping'
 import { useProjectStore } from '@/stores/project'
 import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
+import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Mapping, MappingRequest } from '@/types/wiremock'
 
@@ -193,6 +203,8 @@ const searchQuery = ref('')
 const filterMethod = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
+const testDialogVisible = ref(false)
+const testTargetStubId = ref('')
 
 // Filtering
 const filteredMappings = computed(() => {
@@ -271,6 +283,11 @@ function editMapping(mapping: Mapping) {
 
 function handleRowClick(row: Mapping) {
   editMapping(row)
+}
+
+function openTestDialog(mapping: Mapping) {
+  testTargetStubId.value = mapping.id || mapping.uuid || ''
+  testDialogVisible.value = true
 }
 
 async function copyMapping(mapping: Mapping) {

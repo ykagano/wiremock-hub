@@ -7,6 +7,10 @@
           <el-icon><Back /></el-icon>
           {{ t('common.back') }}
         </el-button>
+        <el-button v-if="!isNew" type="success" @click="openTestDialog">
+          <el-icon><CaretRight /></el-icon>
+          {{ t('stubTest.testButton') }}
+        </el-button>
         <el-button type="primary" @click="handleSave" :loading="saving">
           <el-icon><Check /></el-icon>
           {{ t('common.save') }}
@@ -184,6 +188,8 @@
         </el-card>
       </el-tab-pane>
     </el-tabs>
+
+    <StubTestDialog v-model="testDialogVisible" :stub-id="currentStubId" />
   </div>
 </template>
 
@@ -198,6 +204,7 @@ import type { Mapping } from '@/types/wiremock'
 import JsonEditor from '@/components/mapping/JsonEditor.vue'
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue'
 import BodyPatternsEditor from '@/components/mapping/BodyPatternsEditor.vue'
+import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -206,6 +213,8 @@ const mappingStore = useMappingStore()
 
 const activeTab = ref('request')
 const saving = ref(false)
+const testDialogVisible = ref(false)
+const currentStubId = computed(() => (route.params.id as string) || '')
 const urlType = ref<'url' | 'urlPattern' | 'urlPath' | 'urlPathPattern'>('url')
 const urlValue = ref('')
 const requestBodyText = ref('')
@@ -332,6 +341,10 @@ async function handleSave() {
 
 function goBack() {
   router.push('/mappings')
+}
+
+function openTestDialog() {
+  testDialogVisible.value = true
 }
 </script>
 

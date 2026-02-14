@@ -90,3 +90,46 @@ export interface RequestsResponse {
     total: number
   }
 }
+
+/** Test request overrides (fields the user can edit before sending) */
+export interface StubTestRequest {
+  url?: string
+  headers?: Record<string, string>
+  body?: string
+  queryParameters?: Record<string, string>
+}
+
+/** Test result per instance */
+export interface StubTestInstanceResult {
+  instanceId: string
+  instanceName: string
+  instanceUrl: string
+  success: boolean
+  matched: boolean
+  expectedStatus: number
+  actualStatus: number
+  expectedBody?: string
+  actualBody?: string
+  expectedHeaders?: Record<string, string>
+  actualHeaders?: Record<string, string>
+  error?: string
+  responseTimeMs?: number
+}
+
+/** Overall test result response */
+export interface StubTestResponse {
+  stubId: string
+  stubName: string
+  request: {
+    method: string
+    url: string
+    headers?: Record<string, string>
+    body?: string
+  }
+  results: StubTestInstanceResult[]
+  summary: {
+    total: number
+    passed: number
+    failed: number
+  }
+}
