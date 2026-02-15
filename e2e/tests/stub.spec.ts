@@ -5,6 +5,8 @@ test.describe('Stub', () => {
   test.beforeEach(async ({ page, context }) => {
     await context.addInitScript(() => {
       localStorage.removeItem('wiremock-hub-locale')
+      localStorage.removeItem('wiremock-hub-skip-sync-all-confirm')
+      localStorage.removeItem('wiremock-hub-skip-sync-confirm')
     })
     await page.goto('/')
   })
@@ -58,8 +60,10 @@ test.describe('Stub', () => {
     await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
     await page.waitForTimeout(500)
 
-    // Sync all instances
+    // Sync all instances and check "Don't show again"
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
+    await expect(page.locator('.el-message-box')).toBeVisible()
+    await page.locator('.el-message-box').getByText(/以降表示しない|Don't show again/).click()
     await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
 
     // Wait for sync to complete
@@ -69,12 +73,8 @@ test.describe('Stub', () => {
     await page.locator('.el-aside').getByText(/スタブマッピング|マッピング|Mappings/).click()
     await page.waitForTimeout(1000)
 
-    // Click sync all instances button on mappings view
+    // Click sync all instances button on mappings view - dialog should be skipped
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
-
-    // Verify confirmation dialog appears and confirm
-    await expect(page.locator('.el-message-box')).toBeVisible()
-    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
     await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 })
 
     // Clean up
@@ -715,6 +715,8 @@ test.describe('Stub Test Feature', () => {
   test.beforeEach(async ({ page, context }) => {
     await context.addInitScript(() => {
       localStorage.removeItem('wiremock-hub-locale')
+      localStorage.removeItem('wiremock-hub-skip-sync-all-confirm')
+      localStorage.removeItem('wiremock-hub-skip-sync-confirm')
     })
     await page.goto('/')
   })
