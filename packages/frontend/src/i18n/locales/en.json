@@ -211,6 +211,8 @@
     "sync": "Sync",
     "syncAll": "Sync All Instances",
     "syncAllConfirm": "Sync stubs to all instances? Existing WireMock mappings will be reset and replaced with current stubs.",
+    "syncConfirm": "Sync stubs to {name}? Existing WireMock mappings will be reset and replaced with current stubs.",
+    "dontShowAgain": "Don't show again",
     "syncAllNoInstances": "No WireMock instances are registered for this project. Please add instances from Project Detail.",
     "checkHealth": "Health Check",
     "name": "Instance Name",

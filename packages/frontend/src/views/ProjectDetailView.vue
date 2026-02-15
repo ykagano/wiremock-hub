@@ -205,7 +205,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/project'
 import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
-import { projectApi, wiremockInstanceApi, stubApi, type Project, type WiremockInstance } from '@/services/api'
+import { projectApi, wiremockInstanceApi, type Project, type WiremockInstance } from '@/services/api'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import dayjs from 'dayjs'
 
@@ -216,7 +216,7 @@ const projectStore = useProjectStore()
 
 const project = ref<Project | null>(null)
 const instances = ref<WiremockInstance[]>([])
-const { syncing, confirmAndSyncAllWithInstances } = useSyncAllInstances()
+const { syncing, confirmAndSyncAllWithInstances, confirmAndSyncInstance } = useSyncAllInstances()
 const syncingIds = ref(new Set<string>())
 
 // Instance dialog
@@ -348,17 +348,14 @@ async function checkHealth(instance: WiremockInstance) {
   }
 }
 
-async function syncInstance(instance: WiremockInstance) {
+function syncInstance(instance: WiremockInstance) {
   if (!project.value) return
-  syncingIds.value.add(instance.id)
-  try {
-    const result = await stubApi.syncAll(project.value.id, instance.id)
-    ElMessage.success(t('instances.syncSuccess', { success: result.success, failed: result.failed }))
-  } catch (error: any) {
-    ElMessage.error(error.message || t('instances.syncFailed'))
-  } finally {
-    syncingIds.value.delete(instance.id)
-  }
+  confirmAndSyncInstance(
+    project.value.id,
+    instance,
+    () => syncingIds.value.add(instance.id),
+    () => syncingIds.value.delete(instance.id)
+  )
 }
 
 function handleSyncAll() {

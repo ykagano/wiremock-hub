@@ -5,6 +5,8 @@ test.describe('WireMock Instance', () => {
   test.beforeEach(async ({ page, context }) => {
     await context.addInitScript(() => {
       localStorage.removeItem('wiremock-hub-locale')
+      localStorage.removeItem('wiremock-hub-skip-sync-all-confirm')
+      localStorage.removeItem('wiremock-hub-skip-sync-confirm')
     })
     await page.goto('/')
   })
@@ -187,8 +189,13 @@ test.describe('WireMock Instance', () => {
     const instance1Card = page.locator('.el-card', { hasText: 'Sync Instance 1' })
     await instance1Card.getByRole('button', { name: /同期|Sync/ }).click()
 
+    // Confirm sync dialog and check "Don't show again"
+    await expect(page.locator('.el-message-box')).toBeVisible()
+    await page.locator('.el-message-box').getByText(/以降表示しない|Don't show again/).click()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+
     // Wait for sync success message
-    await expect(page.getByText(/同期|sync/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(/同期完了|Sync completed/i).first()).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
 
     // Verify stub is accessible on Instance 1 (localhost:8081)
@@ -200,6 +207,16 @@ test.describe('WireMock Instance', () => {
     // Verify stub is NOT synced to Instance 2 (localhost:8082)
     const response2 = await request.get('http://localhost:8082/api/individual-sync-test')
     expect(response2.status()).not.toBe(200)
+
+    // Sync Instance 2 - confirmation dialog should be skipped due to "Don't show again"
+    const instance2Card = page.locator('.el-card', { hasText: 'Sync Instance 2' })
+    await instance2Card.getByRole('button', { name: /同期|Sync/ }).click()
+    await expect(page.getByText(/同期完了|Sync completed/i).first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(1000)
+
+    // Verify stub is now accessible on Instance 2
+    const response3 = await request.get('http://localhost:8082/api/individual-sync-test')
+    expect(response3.status()).toBe(200)
 
     // Clean up
     await cleanupProject(page, testProjectName)

@@ -1,7 +1,46 @@
-import { ref } from 'vue'
+import { ref, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { wiremockInstanceApi, stubApi, type WiremockInstance } from '@/services/api'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElCheckbox } from 'element-plus'
+
+const STORAGE_KEY_SYNC_ALL = 'wiremock-hub-skip-sync-all-confirm'
+const STORAGE_KEY_SYNC = 'wiremock-hub-skip-sync-confirm'
+
+function showConfirmWithDontShowAgain(
+  message: string,
+  title: string,
+  storageKey: string,
+  t: (key: string) => string
+): Promise<void> {
+  const skip = localStorage.getItem(storageKey) === 'true'
+  if (skip) {
+    return Promise.resolve()
+  }
+
+  const dontShowAgain = ref(false)
+
+  const MessageContent = () => h('div', [
+    h('p', { style: 'margin: 0 0 12px 0' }, message),
+    h(ElCheckbox, {
+      modelValue: dontShowAgain.value,
+      'onUpdate:modelValue': (val: boolean) => { dontShowAgain.value = val }
+    }, () => t('instances.dontShowAgain'))
+  ])
+
+  return ElMessageBox.confirm(
+    MessageContent,
+    title,
+    {
+      confirmButtonText: t('common.yes'),
+      cancelButtonText: t('common.no'),
+      type: 'info'
+    }
+  ).then(() => {
+    if (dontShowAgain.value) {
+      localStorage.setItem(storageKey, 'true')
+    }
+  })
+}
 
 export function useSyncAllInstances() {
   const { t } = useI18n()
@@ -27,14 +66,11 @@ export function useSyncAllInstances() {
       return
     }
 
-    ElMessageBox.confirm(
+    showConfirmWithDontShowAgain(
       t('instances.syncAllConfirm'),
       t('common.confirm'),
-      {
-        confirmButtonText: t('common.yes'),
-        cancelButtonText: t('common.no'),
-        type: 'info'
-      }
+      STORAGE_KEY_SYNC_ALL,
+      t
     ).then(async () => {
       await executeSyncAll(projectId, activeInstances)
     }).catch(() => {
@@ -67,5 +103,31 @@ export function useSyncAllInstances() {
     }
   }
 
-  return { syncing, confirmAndSyncAll, confirmAndSyncAllWithInstances }
+  async function confirmAndSyncInstance(
+    projectId: string,
+    instance: WiremockInstance,
+    onStart: () => void,
+    onEnd: () => void
+  ) {
+    showConfirmWithDontShowAgain(
+      t('instances.syncConfirm', { name: instance.name }),
+      t('common.confirm'),
+      STORAGE_KEY_SYNC,
+      t
+    ).then(async () => {
+      onStart()
+      try {
+        const result = await stubApi.syncAll(projectId, instance.id)
+        ElMessage.success(t('instances.syncSuccess', { success: result.success, failed: result.failed }))
+      } catch (error: any) {
+        ElMessage.error(error.message || t('instances.syncFailed'))
+      } finally {
+        onEnd()
+      }
+    }).catch(() => {
+      // Cancelled
+    })
+  }
+
+  return { syncing, confirmAndSyncAll, confirmAndSyncAllWithInstances, confirmAndSyncInstance }
 }
