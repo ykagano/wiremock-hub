@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test'
-import { LOCALE_KEY, THEME_KEY, clearLocalStorage } from './helpers'
+import { LOCALE_KEY, THEME_KEY } from './helpers'
 
 test.describe('Settings', () => {
-  test.beforeEach(async ({ page, context }) => {
-    await clearLocalStorage(context, [LOCALE_KEY, THEME_KEY])
+  // NOTE: Do NOT use addInitScript (clearLocalStorage) here.
+  // addInitScript runs on every page.goto() / reload(), which would
+  // clear localStorage on navigation and break persistence tests.
+  // Playwright creates a fresh BrowserContext per test, so localStorage
+  // is already empty without explicit clearing.
+  test.beforeEach(async ({ page }) => {
     await page.goto('/')
   })
 
@@ -103,17 +107,17 @@ test.describe('Settings', () => {
     // Navigate to settings - theme persists
     await page.goto('/settings')
     await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible()
-    expect(await page.locator('html').getAttribute('class')).toContain('dark')
+    expect(await page.locator('html').getAttribute('class') || '').toContain('dark')
 
     // Navigate to projects - theme persists
     await page.goto('/projects')
     await page.waitForTimeout(500)
-    expect(await page.locator('html').getAttribute('class')).toContain('dark')
+    expect(await page.locator('html').getAttribute('class') || '').toContain('dark')
 
     // Reload - theme persists
     await page.reload()
     await page.waitForTimeout(500)
-    expect(await page.locator('html').getAttribute('class')).toContain('dark')
+    expect(await page.locator('html').getAttribute('class') || '').toContain('dark')
     const activeItem = page.locator('.app-header .el-segmented .el-segmented__item.is-selected')
     await expect(activeItem).toContainText(/ダーク|Dark/)
   })
