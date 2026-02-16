@@ -80,7 +80,7 @@ function handleBlur() {
 
 .error-message {
   margin-top: 8px;
-  color: #f56c6c;
+  color: var(--el-color-danger);
   font-size: 12px;
   display: flex;
   align-items: center;

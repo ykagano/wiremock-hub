@@ -305,7 +305,7 @@ watch(
 }
 
 .response-time {
-  color: #909399;
+  color: var(--wh-text-tertiary);
   font-size: 14px;
 }
 
@@ -325,12 +325,12 @@ h4 {
   margin: 16px 0 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #606266;
+  color: var(--wh-text-secondary);
 }
 
 .body-container {
-  background-color: #f5f7fa;
-  border: 1px solid #e4e7ed;
+  background-color: var(--wh-code-bg);
+  border: 1px solid var(--wh-code-border);
   border-radius: 4px;
   padding: 12px;
   max-height: 400px;

@@ -331,7 +331,7 @@ function confirmResetAll() {
     h('div', [
       h('p', { style: 'margin: 0;' }, t('mappings.confirmReset')),
       h('p', {
-        style: 'color: #909399; font-size: 12px; margin-top: 8px; margin-bottom: 0;'
+        style: 'color: var(--wh-text-tertiary); font-size: 12px; margin-top: 8px; margin-bottom: 0;'
       }, t('mappings.confirmResetNote'))
     ]),
     t('common.confirm'),
@@ -436,19 +436,15 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.mapping-table :deep(.el-table__row):hover {
-  background-color: #f5f7fa;
-}
-
 .url-text {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
-  color: #409eff;
+  color: var(--el-color-primary);
 }
 
 .expand-content {
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--wh-code-bg);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
@@ -456,13 +452,13 @@ onMounted(() => {
 
 .expand-section h4 {
   margin: 0 0 12px 0;
-  color: #606266;
+  color: var(--wh-text-secondary);
   font-size: 14px;
 }
 
 .code-block {
-  background-color: #ffffff;
-  border: 1px solid #dcdfe6;
+  background-color: var(--wh-code-block-bg);
+  border: 1px solid var(--wh-code-border);
   border-radius: 4px;
   padding: 12px;
   margin: 0;
