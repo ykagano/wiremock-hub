@@ -71,7 +71,8 @@ export const useProjectStore = defineStore('project', () => {
   async function duplicateProject(id: string): Promise<Project | null> {
     loading.value = true
     try {
-      const duplicated = await projectApi.duplicate(id)
+      const suffix = t('projects.duplicateSuffix')
+      const duplicated = await projectApi.duplicate(id, suffix)
       projects.value.unshift(duplicated)
       ElMessage.success(t('messages.project.duplicated'))
       return duplicated

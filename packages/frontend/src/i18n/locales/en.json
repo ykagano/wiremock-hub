@@ -55,6 +55,7 @@
       "editTitle": "Edit Project"
     },
     "duplicate": "Duplicate",
+    "duplicateSuffix": "(Copy)",
     "confirmDelete": "Delete {name}?",
     "detail": "Detail"
   },

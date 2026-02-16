@@ -11,6 +11,10 @@ const updateProjectSchema = z.object({
   description: z.string().optional()
 })
 
+const duplicateProjectSchema = z.object({
+  suffix: z.string().optional()
+})
+
 const bulkUpdateInstancesSchema = z.object({
   instances: z.array(
     z.object({
@@ -166,6 +170,8 @@ export async function projectRoutes(fastify: FastifyInstance) {
   // Duplicate project
   fastify.post('/:id/duplicate', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params
+    const body = duplicateProjectSchema.parse(request.body || {})
+    const suffix = body.suffix || '(Copy)'
 
     const existing = await fastify.prisma.project.findUnique({
       where: { id },
@@ -185,7 +191,7 @@ export async function projectRoutes(fastify: FastifyInstance) {
     // Create duplicated project with all related data in a transaction
     const createProject = fastify.prisma.project.create({
       data: {
-        name: `${existing.name} (コピー)`,
+        name: `${existing.name} ${suffix}`,
         description: existing.description,
         wiremockInstances: {
           create: existing.wiremockInstances.map((instance) => ({

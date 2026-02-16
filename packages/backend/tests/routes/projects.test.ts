@@ -367,10 +367,11 @@ describe('Projects API', () => {
         }
       })
 
-      // Duplicate the project
+      // Duplicate the project with custom suffix
       const response = await app.inject({
         method: 'POST',
-        url: `/api/projects/${projectId}/duplicate`
+        url: `/api/projects/${projectId}/duplicate`,
+        payload: { suffix: '(コピー)' }
       })
 
       expect(response.statusCode).toBe(201)
@@ -416,6 +417,7 @@ describe('Projects API', () => {
       })
       const projectId = createResponse.json().data.id
 
+      // Duplicate without suffix (uses default "(Copy)")
       const response = await app.inject({
         method: 'POST',
         url: `/api/projects/${projectId}/duplicate`
@@ -424,9 +426,30 @@ describe('Projects API', () => {
       expect(response.statusCode).toBe(201)
       const result = response.json()
       expect(result.success).toBe(true)
-      expect(result.data.name).toBe('Empty Project (コピー)')
+      expect(result.data.name).toBe('Empty Project (Copy)')
       expect(result.data.stubCount).toBe(0)
       expect(result.data.wiremockInstances).toHaveLength(0)
+    })
+
+    it('should use custom suffix from request body', async () => {
+      const app = await getTestApp()
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'My Project' }
+      })
+      const projectId = createResponse.json().data.id
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/duplicate`,
+        payload: { suffix: '(Copy)' }
+      })
+
+      expect(response.statusCode).toBe(201)
+      const result = response.json()
+      expect(result.data.name).toBe('My Project (Copy)')
     })
 
     it('should return 404 for non-existent project', async () => {

@@ -55,6 +55,7 @@
       "editTitle": "プロジェクト編集"
     },
     "duplicate": "複製",
+    "duplicateSuffix": "(コピー)",
     "confirmDelete": "{name} を削除しますか？",
     "detail": "詳細"
   },
