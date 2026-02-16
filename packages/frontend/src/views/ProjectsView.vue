@@ -254,16 +254,16 @@ function closeDialog() {
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
-  color: #606266;
+  color: var(--wh-text-secondary);
 }
 
 .info-icon {
-  color: #909399;
+  color: var(--wh-text-tertiary);
 }
 
 .project-description {
   font-size: 14px;
-  color: #606266;
+  color: var(--wh-text-secondary);
 }
 
 .project-meta {
@@ -271,7 +271,7 @@ function closeDialog() {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #909399;
+  color: var(--wh-text-tertiary);
 }
 
 </style>

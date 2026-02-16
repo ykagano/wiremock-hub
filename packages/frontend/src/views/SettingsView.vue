@@ -12,6 +12,17 @@
       </el-radio-group>
     </el-card>
 
+    <el-card style="margin-bottom: 20px">
+      <template #header>
+        <span>{{ t('settings.theme') }}</span>
+      </template>
+      <el-radio-group v-model="currentTheme">
+        <el-radio value="light">{{ t('settings.themeLight') }}</el-radio>
+        <el-radio value="dark">{{ t('settings.themeDark') }}</el-radio>
+        <el-radio value="system">{{ t('settings.themeSystem') }}</el-radio>
+      </el-radio-group>
+    </el-card>
+
     <el-card>
       <template #header>
         <span>{{ t('settings.about') }}</span>
@@ -37,8 +48,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { saveLocale } from '@/i18n'
+import { useTheme } from '@/composables/useTheme'
 
 const { t, locale } = useI18n({ useScope: 'global' })
+const { themeMode } = useTheme()
 
 const appVersion = __APP_VERSION__
 
@@ -47,6 +60,13 @@ const currentLocale = computed({
   set: (value: string) => {
     locale.value = value
     saveLocale(value)
+  }
+})
+
+const currentTheme = computed({
+  get: () => themeMode.value,
+  set: (value: string) => {
+    themeMode.value = value as 'light' | 'dark' | 'system'
   }
 })
 </script>

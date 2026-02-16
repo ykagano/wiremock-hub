@@ -11,6 +11,11 @@
             </el-tag>
           </div>
           <div class="header-right">
+            <el-segmented
+              v-model="currentTheme"
+              :options="themeOptions"
+              size="small"
+            />
             <el-select
               v-model="currentLocale"
               size="small"
@@ -82,6 +87,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useProjectStore } from '@/stores/project'
+import { useTheme } from '@/composables/useTheme'
 import { saveLocale } from '@/i18n'
 import jaLocale from 'element-plus/es/locale/lang/ja'
 import enLocale from 'element-plus/es/locale/lang/en'
@@ -90,6 +96,7 @@ const route = useRoute()
 const { t, locale } = useI18n({ useScope: 'global' })
 const projectStore = useProjectStore()
 const { currentProject } = storeToRefs(projectStore)
+const { themeMode } = useTheme()
 
 const currentRoute = computed(() => route.path)
 
@@ -101,6 +108,19 @@ const currentLocale = computed({
   }
 })
 
+const currentTheme = computed({
+  get: () => themeMode.value,
+  set: (value: string) => {
+    themeMode.value = value as 'light' | 'dark' | 'system'
+  }
+})
+
+const themeOptions = computed(() => [
+  { label: t('settings.themeLight'), value: 'light' },
+  { label: t('settings.themeDark'), value: 'dark' },
+  { label: t('settings.themeSystem'), value: 'system' },
+])
+
 const elementLocale = computed(() => {
   return locale.value === 'ja' ? jaLocale : enLocale
 })
@@ -111,6 +131,31 @@ const elementLocale = computed(() => {
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI',
     'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', 'Yu Gothic UI',
     'Yu Gothic', sans-serif;
+  --wh-sidebar-bg: #f5f7fa;
+  --wh-sidebar-border: #e4e7ed;
+  --wh-main-bg: #ffffff;
+  --wh-header-gradient-from: #667eea;
+  --wh-header-gradient-to: #764ba2;
+  --wh-header-shadow: rgba(0, 0, 0, 0.1);
+  --wh-text-secondary: #606266;
+  --wh-text-tertiary: #909399;
+  --wh-code-bg: #f5f7fa;
+  --wh-code-border: #dcdfe6;
+  --wh-code-block-bg: #ffffff;
+}
+
+html.dark {
+  --wh-sidebar-bg: #1d1e1f;
+  --wh-sidebar-border: #414243;
+  --wh-main-bg: #141414;
+  --wh-header-gradient-from: #3a4a8a;
+  --wh-header-gradient-to: #4a2d6a;
+  --wh-header-shadow: rgba(0, 0, 0, 0.3);
+  --wh-text-secondary: #a3a6ad;
+  --wh-text-tertiary: #8d9095;
+  --wh-code-bg: #1d1e1f;
+  --wh-code-border: #414243;
+  --wh-code-block-bg: #1d1e1f;
 }
 
 body,
@@ -127,6 +172,20 @@ body,
 .el-menu {
   font-family: var(--font-family-base) !important;
 }
+
+html.dark body {
+  background-color: #141414;
+  color: #e5eaf3;
+}
+
+/* Theme toggle in header - override Element Plus segmented styles */
+.app-header .el-segmented {
+  --el-border-color: rgba(255, 255, 255, 0.3);
+  --el-segmented-bg-color: rgba(255, 255, 255, 0.15);
+  --el-segmented-item-selected-bg-color: rgba(255, 255, 255, 0.3);
+  --el-segmented-item-selected-color: #ffffff;
+  --el-text-color-primary: rgba(255, 255, 255, 0.85);
+}
 </style>
 
 <style scoped>
@@ -135,11 +194,11 @@ body,
 }
 
 .app-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--wh-header-gradient-from) 0%, var(--wh-header-gradient-to) 100%);
   color: white;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--wh-header-shadow);
 }
 
 .header-content {
@@ -168,8 +227,8 @@ body,
 }
 
 .app-aside {
-  background-color: #f5f7fa;
-  border-right: 1px solid #e4e7ed;
+  background-color: var(--wh-sidebar-bg);
+  border-right: 1px solid var(--wh-sidebar-border);
 }
 
 .app-menu {
@@ -178,7 +237,7 @@ body,
 }
 
 .app-main {
-  background-color: #ffffff;
+  background-color: var(--wh-main-bg);
   padding: 24px;
   overflow-y: auto;
 }

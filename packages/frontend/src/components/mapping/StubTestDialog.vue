@@ -19,7 +19,7 @@
           v-model="requestUrl"
           :placeholder="isPatternUrl ? t('stubTest.urlPlaceholder') : ''"
         />
-        <div v-if="isPatternUrl" style="color: #e6a23c; font-size: 12px; margin-top: 4px">
+        <div v-if="isPatternUrl" style="color: var(--el-color-warning); font-size: 12px; margin-top: 4px">
           {{ t('stubTest.urlRequired') }}
         </div>
       </el-form-item>
@@ -109,7 +109,7 @@
         <el-table-column :label="t('stubTest.instanceName')" min-width="150">
           <template #default="{ row }">
             <div>{{ row.instanceName }}</div>
-            <div style="color: #909399; font-size: 12px">{{ row.instanceUrl }}</div>
+            <div style="color: var(--wh-text-tertiary); font-size: 12px">{{ row.instanceUrl }}</div>
           </template>
         </el-table-column>
 
@@ -122,7 +122,7 @@
               <el-tag :type="row.matched ? 'success' : 'danger'">
                 {{ row.matched ? t('stubTest.passed') : t('stubTest.failed') }}
               </el-tag>
-              <div style="font-size: 12px; color: #909399; margin-top: 4px">
+              <div style="font-size: 12px; color: var(--wh-text-tertiary); margin-top: 4px">
                 {{ row.expectedStatus }} / {{ row.actualStatus }}
               </div>
             </div>
@@ -348,12 +348,12 @@ function formatBody(body?: string): string {
 
 .body-column h5 {
   margin: 0 0 8px 0;
-  color: #606266;
+  color: var(--wh-text-secondary);
 }
 
 .code-block {
-  background-color: #f5f7fa;
-  border: 1px solid #dcdfe6;
+  background-color: var(--wh-code-bg);
+  border: 1px solid var(--wh-code-border);
   border-radius: 4px;
   padding: 12px;
   margin: 0;

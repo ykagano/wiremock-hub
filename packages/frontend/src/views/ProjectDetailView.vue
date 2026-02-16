@@ -448,7 +448,7 @@ function closeInstanceDialog() {
 }
 
 .project-id {
-  color: #606266;
+  color: var(--wh-text-secondary);
 }
 
 .instances-section {
@@ -477,11 +477,11 @@ function closeInstanceDialog() {
 }
 
 .instance-card.healthy {
-  border-left: 4px solid #67c23a;
+  border-left: 4px solid var(--el-color-success);
 }
 
 .instance-card.unhealthy {
-  border-left: 4px solid #f56c6c;
+  border-left: 4px solid var(--el-color-danger);
 }
 
 .card-header {
@@ -497,9 +497,9 @@ function closeInstanceDialog() {
   font-weight: 600;
 }
 
-.health-ok { color: #67c23a; }
-.health-error { color: #f56c6c; }
-.health-unknown { color: #909399; }
+.health-ok { color: var(--el-color-success); }
+.health-error { color: var(--el-color-danger); }
+.health-unknown { color: var(--wh-text-tertiary); }
 
 .card-actions {
   display: flex;
@@ -513,12 +513,12 @@ function closeInstanceDialog() {
   margin-bottom: 12px;
 }
 
-.info-icon { color: #909399; }
+.info-icon { color: var(--wh-text-tertiary); }
 
 .instance-url {
   font-family: monospace;
   font-size: 14px;
-  color: #606266;
+  color: var(--wh-text-secondary);
   word-break: break-all;
 }
 

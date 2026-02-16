@@ -247,6 +247,9 @@
     "title": "設定",
     "language": "言語",
     "theme": "テーマ",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "themeSystem": "システム",
     "about": "このアプリについて",
     "version": "バージョン"
   },
