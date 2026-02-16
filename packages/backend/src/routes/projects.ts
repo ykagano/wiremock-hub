@@ -163,6 +163,65 @@ export async function projectRoutes(fastify: FastifyInstance) {
     })
   })
 
+  // Duplicate project
+  fastify.post('/:id/duplicate', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { id } = request.params
+
+    const existing = await fastify.prisma.project.findUnique({
+      where: { id },
+      include: {
+        wiremockInstances: true,
+        stubs: true
+      }
+    })
+
+    if (!existing) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Project not found'
+      })
+    }
+
+    // Create duplicated project with all related data in a transaction
+    const createProject = fastify.prisma.project.create({
+      data: {
+        name: `${existing.name} (コピー)`,
+        description: existing.description,
+        wiremockInstances: {
+          create: existing.wiremockInstances.map((instance) => ({
+            name: instance.name,
+            url: instance.url,
+            isActive: instance.isActive
+          }))
+        },
+        stubs: {
+          create: existing.stubs.map((stub) => ({
+            name: stub.name,
+            description: stub.description,
+            mapping: stub.mapping as any,
+            isActive: stub.isActive
+          }))
+        }
+      },
+      include: {
+        wiremockInstances: true,
+        _count: {
+          select: { stubs: true }
+        }
+      }
+    })
+
+    const [duplicatedProject] = await fastify.prisma.$transaction([createProject])
+
+    return reply.status(201).send({
+      success: true,
+      data: {
+        ...duplicatedProject,
+        stubCount: duplicatedProject._count.stubs
+      }
+    })
+  })
+
   // Bulk update instances for a project
   fastify.post('/:id/instances/bulk-update', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     try {

@@ -47,6 +47,10 @@
                       <el-icon><Edit /></el-icon>
                       {{ t('projects.edit') }}
                     </el-dropdown-item>
+                    <el-dropdown-item @click="duplicateProject(project)">
+                      <el-icon><CopyDocument /></el-icon>
+                      {{ t('projects.duplicate') }}
+                    </el-dropdown-item>
                     <el-dropdown-item @click="confirmDelete(project)">
                       <el-icon><Delete /></el-icon>
                       {{ t('projects.delete') }}
@@ -157,6 +161,10 @@ function editProject(project: Project) {
   formData.name = project.name
   formData.description = project.description || ''
   showAddDialog.value = true
+}
+
+async function duplicateProject(project: Project) {
+  await projectStore.duplicateProject(project.id)
 }
 
 function confirmDelete(project: Project) {

@@ -322,6 +322,128 @@ describe('Projects API', () => {
     })
   })
 
+  describe('POST /api/projects/:id/duplicate', () => {
+    it('should duplicate a project with stubs and instances', async () => {
+      const app = await getTestApp()
+
+      // Create a project
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'Original Project', description: 'Original description' }
+      })
+      const projectId = createResponse.json().data.id
+
+      // Add stubs
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Stub 1',
+          description: 'Stub description',
+          mapping: { request: { url: '/test1' }, response: { status: 200 } }
+        }
+      })
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Stub 2',
+          mapping: { request: { url: '/test2' }, response: { status: 201, body: 'hello' } }
+        }
+      })
+
+      // Add an instance
+      await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: {
+          projectId,
+          name: 'Test Instance',
+          url: 'http://localhost:8080'
+        }
+      })
+
+      // Duplicate the project
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/duplicate`
+      })
+
+      expect(response.statusCode).toBe(201)
+      const result = response.json()
+      expect(result.success).toBe(true)
+      expect(result.data.name).toBe('Original Project (コピー)')
+      expect(result.data.id).not.toBe(projectId)
+      expect(result.data.stubCount).toBe(2)
+      expect(result.data.wiremockInstances).toHaveLength(1)
+      expect(result.data.wiremockInstances[0].name).toBe('Test Instance')
+      expect(result.data.wiremockInstances[0].url).toBe('http://localhost:8080')
+
+      // Verify the duplicated project details
+      const detailResponse = await app.inject({
+        method: 'GET',
+        url: `/api/projects/${result.data.id}`
+      })
+      const detail = detailResponse.json()
+      expect(detail.data.description).toBe('Original description')
+      expect(detail.data.stubs).toHaveLength(2)
+      const stubNames = detail.data.stubs.map((s: { name: string }) => s.name).sort()
+      expect(stubNames).toEqual(['Stub 1', 'Stub 2'])
+
+      // Verify the original project is unchanged
+      const originalResponse = await app.inject({
+        method: 'GET',
+        url: `/api/projects/${projectId}`
+      })
+      const original = originalResponse.json()
+      expect(original.data.name).toBe('Original Project')
+      expect(original.data.stubs).toHaveLength(2)
+      expect(original.data.wiremockInstances).toHaveLength(1)
+    })
+
+    it('should duplicate a project with no stubs or instances', async () => {
+      const app = await getTestApp()
+
+      // Create a project with no related data
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'Empty Project' }
+      })
+      const projectId = createResponse.json().data.id
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/duplicate`
+      })
+
+      expect(response.statusCode).toBe(201)
+      const result = response.json()
+      expect(result.success).toBe(true)
+      expect(result.data.name).toBe('Empty Project (コピー)')
+      expect(result.data.stubCount).toBe(0)
+      expect(result.data.wiremockInstances).toHaveLength(0)
+    })
+
+    it('should return 404 for non-existent project', async () => {
+      const app = await getTestApp()
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/projects/00000000-0000-0000-0000-000000000000/duplicate'
+      })
+
+      expect(response.statusCode).toBe(404)
+      const result = response.json()
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Project not found')
+    })
+  })
+
   describe('POST /api/projects/:id/instances/bulk-update', () => {
     let projectId: string
 
