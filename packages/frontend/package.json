@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
-    "@vueuse/core": "^14.2.1",
     "@wiremock-hub/shared": "workspace:*",
     "axios": "^1.13.5",
     "dayjs": "^1.11.19",

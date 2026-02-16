@@ -87,7 +87,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useProjectStore } from '@/stores/project'
-import { useTheme } from '@/composables/useTheme'
+import { useTheme, type ThemeMode } from '@/composables/useTheme'
 import { saveLocale } from '@/i18n'
 import jaLocale from 'element-plus/es/locale/lang/ja'
 import enLocale from 'element-plus/es/locale/lang/en'
@@ -111,7 +111,7 @@ const currentLocale = computed({
 const currentTheme = computed({
   get: () => themeMode.value,
   set: (value: string) => {
-    themeMode.value = value as 'light' | 'dark' | 'system'
+    themeMode.value = value as ThemeMode
   }
 })
 

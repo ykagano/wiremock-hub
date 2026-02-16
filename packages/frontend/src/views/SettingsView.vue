@@ -48,7 +48,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { saveLocale } from '@/i18n'
-import { useTheme } from '@/composables/useTheme'
+import { useTheme, type ThemeMode } from '@/composables/useTheme'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const { themeMode } = useTheme()
@@ -66,7 +66,7 @@ const currentLocale = computed({
 const currentTheme = computed({
   get: () => themeMode.value,
   set: (value: string) => {
-    themeMode.value = value as 'light' | 'dark' | 'system'
+    themeMode.value = value as ThemeMode
   }
 })
 </script>
