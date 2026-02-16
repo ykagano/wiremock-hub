@@ -103,26 +103,4 @@ test.describe('Project', () => {
     await cleanupProject(page, updatedName)
   })
 
-  test('should switch language', async ({ page }) => {
-    await page.goto('/settings')
-
-    // Wait for settings page to load
-    await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible()
-
-    // Check if language can be switched
-    const englishRadio = page.locator('label', { hasText: 'English' })
-    const japaneseRadio = page.locator('label', { hasText: '日本語' })
-
-    if (await englishRadio.isVisible()) {
-      await englishRadio.click()
-      await page.waitForTimeout(500)
-      await expect(page.getByRole('heading', { name: /Settings/ })).toBeVisible()
-    }
-
-    if (await japaneseRadio.isVisible()) {
-      await japaneseRadio.click()
-      await page.waitForTimeout(500)
-      await expect(page.getByRole('heading', { name: /設定/ })).toBeVisible()
-    }
-  })
 })

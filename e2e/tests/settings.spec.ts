@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Theme', () => {
+test.describe('Settings', () => {
   test.beforeEach(async ({ page, context }) => {
     // Clear theme and locale preferences before each test
     await context.addInitScript(() => {
@@ -9,6 +9,53 @@ test.describe('Theme', () => {
     })
     await page.goto('/')
   })
+
+  // --- Language ---
+
+  test('should switch language', async ({ page }) => {
+    await page.goto('/settings')
+
+    // Wait for settings page to load
+    await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible()
+
+    // Check if language can be switched
+    const englishRadio = page.locator('label', { hasText: 'English' })
+    const japaneseRadio = page.locator('label', { hasText: '日本語' })
+
+    if (await englishRadio.isVisible()) {
+      await englishRadio.click()
+      await page.waitForTimeout(500)
+      await expect(page.getByRole('heading', { name: /Settings/ })).toBeVisible()
+    }
+
+    if (await japaneseRadio.isVisible()) {
+      await japaneseRadio.click()
+      await page.waitForTimeout(500)
+      await expect(page.getByRole('heading', { name: /設定/ })).toBeVisible()
+    }
+  })
+
+  test('should persist language across page reload', async ({ page }) => {
+    await page.goto('/settings')
+
+    // Switch to English
+    const englishRadio = page.locator('label', { hasText: 'English' })
+    await englishRadio.click()
+    await page.waitForTimeout(500)
+
+    // Verify localStorage was updated
+    const storedLocale = await page.evaluate(() => localStorage.getItem('wiremock-hub-locale'))
+    expect(storedLocale).toBe('en')
+
+    // Reload the page
+    await page.reload()
+    await page.waitForTimeout(500)
+
+    // Verify language persists
+    await expect(page.getByRole('heading', { name: /Settings/ })).toBeVisible()
+  })
+
+  // --- Theme ---
 
   test('should default to system theme when no preference stored', async ({ page }) => {
     // Verify the segmented control in the header shows System as active
