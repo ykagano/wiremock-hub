@@ -5,6 +5,27 @@ import type { Page } from '@playwright/test'
 export const WIREMOCK_1_URL = 'http://wiremock-1:8080'
 export const WIREMOCK_2_URL = 'http://wiremock-2:8080'
 
+// localStorage keys (must match frontend constants)
+export const LOCALE_KEY = 'wiremock-hub-locale'
+export const THEME_KEY = 'wiremock-hub-theme'
+export const SKIP_SYNC_ALL_CONFIRM_KEY = 'wiremock-hub-skip-sync-all-confirm'
+export const SKIP_SYNC_CONFIRM_KEY = 'wiremock-hub-skip-sync-confirm'
+
+// All localStorage keys used by the app
+const ALL_KEYS = [LOCALE_KEY, THEME_KEY, SKIP_SYNC_ALL_CONFIRM_KEY, SKIP_SYNC_CONFIRM_KEY]
+
+// Clear specified localStorage keys via addInitScript
+// Usage: await clearLocalStorage(context, [LOCALE_KEY, THEME_KEY])
+// Pass no keys to clear all app keys
+export async function clearLocalStorage(
+  context: { addInitScript: (script: { path?: string } | ((keys: string[]) => void), arg?: string[]) => Promise<void> },
+  keys: string[] = ALL_KEYS
+) {
+  await context.addInitScript((keys) => {
+    keys.forEach((key) => localStorage.removeItem(key))
+  }, keys)
+}
+
 // Set SKIP_CLEANUP=true to skip cleanup (for debugging/inspection)
 export const SKIP_CLEANUP = process.env.SKIP_CLEANUP === 'true'
 

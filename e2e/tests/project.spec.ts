@@ -1,11 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { cleanupProject } from './helpers'
+import { LOCALE_KEY, cleanupProject, clearLocalStorage } from './helpers'
 
 test.describe('Project', () => {
   test.beforeEach(async ({ page, context }) => {
-    await context.addInitScript(() => {
-      localStorage.removeItem('wiremock-hub-locale')
-    })
+    await clearLocalStorage(context, [LOCALE_KEY])
     await page.goto('/')
   })
 

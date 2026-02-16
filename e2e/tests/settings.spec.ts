@@ -1,11 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { LOCALE_KEY, THEME_KEY, clearLocalStorage } from './helpers'
 
 test.describe('Settings', () => {
   test.beforeEach(async ({ page, context }) => {
-    await context.addInitScript(() => {
-      localStorage.removeItem('wiremock-hub-theme')
-      localStorage.removeItem('wiremock-hub-locale')
-    })
+    await clearLocalStorage(context, [LOCALE_KEY, THEME_KEY])
     await page.goto('/')
   })
 
@@ -26,7 +24,7 @@ test.describe('Settings', () => {
     // Switch back to English and verify persistence
     await page.locator('label', { hasText: 'English' }).click()
     await page.waitForTimeout(500)
-    const storedLocale = await page.evaluate(() => localStorage.getItem('wiremock-hub-locale'))
+    const storedLocale = await page.evaluate((key) => localStorage.getItem(key), LOCALE_KEY)
     expect(storedLocale).toBe('en')
 
     await page.reload()
@@ -100,7 +98,7 @@ test.describe('Settings', () => {
     // Switch to dark
     await segmented.getByText(/ダーク|Dark/).click()
     await page.waitForTimeout(500)
-    expect(await page.evaluate(() => localStorage.getItem('wiremock-hub-theme'))).toBe('dark')
+    expect(await page.evaluate((key) => localStorage.getItem(key), THEME_KEY)).toBe('dark')
 
     // Navigate to settings - theme persists
     await page.goto('/settings')
