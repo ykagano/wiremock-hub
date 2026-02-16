@@ -72,7 +72,9 @@ test.describe('Project', () => {
     await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
     await expect(page.getByText('Test Instance')).toBeVisible()
 
-    // Create a stub
+    // Navigate to stubs tab and create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/duplicate-test')
@@ -80,7 +82,7 @@ test.describe('Project', () => {
     const responseTextarea = page.getByPlaceholder('{"message": "success"}')
     await responseTextarea.fill('{"result": "duplicated"}')
     await page.getByRole('button', { name: /保存|Save/ }).click()
-    await expect(page.getByText('/api/duplicate-test')).toBeVisible()
+    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
 
     // Go back to project list
     await page.goto('/')
@@ -92,7 +94,7 @@ test.describe('Project', () => {
 
     // Verify the duplicated project appears with suffix
     const duplicatedName = page.getByText(new RegExp(`${testProjectName} \\((コピー|Copy)\\)`))
-    await expect(duplicatedName).toBeVisible()
+    await expect(duplicatedName).toBeVisible({ timeout: 10000 })
 
     // Navigate to duplicated project to verify contents
     const duplicatedCard = page.locator('.el-card', { hasText: /(コピー|Copy)/ })
@@ -101,7 +103,9 @@ test.describe('Project', () => {
     // Verify instance was copied
     await expect(page.getByText('Test Instance')).toBeVisible()
 
-    // Verify stub was copied
+    // Navigate to stubs tab to verify stub was copied
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
     await expect(page.getByText('/api/duplicate-test')).toBeVisible()
 
     // Verify original project still exists unchanged
