@@ -67,6 +67,23 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
+  // Duplicate project
+  async function duplicateProject(id: string): Promise<Project | null> {
+    loading.value = true
+    try {
+      const suffix = t('projects.duplicateSuffix')
+      const duplicated = await projectApi.duplicate(id, suffix)
+      projects.value.unshift(duplicated)
+      ElMessage.success(t('messages.project.duplicated'))
+      return duplicated
+    } catch (e: any) {
+      ElMessage.error(e.message || t('messages.project.duplicateFailed'))
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Delete project
   async function deleteProject(id: string): Promise<boolean> {
     loading.value = true
@@ -160,6 +177,7 @@ export const useProjectStore = defineStore('project', () => {
     fetchProjects,
     addProject,
     updateProject,
+    duplicateProject,
     deleteProject,
     setCurrentProject,
     loadCurrentProject,

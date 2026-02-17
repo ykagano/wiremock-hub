@@ -11,6 +11,10 @@ const updateProjectSchema = z.object({
   description: z.string().optional()
 })
 
+const duplicateProjectSchema = z.object({
+  suffix: z.string().optional()
+})
+
 const bulkUpdateInstancesSchema = z.object({
   instances: z.array(
     z.object({
@@ -161,6 +165,75 @@ export async function projectRoutes(fastify: FastifyInstance) {
       success: true,
       message: 'Project deleted successfully'
     })
+  })
+
+  // Duplicate project
+  fastify.post('/:id/duplicate', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    try {
+      const { id } = request.params
+      const body = duplicateProjectSchema.parse(request.body || {})
+      const suffix = body.suffix || '(Copy)'
+
+      const existing = await fastify.prisma.project.findUnique({
+        where: { id },
+        include: {
+          wiremockInstances: true,
+          stubs: true
+        }
+      })
+
+      if (!existing) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Project not found'
+        })
+      }
+
+      const duplicatedProject = await fastify.prisma.project.create({
+        data: {
+          name: `${existing.name} ${suffix}`,
+          description: existing.description,
+          wiremockInstances: {
+            create: existing.wiremockInstances.map((instance) => ({
+              name: instance.name,
+              url: instance.url,
+              isActive: instance.isActive
+            }))
+          },
+          stubs: {
+            create: existing.stubs.map((stub) => ({
+              name: stub.name,
+              description: stub.description,
+              mapping: stub.mapping as any,
+              isActive: stub.isActive
+            }))
+          }
+        },
+        include: {
+          wiremockInstances: true,
+          _count: {
+            select: { stubs: true }
+          }
+        }
+      })
+
+      return reply.status(201).send({
+        success: true,
+        data: {
+          ...duplicatedProject,
+          stubCount: duplicatedProject._count.stubs
+        }
+      })
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation error',
+          details: error.issues
+        })
+      }
+      throw error
+    }
   })
 
   // Bulk update instances for a project

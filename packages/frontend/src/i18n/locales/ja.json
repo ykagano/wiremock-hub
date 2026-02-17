@@ -54,6 +54,8 @@
       "addTitle": "プロジェクト追加",
       "editTitle": "プロジェクト編集"
     },
+    "duplicate": "複製",
+    "duplicateSuffix": "(コピー)",
     "confirmDelete": "{name} を削除しますか？",
     "detail": "詳細"
   },
@@ -286,6 +288,8 @@
       "updateFailed": "プロジェクトの更新に失敗しました",
       "deleted": "プロジェクトを削除しました",
       "deleteFailed": "プロジェクトの削除に失敗しました",
+      "duplicated": "プロジェクトを複製しました",
+      "duplicateFailed": "プロジェクトの複製に失敗しました",
       "notSelected": "プロジェクトが選択されていません"
     },
     "instance": {

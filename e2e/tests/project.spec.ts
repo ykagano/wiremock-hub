@@ -50,6 +50,76 @@ test.describe('Project', () => {
     await page.locator('.el-dialog').getByRole('button', { name: /キャンセル|Cancel/ }).click()
   })
 
+  test('should duplicate project with stubs and instances', async ({ page }) => {
+    const testProjectName = `Duplicate Test ${Date.now()}`
+    const testDescription = 'Project to duplicate'
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.getByLabel(/説明|Description/).fill(testDescription)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText(testProjectName)).toBeVisible()
+
+    // Navigate to project detail to add instance and stub
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add a WireMock instance
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Test Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill('http://wiremock-1:8080')
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText('Test Instance')).toBeVisible()
+
+    // Navigate to stubs tab and create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await urlInput.fill('/api/duplicate-test')
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea.fill('{"result": "duplicated"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({ timeout: 5000 })
+
+    // Go back to project list
+    await page.goto('/')
+
+    // Duplicate the project via dropdown menu
+    const originalCard = page.locator('.el-card', { hasText: testProjectName })
+    await originalCard.locator('.el-dropdown').click()
+    await page.getByRole('menuitem', { name: /複製|Duplicate/ }).click()
+
+    // Verify the duplicated project appears with suffix
+    const duplicatedName = page.getByText(new RegExp(`${testProjectName} \\((コピー|Copy)\\)`))
+    await expect(duplicatedName).toBeVisible({ timeout: 10000 })
+
+    // Navigate to duplicated project to verify contents
+    const duplicatedCard = page.locator('.el-card', { hasText: /(コピー|Copy)/ })
+    await duplicatedCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Verify instance was copied
+    await expect(page.getByText('Test Instance')).toBeVisible()
+
+    // Navigate to stubs tab to verify stub was copied
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+    await expect(page.getByText('/api/duplicate-test')).toBeVisible()
+
+    // Verify original project still exists unchanged
+    await page.goto('/')
+    await expect(page.locator('.el-card', { hasText: testProjectName }).first()).toBeVisible()
+
+    // Clean up both projects
+    const dupName = await page.locator('.el-card').filter({ hasText: /(コピー|Copy)/ }).locator('.project-name').textContent()
+    if (dupName) {
+      await cleanupProject(page, dupName)
+    }
+    await cleanupProject(page, testProjectName)
+  })
+
   test('should edit project name and description', async ({ page }) => {
     const testProjectName = `Edit Project Test ${Date.now()}`
     const testDescription = 'Original description'

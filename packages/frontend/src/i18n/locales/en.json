@@ -54,6 +54,8 @@
       "addTitle": "Add Project",
       "editTitle": "Edit Project"
     },
+    "duplicate": "Duplicate",
+    "duplicateSuffix": "(Copy)",
     "confirmDelete": "Delete {name}?",
     "detail": "Detail"
   },
@@ -286,6 +288,8 @@
       "updateFailed": "Failed to update project",
       "deleted": "Project deleted",
       "deleteFailed": "Failed to delete project",
+      "duplicated": "Project duplicated",
+      "duplicateFailed": "Failed to duplicate project",
       "notSelected": "No project selected"
     },
     "instance": {
