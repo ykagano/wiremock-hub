@@ -29,6 +29,7 @@
     "projectList": "プロジェクト一覧",
     "projects": "プロジェクト",
     "mappings": "スタブマッピング",
+    "registeredStubs": "登録済みスタブ",
     "requests": "リクエストログ",
     "instances": "インスタンス",
     "settings": "設定"
@@ -244,6 +245,23 @@
       "editTitle": "インスタンス編集"
     },
     "confirmDelete": "{name} を削除しますか？"
+  },
+  "registeredStubs": {
+    "title": "登録済みスタブ",
+    "selectInstance": "インスタンスを選択",
+    "noInstances": "インスタンスがありません",
+    "refresh": "更新",
+    "noMappings": "このインスタンスにはマッピングが登録されていません",
+    "projectName": "プロジェクト",
+    "method": "メソッド",
+    "url": "URL",
+    "status": "ステータス",
+    "priority": "優先度",
+    "scenario": "シナリオ",
+    "external": "外部登録",
+    "detail": "詳細",
+    "fetchFailed": "WireMockインスタンスからのマッピング取得に失敗しました",
+    "connectionError": "WireMockインスタンスに接続できません"
   },
   "settings": {
     "title": "設定",

@@ -137,6 +137,7 @@ import { ElMessage } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import type { LoggedRequest } from '@/types/wiremock'
+import { getMethodTagType, getStatusTagType } from '@/utils/wiremock'
 import api from '@/services/api'
 import ImportStubDialog from '@/components/request/ImportStubDialog.vue'
 import { useRequestStore } from '@/stores/request'
@@ -200,24 +201,6 @@ function formatBody(body: string): string {
   }
 }
 
-function getMethodTagType(method: string): string {
-  const types: Record<string, string> = {
-    GET: 'success',
-    POST: 'primary',
-    PUT: 'warning',
-    DELETE: 'danger',
-    PATCH: 'info'
-  }
-  return types[method] || 'info'
-}
-
-function getStatusTagType(status: number): string {
-  if (status >= 200 && status < 300) return 'success'
-  if (status >= 300 && status < 400) return 'info'
-  if (status >= 400 && status < 500) return 'warning'
-  if (status >= 500) return 'danger'
-  return 'info'
-}
 
 function goBack() {
   router.push({ name: 'requests' })

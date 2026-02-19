@@ -166,6 +166,7 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useMappingStore } from '@/stores/mapping'
 import type { Mapping, StubTestRequest } from '@/types/wiremock'
+import { getMethodTagType } from '@/utils/wiremock'
 
 const { t } = useI18n()
 
@@ -282,16 +283,6 @@ function handleClose(val: boolean) {
   emit('update:modelValue', val)
 }
 
-function getMethodTagType(method?: string): string {
-  const types: Record<string, string> = {
-    GET: 'success',
-    POST: 'primary',
-    PUT: 'warning',
-    DELETE: 'danger',
-    PATCH: 'info'
-  }
-  return types[method || ''] || 'info'
-}
 
 function getSummaryType(summary: { total: number; passed: number; failed: number }): string {
   if (summary.passed === summary.total) return 'success'
