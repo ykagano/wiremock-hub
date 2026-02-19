@@ -55,6 +55,13 @@
               <span>{{ t('nav.mappings') }}</span>
             </el-menu-item>
             <el-menu-item
+              index="/registered-stubs"
+              :disabled="!currentProject"
+            >
+              <el-icon><Monitor /></el-icon>
+              <span>{{ t('nav.registeredStubs') }}</span>
+            </el-menu-item>
+            <el-menu-item
               index="/requests"
               :disabled="!currentProject"
             >

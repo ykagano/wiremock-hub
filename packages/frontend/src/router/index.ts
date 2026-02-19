@@ -43,6 +43,12 @@ const router = createRouter({
       meta: { requiresProject: true }
     },
     {
+      path: '/registered-stubs',
+      name: 'registered-stubs',
+      component: () => import('@/views/RegisteredStubsView.vue'),
+      meta: { requiresProject: true }
+    },
+    {
       path: '/requests/:instanceId/:requestId',
       name: 'request-detail',
       component: () => import('@/views/RequestDetailView.vue'),

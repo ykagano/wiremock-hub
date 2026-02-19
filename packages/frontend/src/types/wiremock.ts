@@ -20,6 +20,9 @@ export interface Mapping {
     'wiremock-gui'?: {
       folder?: string
     }
+    hub_project_id?: string
+    hub_project_name?: string
+    [key: string]: unknown
   }
 }
 

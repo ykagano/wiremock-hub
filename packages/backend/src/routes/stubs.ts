@@ -3,6 +3,18 @@ import { z } from 'zod'
 import axios from 'axios'
 import type { Mapping } from '@wiremock-hub/shared'
 
+/** Inject Hub project metadata into a WireMock mapping (for sync only, not stored in DB) */
+export function injectHubMetadata(mapping: Mapping, project: { id: string; name: string }) {
+  return {
+    ...mapping,
+    metadata: {
+      ...mapping.metadata,
+      hub_project_id: project.id,
+      hub_project_name: project.name
+    }
+  }
+}
+
 const createStubSchema = z.object({
   projectId: z.string().uuid(),
   name: z.string().optional(),
@@ -480,16 +492,17 @@ export async function stubRoutes(fastify: FastifyInstance) {
 
       // Send mapping to WireMock
       const mapping = stub.mapping as unknown as Mapping
+      const mappingWithMetadata = injectHubMetadata(mapping, stub.project)
       const wiremockUrl = `${instance.url}/__admin/mappings`
 
       try {
         if (mapping.id || mapping.uuid) {
           // Update existing mapping
           const mappingId = mapping.id || mapping.uuid
-          await axios.put(`${wiremockUrl}/${mappingId}`, mapping)
+          await axios.put(`${wiremockUrl}/${mappingId}`, mappingWithMetadata)
         } else {
           // Create new mapping
-          const response = await axios.post(wiremockUrl, mapping)
+          const response = await axios.post(wiremockUrl, mappingWithMetadata)
 
           // Update stub with WireMock-assigned ID
           if (response.data?.id) {
@@ -699,9 +712,10 @@ export async function stubRoutes(fastify: FastifyInstance) {
         const chunkResults = await Promise.allSettled(
           chunk.map(async (stub: typeof stubs[number]) => {
             const mapping = stub.mapping as unknown as Mapping
+            const mappingWithMetadata = injectHubMetadata(mapping, project)
             const wiremockUrl = `${instance.url}/__admin/mappings`
             // Always POST since we reset mappings
-            await axios.post(wiremockUrl, mapping)
+            await axios.post(wiremockUrl, mappingWithMetadata)
             return stub.id
           })
         )

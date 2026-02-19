@@ -29,6 +29,7 @@
     "projectList": "Project List",
     "projects": "Project",
     "mappings": "Stub Mappings",
+    "registeredStubs": "Registered Stubs",
     "requests": "Request Log",
     "instances": "Instances",
     "settings": "Settings"
@@ -244,6 +245,23 @@
       "editTitle": "Edit Instance"
     },
     "confirmDelete": "Delete {name}?"
+  },
+  "registeredStubs": {
+    "title": "Registered Stubs",
+    "selectInstance": "Select Instance",
+    "noInstances": "No instances",
+    "refresh": "Refresh",
+    "noMappings": "No mappings registered on this instance",
+    "projectName": "Project",
+    "method": "Method",
+    "url": "URL",
+    "status": "Status",
+    "priority": "Priority",
+    "scenario": "Scenario",
+    "external": "External",
+    "detail": "Detail",
+    "fetchFailed": "Failed to fetch mappings from WireMock instance",
+    "connectionError": "Cannot connect to WireMock instance"
   },
   "settings": {
     "title": "Settings",

@@ -306,6 +306,7 @@ packages/
 │       ├── services/       # API communication
 │       ├── stores/         # Pinia stores
 │       ├── types/          # TypeScript type definitions
+│       ├── utils/          # Shared utility functions
 │       └── views/          # Page components
 ├── backend/
 │   ├── data/               # SQLite database file

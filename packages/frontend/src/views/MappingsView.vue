@@ -191,6 +191,7 @@ import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Mapping, MappingRequest } from '@/types/wiremock'
+import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -236,29 +237,7 @@ const paginatedMappings = computed(() => {
   return filteredMappings.value.slice(start, end)
 })
 
-// Helper functions
-function getUrl(request: MappingRequest): string {
-  return request.url || request.urlPattern || request.urlPath || request.urlPathPattern || '/'
-}
 
-function getMethodTagType(method?: string): string {
-  const types: Record<string, string> = {
-    GET: 'success',
-    POST: 'primary',
-    PUT: 'warning',
-    DELETE: 'danger',
-    PATCH: 'info'
-  }
-  return types[method || ''] || 'info'
-}
-
-function getStatusTagType(status: number): string {
-  if (status >= 200 && status < 300) return 'success'
-  if (status >= 300 && status < 400) return 'info'
-  if (status >= 400 && status < 500) return 'warning'
-  if (status >= 500) return 'danger'
-  return 'info'
-}
 
 function formatRequest(request: MappingRequest): string {
   return JSON.stringify(request, null, 2)

@@ -87,6 +87,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { LoggedRequest } from '@/types/wiremock'
+import { getMethodTagType, getStatusTagType } from '@/utils/wiremock'
 import dayjs from 'dayjs'
 
 const props = defineProps<{
@@ -117,24 +118,6 @@ function formatDate(timestamp: number) {
   return dayjs(timestamp).format('YYYY/MM/DD HH:mm:ss')
 }
 
-function getMethodTagType(method: string): string {
-  const types: Record<string, string> = {
-    GET: 'success',
-    POST: 'primary',
-    PUT: 'warning',
-    DELETE: 'danger',
-    PATCH: 'info'
-  }
-  return types[method] || 'info'
-}
-
-function getStatusTagType(status: number): string {
-  if (status >= 200 && status < 300) return 'success'
-  if (status >= 300 && status < 400) return 'info'
-  if (status >= 400 && status < 500) return 'warning'
-  if (status >= 500) return 'danger'
-  return 'info'
-}
 
 function getResponseStatus(row: LoggedRequest): number | undefined {
   return row.response?.status || row.responseDefinition?.status
