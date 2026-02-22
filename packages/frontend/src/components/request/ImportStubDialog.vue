@@ -2,11 +2,11 @@
   <el-dialog
     :model-value="visible"
     :title="t('requests.import.title')"
-    width="600px"
+    width="min(600px, 90vw)"
     @update:model-value="$emit('update:visible', $event)"
     @close="resetForm"
   >
-    <el-form :model="form" label-width="160px" label-position="top">
+    <el-form :model="form" :label-width="isMobile ? undefined : '160px'" :label-position="isMobile ? 'top' : 'top'">
       <el-form-item :label="t('requests.import.stubName')" required>
         <el-input v-model="form.name" :placeholder="t('requests.import.placeholder.stubName')" />
       </el-form-item>
@@ -90,6 +90,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/project'
+import { useResponsive } from '@/composables/useResponsive'
 import { ElMessage } from 'element-plus'
 import api from '@/services/api'
 import type { LoggedRequest } from '@/types/wiremock'
@@ -106,6 +107,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 const projectStore = useProjectStore()
 const loading = ref(false)
 

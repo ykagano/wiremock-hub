@@ -6,7 +6,7 @@
         <el-select
           v-model="selectedInstanceId"
           :placeholder="t('registeredStubs.selectInstance')"
-          style="width: 200px; margin-right: 12px;"
+          :style="{ width: isMobile ? '100%' : '200px', marginRight: isMobile ? '0' : '12px', marginBottom: isMobile ? '8px' : '0' }"
           @change="onInstanceChange"
         >
           <el-option
@@ -68,12 +68,12 @@
             {{ row.response?.status || '—' }}
           </template>
         </el-table-column>
-        <el-table-column :label="t('registeredStubs.priority')" width="80">
+        <el-table-column v-if="!isMobile" :label="t('registeredStubs.priority')" width="80">
           <template #default="{ row }">
             {{ row.priority ?? '—' }}
           </template>
         </el-table-column>
-        <el-table-column :label="t('registeredStubs.scenario')" width="150">
+        <el-table-column v-if="!isMobile" :label="t('registeredStubs.scenario')" width="150">
           <template #default="{ row }">
             {{ row.scenarioName || '—' }}
           </template>
@@ -104,8 +104,10 @@ import { wiremockInstanceApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 import type { Mapping } from '@/types/wiremock'
 import { getMethodTagType, getUrl } from '@/utils/wiremock'
+import { useResponsive } from '@/composables/useResponsive'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 const projectStore = useProjectStore()
 const { wiremockInstances } = storeToRefs(projectStore)
 
@@ -176,6 +178,8 @@ watch(wiremockInstances, (instances) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .page-header h2 {

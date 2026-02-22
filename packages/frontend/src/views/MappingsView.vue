@@ -36,7 +36,7 @@
         v-model="searchQuery"
         :placeholder="t('mappings.search')"
         clearable
-        style="width: 300px"
+        :style="{ width: isMobile ? '100%' : '300px' }"
       >
         <template #prefix>
           <el-icon><Search /></el-icon>
@@ -46,7 +46,7 @@
         v-model="filterMethod"
         :placeholder="t('mappings.method')"
         clearable
-        style="width: 150px"
+        :style="{ width: isMobile ? '100%' : '150px' }"
       >
         <el-option label="GET" value="GET" />
         <el-option label="POST" value="POST" />
@@ -116,13 +116,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="t('mappings.priority')" width="100" align="center">
+      <el-table-column v-if="!isMobile" :label="t('mappings.priority')" width="100" align="center">
         <template #default="{ row }">
           {{ row.priority || '-' }}
         </template>
       </el-table-column>
 
-      <el-table-column :label="t('mappings.scenario')" width="150">
+      <el-table-column v-if="!isMobile" :label="t('mappings.scenario')" width="150">
         <template #default="{ row }">
           <el-tag v-if="row.scenarioName" size="small">
             {{ row.scenarioName }}
@@ -131,7 +131,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="t('common.actions')" width="220" fixed="right">
+      <el-table-column :label="t('common.actions')" :width="isMobile ? 150 : 220" fixed="right">
         <template #default="{ row }">
           <el-button-group>
             <el-button
@@ -188,6 +188,7 @@ import { storeToRefs } from 'pinia'
 import { useMappingStore } from '@/stores/mapping'
 import { useProjectStore } from '@/stores/project'
 import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
+import { useResponsive } from '@/composables/useResponsive'
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Mapping, MappingRequest } from '@/types/wiremock'
@@ -199,6 +200,7 @@ const mappingStore = useMappingStore()
 const { mappings, loading } = storeToRefs(mappingStore)
 const projectStore = useProjectStore()
 const { syncing, confirmAndSyncAll } = useSyncAllInstances()
+const { isMobile } = useResponsive()
 
 const searchQuery = ref('')
 const filterMethod = ref('')
@@ -388,6 +390,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .page-header h2 {
@@ -399,12 +403,19 @@ onMounted(() => {
 .header-actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .search-bar {
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .search-bar {
+    flex-wrap: wrap;
+  }
 }
 
 .mapping-table {
@@ -427,6 +438,12 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .expand-content {
+    grid-template-columns: 1fr;
+  }
 }
 
 .expand-section h4 {

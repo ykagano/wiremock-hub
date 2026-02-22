@@ -3,13 +3,13 @@
     :model-value="modelValue"
     @update:model-value="handleClose"
     :title="`${t('stubTest.title')}: ${stubName}`"
-    width="800px"
+    width="min(800px, 90vw)"
     :close-on-click-modal="false"
     destroy-on-close
   >
     <!-- Request Preview -->
     <h4 style="margin-top: 0">{{ t('stubTest.requestPreview') }}</h4>
-    <el-form label-width="120px" label-position="left">
+    <el-form :label-width="isMobile ? undefined : '120px'" :label-position="isMobile ? 'top' : 'left'">
       <el-form-item :label="t('stubTest.method')">
         <el-tag :type="getMethodTagType(requestMethod)">{{ requestMethod }}</el-tag>
       </el-form-item>
@@ -165,10 +165,12 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useMappingStore } from '@/stores/mapping'
+import { useResponsive } from '@/composables/useResponsive'
 import type { Mapping, StubTestRequest } from '@/types/wiremock'
 import { getMethodTagType } from '@/utils/wiremock'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 
 // Type guard for WireMock matcher objects with equalTo field
 function isMatcherWithEqualTo(value: unknown): value is { equalTo: string } {
@@ -335,6 +337,12 @@ function formatBody(body?: string): string {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .body-comparison {
+    grid-template-columns: 1fr;
+  }
 }
 
 .body-column h5 {

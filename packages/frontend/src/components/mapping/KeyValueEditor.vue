@@ -9,7 +9,7 @@
         v-model="item.key"
         :placeholder="t('labels.key')"
         @input="updateValue"
-        style="width: 200px"
+        :style="{ width: isMobile ? '100%' : '200px' }"
       />
       <el-input
         v-model="item.value"
@@ -42,8 +42,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useResponsive } from '@/composables/useResponsive'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 
 const props = defineProps<{
   modelValue?: Record<string, any>
@@ -103,5 +105,11 @@ function updateValue() {
   gap: 8px;
   margin-bottom: 8px;
   align-items: center;
+}
+
+@media (max-width: 768px) {
+  .kv-row {
+    flex-wrap: wrap;
+  }
 }
 </style>
