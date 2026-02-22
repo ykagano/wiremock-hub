@@ -43,14 +43,14 @@
           </template>
         </el-table-column>
 
-        <el-table-column :label="t('requests.responseTime')" width="100">
+        <el-table-column v-if="!isMobile" :label="t('requests.responseTime')" width="100">
           <template #default="{ row }">
             <span v-if="row.timing?.totalTime != null">{{ row.timing.totalTime }}ms</span>
             <span v-else>-</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="Matched" width="100" align="center">
+        <el-table-column v-if="!isMobile" label="Matched" width="100" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.wasMatched" type="success" size="small">
               <el-icon><Check /></el-icon>
@@ -88,6 +88,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { LoggedRequest } from '@/types/wiremock'
 import { getMethodTagType, getStatusTagType } from '@/utils/wiremock'
+import { useResponsive } from '@/composables/useResponsive'
 import dayjs from 'dayjs'
 
 const props = defineProps<{
@@ -99,6 +100,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 
 const currentPage = ref(1)
 const pageSize = ref(20)

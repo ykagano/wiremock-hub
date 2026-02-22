@@ -134,13 +134,14 @@
     <el-dialog
       v-model="showInstanceDialog"
       :title="editingInstance ? t('instances.dialog.editTitle') : t('instances.dialog.addTitle')"
-      width="500px"
+      width="min(500px, 90vw)"
     >
       <el-form
         ref="instanceFormRef"
         :model="instanceFormData"
         :rules="instanceFormRules"
-        label-width="120px"
+        :label-width="isMobile ? undefined : '120px'"
+        :label-position="isMobile ? 'top' : 'right'"
       >
         <el-form-item :label="t('instances.name')" prop="name">
           <el-input
@@ -168,13 +169,14 @@
     <el-dialog
       v-model="showProjectDialog"
       :title="t('projects.dialog.editTitle')"
-      width="500px"
+      width="min(500px, 90vw)"
     >
       <el-form
         ref="projectFormRef"
         :model="projectFormData"
         :rules="projectFormRules"
-        label-width="120px"
+        :label-width="isMobile ? undefined : '120px'"
+        :label-position="isMobile ? 'top' : 'right'"
       >
         <el-form-item :label="t('projects.name')" prop="name">
           <el-input v-model="projectFormData.name" />
@@ -205,6 +207,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/project'
 import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
+import { useResponsive } from '@/composables/useResponsive'
 import { projectApi, wiremockInstanceApi, type Project, type WiremockInstance } from '@/services/api'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import dayjs from 'dayjs'
@@ -212,6 +215,7 @@ import dayjs from 'dayjs'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 const projectStore = useProjectStore()
 
 const project = ref<Project | null>(null)
@@ -423,6 +427,8 @@ function closeInstanceDialog() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .header-left {
@@ -466,6 +472,12 @@ function closeInstanceDialog() {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .instances-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .instance-card {

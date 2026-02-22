@@ -22,7 +22,7 @@
       <!-- Request settings -->
       <el-tab-pane :label="t('editor.request')" name="request">
         <el-card>
-          <el-form :model="formData" label-width="150px" label-position="left">
+          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
             <!-- Method -->
             <el-form-item :label="t('editor.requestMethod')">
               <el-select v-model="formData.request.method" :placeholder="t('labels.selectMethod')" clearable>
@@ -84,7 +84,7 @@
       <!-- Response settings -->
       <el-tab-pane :label="t('editor.response')" name="response">
         <el-card>
-          <el-form :model="formData" label-width="150px" label-position="left">
+          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
             <!-- Status code -->
             <el-form-item :label="t('editor.responseStatus')" required>
               <el-input-number
@@ -126,7 +126,7 @@
       <!-- Advanced settings -->
       <el-tab-pane :label="t('editor.advanced')" name="advanced">
         <el-card>
-          <el-form :model="formData" label-width="150px" label-position="left">
+          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
             <!-- Priority -->
             <el-form-item :label="t('editor.priority')">
               <el-input-number v-model="formData.priority" :min="1" />
@@ -198,6 +198,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMappingStore } from '@/stores/mapping'
+import { useResponsive } from '@/composables/useResponsive'
 import { stubApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 import type { Mapping } from '@/types/wiremock'
@@ -207,6 +208,7 @@ import BodyPatternsEditor from '@/components/mapping/BodyPatternsEditor.vue'
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 const route = useRoute()
 const router = useRouter()
 const mappingStore = useMappingStore()
@@ -358,6 +360,8 @@ function openTestDialog() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .page-header h2 {

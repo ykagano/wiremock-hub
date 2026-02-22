@@ -6,7 +6,7 @@
         <el-select
           v-model="selectedInstanceId"
           :placeholder="t('requests.selectInstance')"
-          style="width: 200px; margin-right: 12px;"
+          :style="{ width: isMobile ? '100%' : '200px', marginRight: isMobile ? '0' : '12px', marginBottom: isMobile ? '8px' : '0' }"
           @change="onInstanceChange"
         >
           <el-option
@@ -60,8 +60,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import RequestTable from '@/components/request/RequestTable.vue'
 import RequestFilter, { type FilterState } from '@/components/request/RequestFilter.vue'
 import type { LoggedRequest } from '@/types/wiremock'
+import { useResponsive } from '@/composables/useResponsive'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 const router = useRouter()
 const requestStore = useRequestStore()
 const projectStore = useProjectStore()
@@ -206,6 +208,8 @@ watch(wiremockInstances, (instances) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .page-header h2 {

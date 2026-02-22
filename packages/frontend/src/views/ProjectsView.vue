@@ -79,13 +79,14 @@
     <el-dialog
       v-model="showAddDialog"
       :title="editingProject ? t('projects.dialog.editTitle') : t('projects.dialog.addTitle')"
-      width="500px"
+      width="min(500px, 90vw)"
     >
       <el-form
         ref="formRef"
         :model="formData"
         :rules="formRules"
-        label-width="120px"
+        :label-width="isMobile ? undefined : '120px'"
+        :label-position="isMobile ? 'top' : 'right'"
       >
         <el-form-item :label="t('projects.name')" prop="name">
           <el-input
@@ -119,11 +120,13 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useProjectStore } from '@/stores/project'
+import { useResponsive } from '@/composables/useResponsive'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import type { Project } from '@/services/api'
 import dayjs from 'dayjs'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 const router = useRouter()
 const projectStore = useProjectStore()
 const { projects } = storeToRefs(projectStore)
@@ -230,6 +233,12 @@ function closeDialog() {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .project-card {

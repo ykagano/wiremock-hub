@@ -6,7 +6,7 @@
       class="pattern-row"
     >
       <el-card>
-        <el-form label-width="120px">
+        <el-form :label-width="isMobile ? undefined : '120px'" :label-position="isMobile ? 'top' : 'right'">
           <el-form-item :label="t('labels.patternType')">
             <el-select v-model="pattern.type" @change="updateValue">
               <el-option :label="t('labels.bodyMatch.equalTo')" value="equalTo" />
@@ -53,9 +53,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useResponsive } from '@/composables/useResponsive'
 import type { BodyPattern } from '@/types/wiremock'
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 
 const props = defineProps<{
   modelValue?: BodyPattern[]

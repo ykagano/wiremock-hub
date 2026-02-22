@@ -5,13 +5,22 @@
       <el-header class="app-header">
         <div class="header-content">
           <div class="header-left">
+            <el-icon
+              v-if="isMobile"
+              class="hamburger-icon"
+              :size="24"
+              @click="drawerOpen = true"
+            >
+              <Menu />
+            </el-icon>
             <h1>{{ t('app.title') }}</h1>
-            <el-tag v-if="currentProject" type="success" size="small">
+            <el-tag v-if="currentProject && !isMobile" type="success" size="small">
               {{ currentProject.name }}
             </el-tag>
           </div>
           <div class="header-right">
             <el-segmented
+              v-if="!isMobile"
               v-model="currentTheme"
               :options="themeOptions"
               size="small"
@@ -29,8 +38,61 @@
       </el-header>
 
       <el-container>
-        <!-- Sidebar -->
-        <el-aside width="200px" class="app-aside">
+        <!-- Mobile drawer sidebar -->
+        <el-drawer
+          v-if="isMobile"
+          v-model="drawerOpen"
+          direction="ltr"
+          :size="250"
+          :with-header="false"
+        >
+          <el-menu
+            :default-active="currentRoute"
+            router
+            class="app-menu"
+            @select="drawerOpen = false"
+          >
+            <el-menu-item index="/projects">
+              <el-icon><FolderOpened /></el-icon>
+              <span>{{ t('nav.projectList') }}</span>
+            </el-menu-item>
+            <el-menu-item
+              :index="currentProject ? `/projects/${currentProject.id}` : ''"
+              :disabled="!currentProject"
+            >
+              <el-icon><Folder /></el-icon>
+              <span>{{ t('nav.projects') }}</span>
+            </el-menu-item>
+            <el-menu-item
+              index="/mappings"
+              :disabled="!currentProject"
+            >
+              <el-icon><Document /></el-icon>
+              <span>{{ t('nav.mappings') }}</span>
+            </el-menu-item>
+            <el-menu-item
+              index="/registered-stubs"
+              :disabled="!currentProject"
+            >
+              <el-icon><Monitor /></el-icon>
+              <span>{{ t('nav.registeredStubs') }}</span>
+            </el-menu-item>
+            <el-menu-item
+              index="/requests"
+              :disabled="!currentProject"
+            >
+              <el-icon><List /></el-icon>
+              <span>{{ t('nav.requests') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/settings">
+              <el-icon><Setting /></el-icon>
+              <span>{{ t('nav.settings') }}</span>
+            </el-menu-item>
+          </el-menu>
+        </el-drawer>
+
+        <!-- Desktop sidebar -->
+        <el-aside v-else width="200px" class="app-aside">
           <el-menu
             :default-active="currentRoute"
             router
@@ -89,12 +151,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useProjectStore } from '@/stores/project'
 import { useTheme, type ThemeMode } from '@/composables/useTheme'
+import { useResponsive } from '@/composables/useResponsive'
 import { saveLocale } from '@/i18n'
 import jaLocale from 'element-plus/es/locale/lang/ja'
 import enLocale from 'element-plus/es/locale/lang/en'
@@ -104,6 +167,9 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const projectStore = useProjectStore()
 const { currentProject } = storeToRefs(projectStore)
 const { themeMode } = useTheme()
+const { isMobile } = useResponsive()
+
+const drawerOpen = ref(false)
 
 const currentRoute = computed(() => route.path)
 
@@ -229,8 +295,13 @@ html.dark body {
 
 .app-header h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(16px, 4vw, 24px);
   font-weight: 600;
+}
+
+.hamburger-icon {
+  cursor: pointer;
+  color: white;
 }
 
 .app-aside {
@@ -257,5 +328,11 @@ html.dark body {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding: 12px;
+  }
 }
 </style>

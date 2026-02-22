@@ -6,7 +6,7 @@
           v-model="filter.urlPattern"
           :placeholder="t('requests.filter.urlPatternPlaceholder')"
           clearable
-          style="width: 200px"
+          :style="{ width: isMobile ? '100%' : '200px' }"
         />
       </el-form-item>
 
@@ -15,7 +15,7 @@
           v-model="filter.method"
           :placeholder="t('requests.filter.allMethods')"
           clearable
-          style="width: 120px"
+          :style="{ width: isMobile ? '100%' : '120px' }"
         >
           <el-option label="GET" value="GET" />
           <el-option label="POST" value="POST" />
@@ -33,7 +33,7 @@
           :min="100"
           :max="599"
           :placeholder="t('requests.filter.statusFromPlaceholder')"
-          style="width: 100px"
+          :style="{ width: isMobile ? '100%' : '100px' }"
           controls-position="right"
         />
       </el-form-item>
@@ -44,7 +44,7 @@
           :min="100"
           :max="599"
           :placeholder="t('requests.filter.statusToPlaceholder')"
-          style="width: 100px"
+          :style="{ width: isMobile ? '100%' : '100px' }"
           controls-position="right"
         />
       </el-form-item>
@@ -64,6 +64,7 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useResponsive } from '@/composables/useResponsive'
 
 export interface FilterState {
   urlPattern: string
@@ -77,6 +78,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 
 const filter = reactive<FilterState>({
   urlPattern: '',
