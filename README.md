@@ -67,11 +67,11 @@ Extends [WireMock](https://wiremock.org/) with a graphical user interface for ce
 
 ```bash
 # WireMock Hub + WireMock bundled image
-docker run -d -p 8080:80 ghcr.io/ykagano/wiremock-hub:latest
-open http://localhost:8080/hub/
+docker run -d -p 3000:3000 ghcr.io/ykagano/wiremock-hub:latest
+open http://localhost:3000/hub/
 
 # WireMock instance URL (register after creating a project)
-http://localhost:8080
+http://localhost:3000
 ```
 
 > See [All-in-One README](./allinone/README.md) for detailed configuration and ECS deployment.
@@ -104,7 +104,7 @@ services:
   wiremock-hub:
     image: ghcr.io/yourusername/wiremock-hub:latest
     ports:
-      - "80:80"
+      - "3000:3000"
     volumes:
       - wiremock-hub-data:/data
     environment:

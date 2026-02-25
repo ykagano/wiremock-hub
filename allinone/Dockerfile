@@ -1,6 +1,6 @@
 # WireMock Hub All-in-One Container
 # Includes: WireMock Hub (Frontend + Backend) + WireMock + nginx
-# Single port (80) deployment ready for ECS
+# Single port (3000) deployment ready for ECS
 
 # Stage 1: Build frontend
 FROM node:24-alpine AS frontend-builder
@@ -141,11 +141,11 @@ RUN chmod +x /app/entrypoint.sh
 # Environment variables
 ENV NODE_ENV=production
 ENV DATABASE_URL=file:/data/wiremock-hub.db
-ENV PORT=3000
+ENV PORT=3001
 ENV WIREMOCK_PORT=8080
 
-# Expose only port 80
-EXPOSE 80
+# Expose only port 3000
+EXPOSE 3000
 
 # Start all services with supervisor
 CMD ["/app/entrypoint.sh"]
