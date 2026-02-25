@@ -680,7 +680,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       // Reset WireMock mappings before sync if requested
       if (body.resetBeforeSync) {
         try {
-          await axios.post(`${instance.url}/__admin/mappings/reset`, {}, {
+          await axios.delete(`${instance.url}/__admin/mappings`, {
             timeout: 10000
           })
         } catch (error) {
