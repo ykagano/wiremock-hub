@@ -3,9 +3,9 @@
 # Usage: cd allinone && docker compose up -d
 #
 # Access URLs:
-#   - Hub UI: http://localhost/hub/
-#   - WireMock Admin API: http://localhost/__admin/
-#   - Mock responses: http://localhost/
+#   - Hub UI: http://localhost:3000/hub/
+#   - WireMock Admin API: http://localhost:3000/__admin/
+#   - Mock responses: http://localhost:3000/
 
 services:
   wiremock-hub-allinone:
@@ -15,7 +15,7 @@ services:
       context: ..
       dockerfile: allinone/Dockerfile
     ports:
-      - "80:80"
+      - "3000:3000"
     volumes:
       - wiremock-hub-data:/data
     environment:

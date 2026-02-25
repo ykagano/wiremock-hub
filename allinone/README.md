@@ -11,11 +11,11 @@ Optimized for single-port environments like ECS/Fargate.
 
 ## Port Configuration
 
-Only **port 80** is exposed externally.
+Only **port 3000** is exposed externally.
 
 | Path | Target | Description |
 |------|--------|-------------|
-| `/hub/` | WireMock Hub (3000) | UI & API |
+| `/hub/` | WireMock Hub (3001) | UI & API |
 | `/__admin/*` | WireMock (8080) | Admin API |
 | `/` (others) | WireMock (8080) | Mock Responses |
 
@@ -27,9 +27,9 @@ docker compose up -d
 ```
 
 Access URLs:
-- WireMock Hub UI: http://localhost/hub/
-- WireMock Admin API: http://localhost/__admin/
-- Mock Responses: http://localhost/your-mock-path
+- WireMock Hub UI: http://localhost:3000/hub/
+- WireMock Admin API: http://localhost:3000/__admin/
+- Mock Responses: http://localhost:3000/your-mock-path
 
 ### ECS/Fargate
 
@@ -48,7 +48,7 @@ Access URLs:
       "image": "your-ecr-repo/wiremock-hub-allinone:latest",
       "portMappings": [
         {
-          "containerPort": 80,
+          "containerPort": 3000,
           "protocol": "tcp"
         }
       ],
@@ -93,14 +93,14 @@ For ECS/Fargate, mount an EFS volume to `/data` (see task definition example abo
 |----------|--------------|-------------|
 | `NODE_ENV` | `production` | Runtime environment |
 | `DATABASE_URL` | `file:/data/wiremock-hub.db` | Database connection URL |
-| `PORT` | `3000` | Hub API port (internal) |
+| `PORT` | `3001` | Hub API port (internal) |
 | `WIREMOCK_PORT` | `8080` | WireMock port (internal) |
 
 ## Project Configuration
 
 ### WireMock URL Settings
 
-When using the all-in-one version, all WireMock access goes through nginx on port 80.
+When using the all-in-one version, all WireMock access goes through nginx on port 3000.
 
 **IMPORTANT**: Do NOT use `http://localhost:8080` for the instance URL. Use the nginx proxy path instead.
 
@@ -108,24 +108,24 @@ When using the all-in-one version, all WireMock access goes through nginx on por
 
 ```
 Project Name: My API Mock
-Project WireMock URL: http://localhost
+Project WireMock URL: http://localhost:3000
 
 WireMock Instance Name: Built-in WireMock
-WireMock Instance URL: http://localhost
+WireMock Instance URL: http://localhost:3000
 ```
 
 ### Configuration Example (ECS/Production)
 
 ```
 Project Name: My API Mock
-Project WireMock URL: http://your-domain.com
+Project WireMock URL: http://your-domain.com:3000
 
 WireMock Instance Name: Built-in WireMock
-WireMock Instance URL: http://your-domain.com
+WireMock Instance URL: http://your-domain.com:3000
 ```
 
 **How it works:**
-- WireMock Admin API is accessed via `http://localhost/__admin/*`
+- WireMock Admin API is accessed via `http://localhost:3000/__admin/*`
 - nginx routes `/__admin/*` requests to WireMock (port 8080) inside the container
 - Both UI and backend access WireMock through nginx, not directly
 
@@ -163,7 +163,7 @@ docker exec -it wiremock-hub-allinone supervisorctl restart wiremock-hub
 | Feature | Standard Version | All-in-One Version |
 |---------|-----------------|-------------------|
 | Number of Containers | 2+ (Hub + WireMock) | 1 |
-| Number of Ports | 2 (3000 + 8080) | 1 (80) |
+| Number of Ports | 2 (3000 + 8080) | 1 (3000) |
 | Distributed WireMock | Supported | Not Supported |
 | ECS Optimization | - | Supported |
 | Hub UI Path | `/` | `/hub/` |

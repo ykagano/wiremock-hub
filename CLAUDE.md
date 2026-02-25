@@ -18,15 +18,15 @@ The easiest way is to use the All-in-One Docker image.
 ```bash
 # All-in-One version (Hub + WireMock + nginx bundled)
 docker run -d \
-  -p 80:80 \
+  -p 3000:3000 \
   -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub:latest
 ```
 
-- UI: http://localhost/hub/
-- WireMock Admin API: http://localhost/__admin/
-- Mock responses: http://localhost/
+- UI: http://localhost:3000/hub/
+- WireMock Admin API: http://localhost:3000/__admin/
+- Mock responses: http://localhost:3000/
 
 See [allinone/README.md](./allinone/README.md) for details.
 
@@ -107,7 +107,7 @@ URLs after startup:
 A single container bundling Hub + WireMock + nginx.
 
 **Features:**
-- Complete in one container (only port 80 exposed)
+- Complete in one container (only port 3000 exposed)
 - Ideal for environments with single-port constraints like ECS/Fargate
 - Easy setup
 
@@ -115,16 +115,16 @@ A single container bundling Hub + WireMock + nginx.
 
 ```bash
 docker run -d \
-  -p 80:80 \
+  -p 3000:3000 \
   -v $(pwd)/data:/data \
   --name wiremock-hub \
   ghcr.io/youruser/wiremock-hub:latest
 ```
 
 **Access URLs:**
-- Hub UI: `http://localhost/hub/`
-- WireMock Admin API: `http://localhost/__admin/`
-- Mock responses: `http://localhost/`
+- Hub UI: `http://localhost:3000/hub/`
+- WireMock Admin API: `http://localhost:3000/__admin/`
+- Mock responses: `http://localhost:3000/`
 
 **Registering additional WireMock instances:**
 You can register additional WireMock instances from the UI even with All-in-One version.
@@ -217,13 +217,13 @@ The following Secrets are required for Docker Hub publishing:
 
 ```bash
 # Start from GitHub Container Registry
-docker run -d -p 80:80 --name wiremock-hub-test ghcr.io/ykagano/wiremock-hub:latest
+docker run -d -p 3000:3000 --name wiremock-hub-test ghcr.io/ykagano/wiremock-hub:latest
 
 # Or start from Docker Hub
-docker run -d -p 80:80 --name wiremock-hub-test ykagano/wiremock-hub:latest
+docker run -d -p 3000:3000 --name wiremock-hub-test ykagano/wiremock-hub:latest
 
 # Check in browser
-open http://localhost/hub/
+open http://localhost:3000/hub/
 
 # Cleanup after verification
 docker stop wiremock-hub-test && docker rm wiremock-hub-test
