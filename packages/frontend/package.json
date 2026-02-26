@@ -17,9 +17,9 @@
     "element-plus": "^2.13.2",
     "monaco-editor": "^0.55.1",
     "pinia": "^3.0.4",
-    "vue": "^3.5.28",
+    "vue": "^3.5.29",
     "vue-i18n": "^11.2.8",
-    "vue-router": "^5.0.2"
+    "vue-router": "^5.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.10.13",
