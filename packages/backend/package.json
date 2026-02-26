@@ -17,8 +17,8 @@
   "dependencies": {
     "@fastify/cors": "^11.0.1",
     "@fastify/static": "^9.0.0",
-    "@prisma/adapter-better-sqlite3": "^7.4.0",
-    "@prisma/client": "^7.4.0",
+    "@prisma/adapter-better-sqlite3": "^7.4.1",
+    "@prisma/client": "^7.4.1",
     "@wiremock-hub/shared": "workspace:*",
     "axios": "^1.13.5",
     "better-sqlite3": "^12.6.2",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.13",
-    "prisma": "^7.4.0",
+    "prisma": "^7.4.1",
     "tsx": "^4.19.4",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
