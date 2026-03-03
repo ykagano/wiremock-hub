@@ -3,6 +3,14 @@ set -e
 
 echo "Starting WireMock Hub All-in-One Container..."
 
+# Ensure nginx/supervisor runtime directories exist
+# These are created here (not in Dockerfile) because:
+# - /run is tmpfs on Alpine and gets cleared on container restart
+# - Symlinks are required by Alpine's nginx package for logs and pid paths
+mkdir -p /var/log/supervisor /var/log/nginx /var/lib/nginx/tmp /run/nginx
+ln -sf /var/log/nginx /var/lib/nginx/logs
+ln -sf /run/nginx /var/lib/nginx/run
+
 # Migrate database from old path if exists (for backward compatibility with v0.x)
 # This allows existing users who mounted -v ./data:/app/packages/backend/data to upgrade seamlessly
 OLD_DB_PATH="/app/packages/backend/data/wiremock-hub.db"
