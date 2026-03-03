@@ -3,9 +3,10 @@ set -e
 
 echo "Starting WireMock Hub All-in-One Container..."
 
-# Ensure nginx directories and symlinks exist
-# This allows users to run the container without a custom entryPoint override
-# (e.g., in ECS/Fargate Terraform definitions)
+# Ensure nginx/supervisor runtime directories exist
+# These are created here (not in Dockerfile) because:
+# - /run is tmpfs on Alpine and gets cleared on container restart
+# - Symlinks are required by Alpine's nginx package for logs and pid paths
 mkdir -p /var/log/supervisor /var/log/nginx /var/lib/nginx/tmp /run/nginx
 ln -sf /var/log/nginx /var/lib/nginx/logs
 ln -sf /run/nginx /var/lib/nginx/run

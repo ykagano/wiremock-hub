@@ -123,10 +123,9 @@ RUN wget -O /app/wiremock-standalone.jar \
     https://repo1.maven.org/maven2/org/wiremock/wiremock-standalone/${WIREMOCK_VERSION}/wiremock-standalone-${WIREMOCK_VERSION}.jar
 
 # Create necessary directories (including old path for backward compatibility)
+# Runtime directories for nginx/supervisor are created in entrypoint.sh
 RUN mkdir -p /data \
-    /app/packages/backend/data \
-    /run/nginx \
-    /var/log/supervisor
+    /app/packages/backend/data
 
 # Copy nginx configuration
 COPY allinone/nginx.conf /etc/nginx/http.d/default.conf
