@@ -3,6 +3,13 @@ set -e
 
 echo "Starting WireMock Hub All-in-One Container..."
 
+# Ensure nginx directories and symlinks exist
+# This allows users to run the container without a custom entryPoint override
+# (e.g., in ECS/Fargate Terraform definitions)
+mkdir -p /var/log/supervisor /var/log/nginx /var/lib/nginx/tmp /run/nginx
+ln -sf /var/log/nginx /var/lib/nginx/logs
+ln -sf /run/nginx /var/lib/nginx/run
+
 # Migrate database from old path if exists (for backward compatibility with v0.x)
 # This allows existing users who mounted -v ./data:/app/packages/backend/data to upgrade seamlessly
 OLD_DB_PATH="/app/packages/backend/data/wiremock-hub.db"
