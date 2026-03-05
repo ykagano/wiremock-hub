@@ -76,6 +76,7 @@ test.describe('Project', () => {
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/duplicate-test')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()

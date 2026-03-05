@@ -77,6 +77,9 @@ test.describe('Request Log', () => {
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     // Fill in stub
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
@@ -320,6 +323,7 @@ test.describe('Request Log', () => {
 
     // Create 200 OK stub
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     await page.getByPlaceholder('e.g. /api/users').fill('/api/status-200')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.locator('.el-input-number').first().locator('input').fill('200')
@@ -328,6 +332,7 @@ test.describe('Request Log', () => {
 
     // Create 404 Not Found stub
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     await page.getByPlaceholder('e.g. /api/users').fill('/api/status-404')
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.locator('.el-input-number').first().locator('input').fill('404')

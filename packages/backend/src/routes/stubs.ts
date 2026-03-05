@@ -3,14 +3,20 @@ import { z } from 'zod'
 import axios from 'axios'
 import type { Mapping } from '@wiremock-hub/shared'
 
-/** Inject Hub project metadata into a WireMock mapping (for sync only, not stored in DB) */
-export function injectHubMetadata(mapping: Mapping, project: { id: string; name: string }) {
+/** Inject Hub metadata into a WireMock mapping (for sync only, not stored in DB) */
+export function injectHubMetadata(
+  mapping: Mapping,
+  project: { id: string; name: string },
+  stub?: { name?: string | null; description?: string | null }
+) {
   return {
     ...mapping,
+    ...(stub?.name ? { name: stub.name } : {}),
     metadata: {
       ...mapping.metadata,
       hub_project_id: project.id,
-      hub_project_name: project.name
+      hub_project_name: project.name,
+      ...(stub?.description ? { hub_description: stub.description } : {})
     }
   }
 }
@@ -24,7 +30,7 @@ const createStubSchema = z.object({
 
 const updateStubSchema = z.object({
   name: z.string().optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   mapping: z.any().optional(),
   isActive: z.boolean().optional()
 })
@@ -492,7 +498,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
 
       // Send mapping to WireMock
       const mapping = stub.mapping as unknown as Mapping
-      const mappingWithMetadata = injectHubMetadata(mapping, stub.project)
+      const mappingWithMetadata = injectHubMetadata(mapping, stub.project, stub)
       const wiremockUrl = `${instance.url}/__admin/mappings`
 
       try {
@@ -564,15 +570,23 @@ export async function stubRoutes(fastify: FastifyInstance) {
     })
 
     const exportData = {
-      version: '1.0',
+      version: '1.1',
       projectName: project.name,
       exportedAt: new Date().toISOString(),
-      stubs: stubs.map((stub: typeof stubs[number]) => ({
-        name: stub.name,
-        description: stub.description,
-        isActive: stub.isActive,
-        mapping: stub.mapping
-      }))
+      stubs: stubs.map((stub: typeof stubs[number]) => {
+        const mapping = stub.mapping as Record<string, any>
+        return {
+          isActive: stub.isActive,
+          mapping: {
+            ...mapping,
+            ...(stub.name ? { name: stub.name } : {}),
+            metadata: {
+              ...mapping?.metadata,
+              ...(stub.description ? { hub_description: stub.description } : {})
+            }
+          }
+        }
+      })
     }
 
     return reply.send(exportData)
@@ -614,13 +628,26 @@ export async function stubRoutes(fastify: FastifyInstance) {
 
       for (const stubData of body.data.stubs) {
         try {
+          const mapping = stubData.mapping as any
+          // Extract name/description from stub level or mapping (for backward compat)
+          const name = stubData.name ?? mapping?.name ?? null
+          const description = stubData.description ?? mapping?.metadata?.hub_description ?? null
+
+          // Clean mapping: remove name/hub_description to keep DB column as Single Source of Truth
+          const cleanMapping = { ...mapping }
+          delete cleanMapping.name
+          if (cleanMapping.metadata) {
+            cleanMapping.metadata = { ...cleanMapping.metadata }
+            delete cleanMapping.metadata.hub_description
+          }
+
           await fastify.prisma.stub.create({
             data: {
               projectId: body.projectId,
-              name: stubData.name,
-              description: stubData.description,
+              name,
+              description,
               isActive: stubData.isActive,
-              mapping: stubData.mapping as any
+              mapping: cleanMapping as any
             }
           })
           results.imported++
@@ -712,7 +739,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
         const chunkResults = await Promise.allSettled(
           chunk.map(async (stub: typeof stubs[number]) => {
             const mapping = stub.mapping as unknown as Mapping
-            const mappingWithMetadata = injectHubMetadata(mapping, project)
+            const mappingWithMetadata = injectHubMetadata(mapping, project, stub)
             const wiremockUrl = `${instance.url}/__admin/mappings`
             // Always POST since we reset mappings
             await axios.post(wiremockUrl, mappingWithMetadata)

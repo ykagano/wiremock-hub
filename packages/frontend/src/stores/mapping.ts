@@ -44,7 +44,7 @@ export const useMappingStore = defineStore('mapping', () => {
   }
 
   // Create stub
-  async function createMapping(mapping: Mapping): Promise<Stub | null> {
+  async function createMapping(mapping: Mapping, description?: string): Promise<Stub | null> {
     const projectStore = useProjectStore()
     if (!projectStore.currentProjectId) return null
 
@@ -53,6 +53,7 @@ export const useMappingStore = defineStore('mapping', () => {
       const input: CreateStubInput = {
         projectId: projectStore.currentProjectId,
         name: mapping.name,
+        description: description || undefined,
         mapping: mapping as Record<string, unknown>
       }
       const created = await stubApi.create(input)
@@ -68,11 +69,12 @@ export const useMappingStore = defineStore('mapping', () => {
   }
 
   // Update stub
-  async function updateMapping(id: string, mapping: Mapping): Promise<Stub | null> {
+  async function updateMapping(id: string, mapping: Mapping, description?: string): Promise<Stub | null> {
     loading.value = true
     try {
       const input: UpdateStubInput = {
         name: mapping.name,
+        description: description !== undefined ? (description || null) : undefined,
         mapping: mapping as Record<string, unknown>
       }
       const updated = await stubApi.update(id, input)

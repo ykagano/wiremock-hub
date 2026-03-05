@@ -19,6 +19,31 @@
     </div>
 
     <el-tabs v-model="activeTab" type="card">
+      <!-- Basic Info -->
+      <el-tab-pane :label="t('editor.basicInfo')" name="basic">
+        <el-card>
+          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
+            <!-- Name -->
+            <el-form-item :label="t('editor.stubName')">
+              <el-input
+                v-model="formData.name"
+                :placeholder="t('editor.placeholder.stubName')"
+              />
+            </el-form-item>
+
+            <!-- Description -->
+            <el-form-item :label="t('editor.stubDescription')">
+              <el-input
+                v-model="stubDescription"
+                type="textarea"
+                :rows="3"
+                :placeholder="t('editor.placeholder.stubDescription')"
+              />
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </el-tab-pane>
+
       <!-- Request settings -->
       <el-tab-pane :label="t('editor.request')" name="request">
         <el-card>
@@ -213,7 +238,7 @@ const route = useRoute()
 const router = useRouter()
 const mappingStore = useMappingStore()
 
-const activeTab = ref('request')
+const activeTab = ref('basic')
 const saving = ref(false)
 const testDialogVisible = ref(false)
 const currentStubId = computed(() => (route.params.id as string) || '')
@@ -222,6 +247,8 @@ const urlValue = ref('')
 const requestBodyText = ref('')
 
 const isNew = computed(() => route.name === 'mapping-new')
+
+const stubDescription = ref('')
 
 const formData = reactive<Mapping>({
   request: {
@@ -271,6 +298,9 @@ onMounted(async () => {
       // Fetch the latest stub data from API
       const stub = await stubApi.get(id)
       const mapping = stub.mapping as unknown as Mapping
+
+      // Load description from stub (not from mapping)
+      stubDescription.value = stub.description || ''
 
       if (mapping) {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
@@ -324,11 +354,11 @@ async function handleSave() {
     }
 
     if (isNew.value) {
-      await mappingStore.createMapping(formData)
+      await mappingStore.createMapping(formData, stubDescription.value)
       ElMessage.success(t('messages.mapping.created'))
     } else {
       const id = route.params.id as string
-      await mappingStore.updateMapping(id, formData)
+      await mappingStore.updateMapping(id, formData, stubDescription.value)
       ElMessage.success(t('messages.mapping.updated'))
     }
 

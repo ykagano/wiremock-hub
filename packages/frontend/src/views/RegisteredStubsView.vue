@@ -55,6 +55,11 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column :label="t('registeredStubs.name')" min-width="150">
+          <template #default="{ row }">
+            {{ row.name || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column :label="t('registeredStubs.method')" width="100">
           <template #default="{ row }">
             <el-tag :type="getMethodTagType(row.request?.method)" size="small">

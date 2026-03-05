@@ -37,6 +37,9 @@ test.describe('Stub', () => {
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     // Fill in stub using form
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
@@ -101,6 +104,9 @@ test.describe('Stub', () => {
     await expect(page.locator('h2')).toContainText(/スタブ|Mapping|新規/)
 
     // ========== Request Tab ==========
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     // Method - use form item to find the correct select
     const methodFormItem = page.locator('.el-form-item', { hasText: /メソッド|Method/ })
     await methodFormItem.locator('.el-select').click()
@@ -210,6 +216,9 @@ test.describe('Stub', () => {
     // ========== Create simple stub first ==========
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/simple-stub')
 
@@ -221,6 +230,9 @@ test.describe('Stub', () => {
     await page.locator('.el-table__row', { hasText: '/api/simple-stub' }).click()
 
     // ========== Edit Request Tab ==========
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     // Change method - use form item to find the correct select
     const methodFormItem = page.locator('.el-form-item', { hasText: /メソッド|Method/ })
     await methodFormItem.locator('.el-select').click()
@@ -338,6 +350,9 @@ test.describe('Stub', () => {
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     // Fill in stub
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
@@ -426,6 +441,7 @@ test.describe('Stub', () => {
 
     // Create first stub
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput1 = page.getByPlaceholder('e.g. /api/users')
     await urlInput1.fill('/api/delete-test-1')
     await page.getByRole('button', { name: /保存|Save/ }).click()
@@ -433,6 +449,7 @@ test.describe('Stub', () => {
 
     // Create second stub
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput2 = page.getByPlaceholder('e.g. /api/users')
     await urlInput2.fill('/api/delete-test-2')
     await page.getByRole('button', { name: /保存|Save/ }).click()
@@ -479,7 +496,16 @@ test.describe('Stub', () => {
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
 
-    // Fill in stub
+    // Fill in basic info (name and description)
+    const nameInput = page.getByPlaceholder(/外部API|External API/)
+    await expect(nameInput).toBeVisible()
+    await nameInput.fill('Export Test Stub')
+    const descInput = page.getByPlaceholder(/スタブの説明|Stub description/)
+    await descInput.fill('Export test description')
+
+    // Switch to Request tab
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/export-test')
@@ -494,6 +520,9 @@ test.describe('Stub', () => {
     await page.getByRole('button', { name: /保存|Save/ }).click()
     await expect(page.locator('.el-table__row', { hasText: '/api/export-test' })).toBeVisible({ timeout: 10000 })
 
+    // Verify name column shows the stub name
+    await expect(page.locator('.el-table__row', { hasText: 'Export Test Stub' })).toBeVisible()
+
     // Click export button and wait for download
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: /エクスポート|Export/ }).click()
@@ -502,6 +531,17 @@ test.describe('Stub', () => {
     // Verify download filename contains project name
     const filename = download.suggestedFilename()
     expect(filename).toMatch(/.*-stubs-.*\.json/)
+
+    // Verify exported JSON contains name/description inside mapping
+    const downloadPath = await download.path()
+    const fs = require('fs')
+    const exportedJson = JSON.parse(fs.readFileSync(downloadPath!, 'utf-8'))
+    expect(exportedJson.version).toBe('1.1')
+    expect(exportedJson.stubs).toHaveLength(1)
+    expect(exportedJson.stubs[0]).not.toHaveProperty('name')
+    expect(exportedJson.stubs[0]).not.toHaveProperty('description')
+    expect(exportedJson.stubs[0].mapping.name).toBe('Export Test Stub')
+    expect(exportedJson.stubs[0].mapping.metadata.hub_description).toBe('Export test description')
 
     // Clean up
     await cleanupProject(page, testProjectName)
@@ -524,17 +564,17 @@ test.describe('Stub', () => {
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
 
-    // Prepare import data
+    // Prepare import data (new format: name/description inside mapping)
     const importData = {
-      version: '1.0',
+      version: '1.1',
       projectName: 'Test Project',
       exportedAt: new Date().toISOString(),
       stubs: [
         {
-          name: 'Imported Stub 1',
-          description: 'First imported stub',
           isActive: true,
           mapping: {
+            name: 'Imported Stub 1',
+            metadata: { hub_description: 'First imported stub' },
             request: {
               method: 'GET',
               urlPath: '/api/imported-1'
@@ -547,10 +587,10 @@ test.describe('Stub', () => {
           }
         },
         {
-          name: 'Imported Stub 2',
-          description: 'Second imported stub',
           isActive: true,
           mapping: {
+            name: 'Imported Stub 2',
+            metadata: { hub_description: 'Second imported stub' },
             request: {
               method: 'POST',
               urlPath: '/api/imported-2'
@@ -578,9 +618,11 @@ test.describe('Stub', () => {
       buffer: buffer
     })
 
-    // Verify imported stubs appear in the list
-    await expect(page.locator('.el-table__row', { hasText: '/api/imported-1' })).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('.el-table__row', { hasText: '/api/imported-2' })).toBeVisible({ timeout: 10000 })
+    // Verify imported stubs appear in the list with name column
+    await expect(page.locator('.el-table__row', { hasText: 'Imported Stub 1' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: 'Imported Stub 2' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: '/api/imported-1' })).toBeVisible()
+    await expect(page.locator('.el-table__row', { hasText: '/api/imported-2' })).toBeVisible()
 
     // Clean up
     await cleanupProject(page, testProjectName)
@@ -604,9 +646,14 @@ test.describe('Stub', () => {
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
     await page.waitForTimeout(500)
 
-    // Create first stub
+    // Create first stub with name/description
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const nameInput1 = page.getByPlaceholder(/外部API|External API/)
+    await nameInput1.fill('Roundtrip Stub 1')
+    const descInput1 = page.getByPlaceholder(/スタブの説明|Stub description/)
+    await descInput1.fill('First roundtrip stub')
 
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput1 = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput1).toBeVisible()
     await urlInput1.fill('/api/roundtrip-1')
@@ -615,11 +662,14 @@ test.describe('Stub', () => {
     await expect(responseTextarea1).toBeVisible()
     await responseTextarea1.fill('{"data": "roundtrip-1"}')
     await page.getByRole('button', { name: /保存|Save/ }).click()
-    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-1' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: 'Roundtrip Stub 1' })).toBeVisible({ timeout: 10000 })
 
-    // Create second stub
+    // Create second stub with name
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const nameInput2 = page.getByPlaceholder(/外部API|External API/)
+    await nameInput2.fill('Roundtrip Stub 2')
 
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput2 = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput2).toBeVisible()
     await urlInput2.fill('/api/roundtrip-2')
@@ -628,7 +678,7 @@ test.describe('Stub', () => {
     await expect(responseTextarea2).toBeVisible()
     await responseTextarea2.fill('{"data": "roundtrip-2"}')
     await page.getByRole('button', { name: /保存|Save/ }).click()
-    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-2' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: 'Roundtrip Stub 2' })).toBeVisible({ timeout: 10000 })
 
     // Export stubs
     const downloadPromise = page.waitForEvent('download')
@@ -660,9 +710,9 @@ test.describe('Stub', () => {
     const fileChooser = await fileChooserPromise
     await fileChooser.setFiles(downloadPath!)
 
-    // Verify imported stubs appear in the target project
-    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-1' })).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('.el-table__row', { hasText: '/api/roundtrip-2' })).toBeVisible({ timeout: 10000 })
+    // Verify imported stubs appear with names in the target project
+    await expect(page.locator('.el-table__row', { hasText: 'Roundtrip Stub 1' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: 'Roundtrip Stub 2' })).toBeVisible({ timeout: 10000 })
 
     // Clean up both projects
     await cleanupProject(page, targetProjectName)
@@ -731,6 +781,7 @@ test.describe('Stub Test Feature', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/test-button-test')
@@ -765,6 +816,9 @@ test.describe('Stub Test Feature', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+
+    // Switch to Request tab (Basic Info is now the default)
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
 
     // Set method to POST
     const methodFormItem = page.locator('.el-form-item', { hasText: /メソッド|Method/ })
@@ -828,6 +882,7 @@ test.describe('Stub Test Feature', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/exec-test')
 
@@ -889,6 +944,7 @@ test.describe('Stub Test Feature', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/editor-test')
 
@@ -933,6 +989,7 @@ test.describe('Stub Test Feature', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await urlInput.fill('/api/no-instance-test')
 
