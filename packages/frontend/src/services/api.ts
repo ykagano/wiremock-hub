@@ -154,6 +154,10 @@ export const wiremockInstanceApi = {
     await apiClient.delete(`/wiremock-instances/${id}/requests`)
   },
 
+  async deleteMapping(id: string, mappingId: string): Promise<void> {
+    await apiClient.delete(`/wiremock-instances/${id}/mappings/${mappingId}`)
+  },
+
   async reset(id: string): Promise<void> {
     await apiClient.post(`/wiremock-instances/${id}/reset`)
   }

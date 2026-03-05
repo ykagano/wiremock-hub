@@ -345,6 +345,7 @@ packages/
 - `PUT /api/wiremock-instances/:id` - Update instance
 - `DELETE /api/wiremock-instances/:id` - Delete instance
 - `GET /api/wiremock-instances/:id/mappings` - Get mappings
+- `DELETE /api/wiremock-instances/:id/mappings/:mappingId` - Delete individual mapping
 - `GET /api/wiremock-instances/:id/requests` - Get request logs
 - `POST /api/wiremock-instances/:id/reset` - Reset instance
 
