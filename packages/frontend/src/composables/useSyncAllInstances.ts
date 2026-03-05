@@ -132,7 +132,8 @@ export function useSyncAllInstances() {
           const result = await stubApi.syncAll(projectId, instance.id, config.resetBeforeSync)
           totalSuccess += result.success
           totalFailed += result.failed
-        } catch {
+        } catch (error) {
+          console.warn(`Failed to ${mode} stubs to instance ${instance.name}:`, error)
           totalFailed++
         }
       }
