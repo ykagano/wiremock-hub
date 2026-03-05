@@ -181,6 +181,142 @@ test.describe('Registered Stubs', () => {
     await cleanupProject(page, testProjectName)
   })
 
+  test('should delete individual mapping from instance', async ({ page }) => {
+    const ts = Date.now()
+    const testProjectName = `Delete Mapping Test ${ts}`
+    const testUrl = `/api/del-mapping-${ts}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Delete Test Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-card', { hasText: 'Delete Test Instance' })).toBeVisible({ timeout: 10000 })
+
+    // Create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await expect(page.getByRole('button', { name: /新規作成|Create New/ }).first()).toBeVisible({ timeout: 10000 })
+
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput).toBeVisible()
+    await urlInput.fill(testUrl)
+
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    await page.getByPlaceholder('{"message": "success"}').fill('{"message": "delete test"}')
+
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: testUrl })).toBeVisible({ timeout: 10000 })
+
+    // Sync to instance
+    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|synced|Sync completed/i).first()).toBeVisible({ timeout: 15000 })
+
+    // Navigate to Registered Stubs page
+    await page.locator('.el-aside').getByText(/登録済みスタブ|Registered Stubs/).click()
+    await expect(page.getByRole('heading', { name: /登録済みスタブ|Registered Stubs/ })).toBeVisible({ timeout: 10000 })
+
+    // Wait for the table to load
+    const targetRow = page.locator('.el-table__row', { hasText: testUrl }).first()
+    await expect(targetRow).toBeVisible({ timeout: 10000 })
+
+    // Click the delete button (danger type) on the row
+    await targetRow.locator('.el-button--danger').click()
+
+    // Confirm deletion
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+
+    // Verify success message
+    await expect(page.getByText(/success|成功/i).first()).toBeVisible({ timeout: 10000 })
+
+    // Verify the mapping is removed from the table
+    await expect(page.locator('.el-table__row', { hasText: testUrl })).not.toBeVisible({ timeout: 10000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should delete all mappings from instance', async ({ page }) => {
+    const ts = Date.now()
+    const testProjectName = `Delete All Test ${ts}`
+    const testUrl1 = `/api/del-all-1-${ts}`
+    const testUrl2 = `/api/del-all-2-${ts}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Delete All Instance')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-card', { hasText: 'Delete All Instance' })).toBeVisible({ timeout: 10000 })
+
+    // Create two stubs
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await expect(page.getByRole('button', { name: /新規作成|Create New/ }).first()).toBeVisible({ timeout: 10000 })
+
+    // Stub 1
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByPlaceholder('e.g. /api/users').fill(testUrl1)
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    await page.getByPlaceholder('{"message": "success"}').fill('{"message": "stub 1"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: testUrl1 })).toBeVisible({ timeout: 10000 })
+
+    // Stub 2
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByPlaceholder('e.g. /api/users').fill(testUrl2)
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    await page.getByPlaceholder('{"message": "success"}').fill('{"message": "stub 2"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: testUrl2 })).toBeVisible({ timeout: 10000 })
+
+    // Sync to instance
+    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|synced|Sync completed/i).first()).toBeVisible({ timeout: 15000 })
+
+    // Navigate to Registered Stubs page
+    await page.locator('.el-aside').getByText(/登録済みスタブ|Registered Stubs/).click()
+    await expect(page.getByRole('heading', { name: /登録済みスタブ|Registered Stubs/ })).toBeVisible({ timeout: 10000 })
+
+    // Wait for the table to load
+    await expect(page.locator('.el-table__row', { hasText: testUrl1 }).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.el-table__row', { hasText: testUrl2 }).first()).toBeVisible()
+
+    // Click "Delete All" button
+    await page.getByRole('button', { name: /すべて削除|Delete All/ }).click()
+
+    // Confirm deletion
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+
+    // Verify success message
+    await expect(page.getByText(/success|成功/i).first()).toBeVisible({ timeout: 10000 })
+
+    // Verify all mappings are removed - empty state should be shown
+    await expect(page.locator('.el-empty', { hasText: /マッピングが登録されていません|No mappings registered/ })).toBeVisible({ timeout: 10000 })
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
   test('should refresh mappings on button click', async ({ page }) => {
     const testProjectName = `Refresh Mappings Test ${Date.now()}`
 

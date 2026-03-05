@@ -549,6 +549,22 @@ describe('WireMock Instances API', () => {
     })
   })
 
+  describe('DELETE /api/wiremock-instances/:id/mappings/:mappingId (instance not found)', () => {
+    it('should return 404 for non-existent instance', async () => {
+      const app = await getTestApp()
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/wiremock-instances/00000000-0000-0000-0000-000000000000/mappings/some-mapping-id'
+      })
+
+      expect(response.statusCode).toBe(404)
+      const result = response.json()
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Instance not found')
+    })
+  })
+
   describe('POST /api/wiremock-instances/:id/reset (instance not found)', () => {
     it('should return 404 for non-existent instance', async () => {
       const app = await getTestApp()

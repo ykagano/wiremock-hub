@@ -261,7 +261,13 @@
     "external": "外部登録",
     "detail": "詳細",
     "fetchFailed": "WireMockインスタンスからのマッピング取得に失敗しました",
-    "connectionError": "WireMockインスタンスに接続できません"
+    "connectionError": "WireMockインスタンスに接続できません",
+    "deleteAll": "すべて削除",
+    "confirmDeleteAll": "このインスタンスに登録されているすべてのスタブを削除しますか？この操作は取り消せません。",
+    "confirmDeleteAllNote": "WireMockインスタンス上のスタブのみ削除されます。WireMock Hub内のスタブには影響しません。",
+    "confirmDeleteMapping": "このスタブをインスタンスから削除しますか？",
+    "deleteFailed": "WireMockインスタンスからのマッピング削除に失敗しました",
+    "deleteAllFailed": "WireMockインスタンスからの全マッピング削除に失敗しました"
   },
   "settings": {
     "title": "設定",

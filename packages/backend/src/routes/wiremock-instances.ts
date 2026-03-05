@@ -422,6 +422,46 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // Delete a single mapping from WireMock instance
+  fastify.delete('/:id/mappings/:mappingId', async (request: FastifyRequest<{ Params: { id: string; mappingId: string } }>, reply: FastifyReply) => {
+    const { id, mappingId } = request.params
+
+    const instance = await fastify.prisma.wiremockInstance.findUnique({
+      where: { id },
+      include: { project: true }
+    })
+
+    if (!instance) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Instance not found'
+      })
+    }
+
+    try {
+      await axios.delete(`${instance.url}/__admin/mappings/${mappingId}`, {
+        timeout: 10000
+      })
+
+      return reply.send({
+        success: true,
+        message: 'Mapping deleted successfully'
+      })
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Mapping not found on WireMock instance'
+        })
+      }
+      return reply.status(502).send({
+        success: false,
+        error: 'Failed to delete mapping from WireMock',
+        details: axios.isAxiosError(error) ? error.message : 'Unknown error'
+      })
+    }
+  })
+
   // Reset WireMock instance
   fastify.post('/:id/reset', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params

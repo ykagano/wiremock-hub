@@ -261,7 +261,13 @@
     "external": "External",
     "detail": "Detail",
     "fetchFailed": "Failed to fetch mappings from WireMock instance",
-    "connectionError": "Cannot connect to WireMock instance"
+    "connectionError": "Cannot connect to WireMock instance",
+    "deleteAll": "Delete All",
+    "confirmDeleteAll": "Delete all stubs registered on this instance? This action cannot be undone.",
+    "confirmDeleteAllNote": "This only deletes stubs on the WireMock instance. Stubs in WireMock Hub are not affected.",
+    "confirmDeleteMapping": "Are you sure you want to delete this stub from the instance?",
+    "deleteFailed": "Failed to delete mapping from WireMock instance",
+    "deleteAllFailed": "Failed to delete all mappings from WireMock instance"
   },
   "settings": {
     "title": "Settings",
