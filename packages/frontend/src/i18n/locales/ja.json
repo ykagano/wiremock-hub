@@ -212,9 +212,13 @@
     "edit": "編集",
     "delete": "削除",
     "sync": "同期",
+    "append": "追記",
     "syncAll": "全インスタンスに同期",
+    "appendAll": "全インスタンスに追記",
     "syncAllConfirm": "プロジェクトの全インスタンスにスタブを同期しますか？既存のWireMockマッピングはリセットされ、現在のスタブで置き換えられます。",
     "syncConfirm": "{name} にスタブを同期しますか？既存のWireMockマッピングはリセットされ、現在のスタブで置き換えられます。",
+    "appendAllConfirm": "プロジェクトの全インスタンスにスタブを追記しますか？既存のWireMockマッピングはそのまま保持され、現在のスタブが追加登録されます。",
+    "appendConfirm": "{name} にスタブを追記しますか？既存のWireMockマッピングはそのまま保持され、現在のスタブが追加登録されます。",
     "dontShowAgain": "以降表示しない",
     "syncAllNoInstances": "このプロジェクトにはWireMockインスタンスが登録されていません。プロジェクト詳細からインスタンスを追加してください。",
     "checkHealth": "ヘルスチェック",
@@ -231,6 +235,9 @@
     "syncSuccess": "同期完了: 成功 {success} 件、失敗 {failed} 件",
     "syncFailed": "同期に失敗しました",
     "syncAllSuccess": "全インスタンス同期完了: 成功 {success} 件、失敗 {failed} 件",
+    "appendSuccess": "追記完了: 成功 {success} 件、失敗 {failed} 件",
+    "appendFailed": "追記に失敗しました",
+    "appendAllSuccess": "全インスタンス追記完了: 成功 {success} 件、失敗 {failed} 件",
     "placeholder": {
       "name": "例: 開発環境",
       "url": "例: http://localhost:8080"

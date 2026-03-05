@@ -10,9 +10,11 @@ export const LOCALE_KEY = 'wiremock-hub-locale'
 export const THEME_KEY = 'wiremock-hub-theme'
 export const SKIP_SYNC_ALL_CONFIRM_KEY = 'wiremock-hub-skip-sync-all-confirm'
 export const SKIP_SYNC_CONFIRM_KEY = 'wiremock-hub-skip-sync-confirm'
+export const SKIP_APPEND_ALL_CONFIRM_KEY = 'wiremock-hub-skip-append-all-confirm'
+export const SKIP_APPEND_CONFIRM_KEY = 'wiremock-hub-skip-append-confirm'
 
 // All localStorage keys used by the app
-const ALL_KEYS = [LOCALE_KEY, THEME_KEY, SKIP_SYNC_ALL_CONFIRM_KEY, SKIP_SYNC_CONFIRM_KEY]
+const ALL_KEYS = [LOCALE_KEY, THEME_KEY, SKIP_SYNC_ALL_CONFIRM_KEY, SKIP_SYNC_CONFIRM_KEY, SKIP_APPEND_ALL_CONFIRM_KEY, SKIP_APPEND_CONFIRM_KEY]
 
 // Clear specified localStorage keys via addInitScript
 // Usage: await clearLocalStorage(context, [LOCALE_KEY, THEME_KEY])

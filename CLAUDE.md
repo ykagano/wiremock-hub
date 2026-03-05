@@ -377,6 +377,14 @@ When clicking "Sync All Instances":
 
 This ensures SQLite and WireMock states are always consistent.
 
+### Append Behavior
+
+When clicking "Append All Instances":
+1. Keep existing WireMock mappings (no reset)
+2. Register all stubs from SQLite on top of existing mappings
+
+Use Append when you want to add stubs without removing existing mappings on WireMock. Note that Append does not check for duplicates, so running it multiple times may register the same stubs more than once.
+
 ## E2E Tests
 
 E2E tests using Playwright. Tests run against demo Docker containers.
