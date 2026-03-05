@@ -218,6 +218,159 @@ test.describe('WireMock Instance', () => {
     await cleanupProject(page, testProjectName)
   })
 
+  test('should append to individual instance without resetting', async ({ page, request }) => {
+    const testProjectName = `Individual Append Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add instance
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Append Instance 1')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Navigate to stubs tab and create first stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput).toBeVisible()
+    await urlInput.fill('/api/append-test-1')
+
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea.fill('{"message": "First stub"}')
+
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/append-test-1' })).toBeVisible({ timeout: 10000 })
+
+    // Navigate to project detail and sync first stub
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
+    await page.waitForTimeout(500)
+
+    const instance1Card = page.locator('.el-card', { hasText: 'Append Instance 1' })
+    await instance1Card.getByRole('button', { name: /^(同期|Sync)$/ }).click()
+
+    await expect(page.locator('.el-message-box')).toBeVisible()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+    await expect(page.getByText(/同期完了|Sync completed/i).first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(1000)
+
+    // Verify first stub is accessible
+    const response1 = await request.get('http://localhost:8081/api/append-test-1')
+    expect(response1.status()).toBe(200)
+
+    // Create second stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput2 = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput2).toBeVisible()
+    await urlInput2.fill('/api/append-test-2')
+
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea2 = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea2.fill('{"message": "Second stub"}')
+
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/append-test-2' })).toBeVisible({ timeout: 10000 })
+
+    // Navigate to project detail and use Append button (not Sync)
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
+    await page.waitForTimeout(500)
+
+    const instanceCard = page.locator('.el-card', { hasText: 'Append Instance 1' })
+    await instanceCard.getByRole('button', { name: /^(追記|Append)$/ }).click()
+
+    // Confirm append dialog
+    await expect(page.locator('.el-message-box')).toBeVisible()
+    await page.locator('.el-message-box').getByText(/以降表示しない|Don't show again/).click()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+
+    await expect(page.getByText(/追記完了|Append completed/i).first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(1000)
+
+    // Verify both stubs are accessible (first was NOT reset, second was appended)
+    const responseAfter1 = await request.get('http://localhost:8081/api/append-test-1')
+    expect(responseAfter1.status()).toBe(200)
+    const responseAfter2 = await request.get('http://localhost:8081/api/append-test-2')
+    expect(responseAfter2.status()).toBe(200)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should append to all instances from project detail', async ({ page, request }) => {
+    const testProjectName = `Append All Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+
+    // Add two instances
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Append All Instance 1')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    await page.locator('.section-header').getByRole('button', { name: /インスタンス追加|Add Instance/ }).click()
+    await page.locator('.el-dialog').getByLabel(/インスタンス名|Name/).fill('Append All Instance 2')
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(500)
+
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await expect(urlInput).toBeVisible()
+    await urlInput.fill('/api/append-all-test')
+
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea.fill('{"message": "Append all test"}')
+
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/append-all-test' })).toBeVisible({ timeout: 10000 })
+
+    // Navigate to project detail and click "Append All Instances"
+    await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click()
+    await page.waitForTimeout(500)
+
+    await page.locator('.section-header').getByRole('button', { name: /全インスタンスに追記|Append All/ }).click()
+
+    // Confirm dialog
+    await expect(page.locator('.el-message-box')).toBeVisible()
+    await page.locator('.el-message-box').getByRole('button', { name: /はい|Yes/ }).click()
+
+    await expect(page.getByText(/追記完了|appended/i).first()).toBeVisible({ timeout: 15000 })
+    await page.waitForTimeout(1000)
+
+    // Verify stubs are accessible on both instances
+    const response1 = await request.get('http://localhost:8081/api/append-all-test')
+    expect(response1.status()).toBe(200)
+    const response2 = await request.get('http://localhost:8082/api/append-all-test')
+    expect(response2.status()).toBe(200)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
   test('should validate instance form inputs', async ({ page }) => {
     const testProjectName = `Instance Validation Test ${Date.now()}`
 

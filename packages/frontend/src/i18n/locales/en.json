@@ -212,9 +212,13 @@
     "edit": "Edit",
     "delete": "Delete",
     "sync": "Sync",
+    "append": "Append",
     "syncAll": "Sync All Instances",
+    "appendAll": "Append All Instances",
     "syncAllConfirm": "Sync stubs to all instances? Existing WireMock mappings will be reset and replaced with current stubs.",
     "syncConfirm": "Sync stubs to {name}? Existing WireMock mappings will be reset and replaced with current stubs.",
+    "appendAllConfirm": "Append stubs to all instances? Existing WireMock mappings will be kept and current stubs will be added.",
+    "appendConfirm": "Append stubs to {name}? Existing WireMock mappings will be kept and current stubs will be added.",
     "dontShowAgain": "Don't show again",
     "syncAllNoInstances": "No WireMock instances are registered for this project. Please add instances from Project Detail.",
     "checkHealth": "Health Check",
@@ -231,6 +235,9 @@
     "syncSuccess": "Sync completed: {success} succeeded, {failed} failed",
     "syncFailed": "Sync failed",
     "syncAllSuccess": "All instances synced: {success} succeeded, {failed} failed",
+    "appendSuccess": "Append completed: {success} succeeded, {failed} failed",
+    "appendFailed": "Append failed",
+    "appendAllSuccess": "All instances appended: {success} succeeded, {failed} failed",
     "placeholder": {
       "name": "e.g. Development",
       "url": "e.g. http://localhost:8080"

@@ -5,6 +5,8 @@ import { ElMessage, ElMessageBox, ElCheckbox } from 'element-plus'
 
 const STORAGE_KEY_SYNC_ALL = 'wiremock-hub-skip-sync-all-confirm'
 const STORAGE_KEY_SYNC = 'wiremock-hub-skip-sync-confirm'
+const STORAGE_KEY_APPEND_ALL = 'wiremock-hub-skip-append-all-confirm'
+const STORAGE_KEY_APPEND = 'wiremock-hub-skip-append-confirm'
 
 function showConfirmWithDontShowAgain(
   message: string,
@@ -45,6 +47,7 @@ function showConfirmWithDontShowAgain(
 export function useSyncAllInstances() {
   const { t } = useI18n()
   const syncing = ref(false)
+  const appending = ref(false)
 
   async function confirmAndSyncAll(projectId: string) {
     let instances: WiremockInstance[]
@@ -129,5 +132,97 @@ export function useSyncAllInstances() {
     })
   }
 
-  return { syncing, confirmAndSyncAll, confirmAndSyncAllWithInstances, confirmAndSyncInstance }
+  async function confirmAndAppendAll(projectId: string) {
+    let instances: WiremockInstance[]
+    try {
+      instances = await wiremockInstanceApi.list(projectId)
+    } catch (error: any) {
+      ElMessage.error(error.message || t('common.error'))
+      return
+    }
+
+    confirmAndAppendAllWithInstances(projectId, instances)
+  }
+
+  async function confirmAndAppendAllWithInstances(projectId: string, instances: WiremockInstance[]) {
+    const activeInstances = instances.filter(i => i.isActive !== false)
+
+    if (activeInstances.length === 0) {
+      ElMessage.warning(t('instances.syncAllNoInstances'))
+      return
+    }
+
+    showConfirmWithDontShowAgain(
+      t('instances.appendAllConfirm'),
+      t('common.confirm'),
+      STORAGE_KEY_APPEND_ALL,
+      t
+    ).then(async () => {
+      await executeAppendAll(projectId, activeInstances)
+    }).catch(() => {
+      // Cancelled
+    })
+  }
+
+  async function executeAppendAll(projectId: string, instances: WiremockInstance[]) {
+    appending.value = true
+    let totalSuccess = 0
+    let totalFailed = 0
+    try {
+      for (const instance of instances) {
+        try {
+          const result = await stubApi.syncAll(projectId, instance.id, false)
+          totalSuccess += result.success
+          totalFailed += result.failed
+        } catch {
+          totalFailed++
+        }
+      }
+      const message = t('instances.appendAllSuccess', { success: totalSuccess, failed: totalFailed })
+      if (totalFailed > 0) {
+        ElMessage.warning(message)
+      } else {
+        ElMessage.success(message)
+      }
+    } finally {
+      appending.value = false
+    }
+  }
+
+  async function confirmAndAppendInstance(
+    projectId: string,
+    instance: WiremockInstance,
+    onStart: () => void,
+    onEnd: () => void
+  ) {
+    showConfirmWithDontShowAgain(
+      t('instances.appendConfirm', { name: instance.name }),
+      t('common.confirm'),
+      STORAGE_KEY_APPEND,
+      t
+    ).then(async () => {
+      onStart()
+      try {
+        const result = await stubApi.syncAll(projectId, instance.id, false)
+        ElMessage.success(t('instances.appendSuccess', { success: result.success, failed: result.failed }))
+      } catch (error: any) {
+        ElMessage.error(error.message || t('instances.appendFailed'))
+      } finally {
+        onEnd()
+      }
+    }).catch(() => {
+      // Cancelled
+    })
+  }
+
+  return {
+    syncing,
+    appending,
+    confirmAndSyncAll,
+    confirmAndSyncAllWithInstances,
+    confirmAndSyncInstance,
+    confirmAndAppendAll,
+    confirmAndAppendAllWithInstances,
+    confirmAndAppendInstance
+  }
 }

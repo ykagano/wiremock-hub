@@ -485,6 +485,198 @@ describe('Stubs API', () => {
     })
   })
 
+  describe('POST /api/stubs/sync-all', () => {
+    it('should return 400 for missing projectId', async () => {
+      const app = await getTestApp()
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/sync-all',
+        payload: {
+          instanceId: '00000000-0000-0000-0000-000000000000'
+        }
+      })
+
+      expect(response.statusCode).toBe(400)
+      const result = response.json()
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Validation error')
+    })
+
+    it('should return 404 for non-existent project', async () => {
+      const app = await getTestApp()
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/sync-all',
+        payload: {
+          projectId: '00000000-0000-0000-0000-000000000000',
+          instanceId: '00000000-0000-0000-0000-000000000000'
+        }
+      })
+
+      expect(response.statusCode).toBe(404)
+      const result = response.json()
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Project not found')
+    })
+
+    it('should return 404 for non-existent instance', async () => {
+      const app = await getTestApp()
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/sync-all',
+        payload: {
+          projectId,
+          instanceId: '00000000-0000-0000-0000-000000000000'
+        }
+      })
+
+      expect(response.statusCode).toBe(404)
+      const result = response.json()
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('WireMock instance not found')
+    })
+
+    it('should default resetBeforeSync to true', async () => {
+      const app = await getTestApp()
+
+      // Create an instance with an unreachable URL (will fail at reset step)
+      const instanceResponse = await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: {
+          projectId,
+          name: 'Unreachable WM',
+          url: 'http://localhost:19999'
+        }
+      })
+      const instanceId = instanceResponse.json().data.id
+
+      // Without resetBeforeSync, defaults to true, so it will try to reset and fail
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/sync-all',
+        payload: {
+          projectId,
+          instanceId
+        }
+      })
+
+      // Should get 502 because reset fails (WireMock not reachable)
+      expect(response.statusCode).toBe(502)
+      expect(response.json().error).toBe('Failed to reset WireMock mappings')
+    })
+
+    it('should skip reset when resetBeforeSync is false and attempt to register stubs', async () => {
+      const app = await getTestApp()
+
+      // Create an instance with an unreachable URL
+      const instanceResponse = await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: {
+          projectId,
+          name: 'Append WM',
+          url: 'http://localhost:19999'
+        }
+      })
+      const instanceId = instanceResponse.json().data.id
+
+      // Create a stub
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Append Stub',
+          mapping: { request: { url: '/append-test' }, response: { status: 200 } }
+        }
+      })
+
+      // With resetBeforeSync=false, it should skip reset and try to register stubs
+      // Since WireMock is unreachable, stub registration will fail but reset step is skipped
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/sync-all',
+        payload: {
+          projectId,
+          instanceId,
+          resetBeforeSync: false
+        }
+      })
+
+      // Should return 200 with failed count (not 502 from reset)
+      expect(response.statusCode).toBe(200)
+      const result = response.json()
+      expect(result.success).toBe(true)
+      expect(result.data.failed).toBe(1)
+      expect(result.data.success).toBe(0)
+    })
+
+    it('should only sync active stubs when resetBeforeSync is false', async () => {
+      const app = await getTestApp()
+
+      // Create an instance
+      const instanceResponse = await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances',
+        payload: {
+          projectId,
+          name: 'Active Test WM',
+          url: 'http://localhost:19999'
+        }
+      })
+      const instanceId = instanceResponse.json().data.id
+
+      // Create an active stub
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Active Stub',
+          mapping: { request: { url: '/active' }, response: { status: 200 } }
+        }
+      })
+
+      // Create an inactive stub
+      const inactiveResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Inactive Stub',
+          mapping: { request: { url: '/inactive' }, response: { status: 200 } }
+        }
+      })
+      const inactiveStubId = inactiveResponse.json().data.id
+      await app.inject({
+        method: 'PUT',
+        url: `/api/stubs/${inactiveStubId}`,
+        payload: { isActive: false }
+      })
+
+      // Append (resetBeforeSync=false) - should only attempt to sync the active stub
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/sync-all',
+        payload: {
+          projectId,
+          instanceId,
+          resetBeforeSync: false
+        }
+      })
+
+      expect(response.statusCode).toBe(200)
+      const result = response.json()
+      // Only 1 stub should be attempted (the active one), not 2
+      expect(result.data.failed).toBe(1) // fails because WireMock unreachable
+      expect(result.data.success).toBe(0)
+    })
+  })
+
   describe('POST /api/stubs/:id/test', () => {
     it('should return 404 for non-existent stub', async () => {
       const app = await getTestApp()

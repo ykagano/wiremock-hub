@@ -19,6 +19,10 @@
           <el-icon><Refresh /></el-icon>
           {{ t('instances.syncAll') }}
         </el-button>
+        <el-button type="warning" @click="handleAppendAll" :loading="appending" :disabled="mappings.length === 0">
+          <el-icon><Plus /></el-icon>
+          {{ t('instances.appendAll') }}
+        </el-button>
         <el-button type="danger" plain @click="confirmResetAll">
           <el-icon><Delete /></el-icon>
           {{ t('mappings.reset') }}
@@ -199,7 +203,7 @@ const router = useRouter()
 const mappingStore = useMappingStore()
 const { mappings, loading } = storeToRefs(mappingStore)
 const projectStore = useProjectStore()
-const { syncing, confirmAndSyncAll } = useSyncAllInstances()
+const { syncing, appending, confirmAndSyncAll, confirmAndAppendAll } = useSyncAllInstances()
 const { isMobile } = useResponsive()
 
 const searchQuery = ref('')
@@ -372,6 +376,14 @@ function handleSyncAll() {
     return
   }
   confirmAndSyncAll(projectStore.currentProjectId)
+}
+
+function handleAppendAll() {
+  if (!projectStore.currentProjectId) {
+    ElMessage.warning(t('messages.project.notSelected'))
+    return
+  }
+  confirmAndAppendAll(projectStore.currentProjectId)
 }
 
 // Initialization

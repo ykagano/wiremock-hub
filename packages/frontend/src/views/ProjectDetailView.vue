@@ -53,6 +53,10 @@
           <el-icon><Refresh /></el-icon>
           {{ t('instances.syncAll') }}
         </el-button>
+        <el-button type="warning" @click="handleAppendAll" :loading="appending" :disabled="instances.length === 0">
+          <el-icon><Plus /></el-icon>
+          {{ t('instances.appendAll') }}
+        </el-button>
         <el-button type="primary" @click="showInstanceDialog = true">
           <el-icon><Plus /></el-icon>
           {{ t('instances.add') }}
@@ -82,15 +86,26 @@
                 <span>{{ instance.name }}</span>
               </div>
               <div class="card-actions">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="syncInstance(instance)"
-                  :loading="syncingIds.has(instance.id)"
-                >
-                  <el-icon><Upload /></el-icon>
-                  {{ t('instances.sync') }}
-                </el-button>
+                <div class="sync-buttons">
+                  <el-button
+                    type="success"
+                    size="small"
+                    @click="syncInstance(instance)"
+                    :loading="syncingIds.has(instance.id)"
+                  >
+                    <el-icon><Upload /></el-icon>
+                    {{ t('instances.sync') }}
+                  </el-button>
+                  <el-button
+                    type="warning"
+                    size="small"
+                    @click="appendInstance(instance)"
+                    :loading="appendingIds.has(instance.id)"
+                  >
+                    <el-icon><Plus /></el-icon>
+                    {{ t('instances.append') }}
+                  </el-button>
+                </div>
                 <el-dropdown trigger="click">
                   <el-button type="default" size="small" circle>
                     <el-icon><MoreFilled /></el-icon>
@@ -220,8 +235,9 @@ const projectStore = useProjectStore()
 
 const project = ref<Project | null>(null)
 const instances = ref<WiremockInstance[]>([])
-const { syncing, confirmAndSyncAllWithInstances, confirmAndSyncInstance } = useSyncAllInstances()
+const { syncing, appending, confirmAndSyncAllWithInstances, confirmAndSyncInstance, confirmAndAppendAllWithInstances, confirmAndAppendInstance } = useSyncAllInstances()
 const syncingIds = ref(new Set<string>())
+const appendingIds = ref(new Set<string>())
 
 // Instance dialog
 const showInstanceDialog = ref(false)
@@ -367,6 +383,21 @@ function handleSyncAll() {
   confirmAndSyncAllWithInstances(project.value.id, instances.value)
 }
 
+function appendInstance(instance: WiremockInstance) {
+  if (!project.value) return
+  confirmAndAppendInstance(
+    project.value.id,
+    instance,
+    () => appendingIds.value.add(instance.id),
+    () => appendingIds.value.delete(instance.id)
+  )
+}
+
+function handleAppendAll() {
+  if (!project.value) return
+  confirmAndAppendAllWithInstances(project.value.id, instances.value)
+}
+
 function editInstance(instance: WiremockInstance) {
   editingInstance.value = instance
   instanceFormData.name = instance.name
@@ -499,14 +530,25 @@ function closeInstanceDialog() {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .instance-name {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-weight: 600;
+  min-width: 0;
+}
+
+.instance-name span {
+  word-break: break-all;
+}
+
+.instance-name .el-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .health-ok { color: var(--el-color-success); }
@@ -515,7 +557,17 @@ function closeInstanceDialog() {
 
 .card-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.card-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+.sync-buttons {
+  display: flex;
+  gap: 2px;
 }
 
 .instance-info {
