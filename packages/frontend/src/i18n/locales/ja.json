@@ -86,6 +86,7 @@
     "url": "URL",
     "status": "ステータス",
     "priority": "優先度",
+    "name": "名前",
     "scenario": "シナリオ",
     "confirmReset": "プロジェクト内のすべてのスタブを削除しますか？この操作は取り消せません。",
     "confirmResetNote": "WireMock側のスタブも削除する場合は、削除後に「全インスタンスに同期」を実行してください。"
@@ -93,6 +94,9 @@
   "editor": {
     "title": "スタブエディタ",
     "newMapping": "新規スタブ",
+    "basicInfo": "基本情報",
+    "stubName": "スタブ名",
+    "stubDescription": "説明",
     "request": "リクエスト",
     "response": "レスポンス",
     "advanced": "詳細設定",
@@ -120,7 +124,9 @@
       "url": "例: /api/users",
       "scenario": "例: login-flow",
       "requiredState": "例: Started",
-      "newState": "例: LoggedIn"
+      "newState": "例: LoggedIn",
+      "stubName": "例: 外部API",
+      "stubDescription": "スタブの説明（任意）"
     }
   },
   "requests": {
@@ -260,6 +266,7 @@
     "refresh": "更新",
     "noMappings": "このインスタンスにはマッピングが登録されていません",
     "projectName": "プロジェクト",
+    "name": "名前",
     "method": "メソッド",
     "url": "URL",
     "status": "ステータス",

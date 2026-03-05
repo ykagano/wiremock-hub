@@ -166,6 +166,7 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/individual-sync-test')
@@ -241,6 +242,7 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/append-test-1')
@@ -273,6 +275,7 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput2 = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput2).toBeVisible()
     await urlInput2.fill('/api/append-test-2')
@@ -337,6 +340,7 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(500)
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill('/api/append-all-test')

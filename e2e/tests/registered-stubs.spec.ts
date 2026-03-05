@@ -33,6 +33,7 @@ test.describe('Registered Stubs', () => {
     await expect(page.getByRole('button', { name: /新規作成|Create New/ }).first()).toBeVisible({ timeout: 10000 })
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill(testUrl)
@@ -146,6 +147,7 @@ test.describe('Registered Stubs', () => {
     await expect(page.getByRole('button', { name: /新規作成|Create New/ }).first()).toBeVisible({ timeout: 10000 })
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill(testUrl)
@@ -207,6 +209,7 @@ test.describe('Registered Stubs', () => {
     await expect(page.getByRole('button', { name: /新規作成|Create New/ }).first()).toBeVisible({ timeout: 10000 })
 
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     const urlInput = page.getByPlaceholder('e.g. /api/users')
     await expect(urlInput).toBeVisible()
     await urlInput.fill(testUrl)
@@ -274,6 +277,7 @@ test.describe('Registered Stubs', () => {
 
     // Stub 1
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     await page.getByPlaceholder('e.g. /api/users').fill(testUrl1)
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.getByPlaceholder('{"message": "success"}').fill('{"message": "stub 1"}')
@@ -282,6 +286,7 @@ test.describe('Registered Stubs', () => {
 
     // Stub 2
     await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
     await page.getByPlaceholder('e.g. /api/users').fill(testUrl2)
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
     await page.getByPlaceholder('{"message": "success"}').fill('{"message": "stub 2"}')

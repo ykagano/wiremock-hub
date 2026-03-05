@@ -86,6 +86,7 @@
     "url": "URL",
     "status": "Status",
     "priority": "Priority",
+    "name": "Name",
     "scenario": "Scenario",
     "confirmReset": "Delete all stubs in this project? This action cannot be undone.",
     "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion."
@@ -93,6 +94,9 @@
   "editor": {
     "title": "Stub Editor",
     "newMapping": "New Stub",
+    "basicInfo": "Basic Info",
+    "stubName": "Stub Name",
+    "stubDescription": "Description",
     "request": "Request",
     "response": "Response",
     "advanced": "Advanced",
@@ -120,7 +124,9 @@
       "url": "e.g. /api/users",
       "scenario": "e.g. login-flow",
       "requiredState": "e.g. Started",
-      "newState": "e.g. LoggedIn"
+      "newState": "e.g. LoggedIn",
+      "stubName": "e.g. External API",
+      "stubDescription": "Stub description (optional)"
     }
   },
   "requests": {
@@ -260,6 +266,7 @@
     "refresh": "Refresh",
     "noMappings": "No mappings registered on this instance",
     "projectName": "Project",
+    "name": "Name",
     "method": "Method",
     "url": "URL",
     "status": "Status",

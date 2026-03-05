@@ -185,7 +185,7 @@ export interface CreateStubInput {
 
 export interface UpdateStubInput {
   name?: string
-  description?: string
+  description?: string | null
   mapping?: Record<string, unknown>
   isActive?: boolean
 }

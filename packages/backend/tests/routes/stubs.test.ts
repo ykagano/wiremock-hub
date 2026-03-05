@@ -927,12 +927,17 @@ describe('Stubs API', () => {
 
       expect(response.statusCode).toBe(200)
       const result = response.json()
-      expect(result.version).toBe('1.0')
+      expect(result.version).toBe('1.1')
       expect(result.projectName).toBe('Stubs Test Project')
       expect(result.exportedAt).toBeDefined()
       expect(result.stubs).toHaveLength(2)
-      expect(result.stubs[0]).toHaveProperty('name')
-      expect(result.stubs[0]).toHaveProperty('mapping')
+      expect(result.stubs[0]).not.toHaveProperty('name')
+      expect(result.stubs[0]).not.toHaveProperty('description')
+      // name/description should be inside mapping
+      expect(result.stubs[0].mapping.name).toBe('Export Stub 1')
+      expect(result.stubs[0].mapping.metadata.hub_description).toBe('First stub')
+      expect(result.stubs[1].mapping.name).toBe('Export Stub 2')
+      expect(result.stubs[1].mapping.metadata).not.toHaveProperty('hub_description')
     })
 
     it('should return 400 when projectId is missing', async () => {
@@ -971,22 +976,22 @@ describe('Stubs API', () => {
       const importData = {
         projectId,
         data: {
-          version: '1.0',
+          version: '1.1',
           projectName: 'Original Project',
           stubs: [
             {
-              name: 'Imported Stub 1',
-              description: 'First imported stub',
               isActive: true,
               mapping: {
+                name: 'Imported Stub 1',
+                metadata: { hub_description: 'First imported stub' },
                 request: { url: '/imported1' },
                 response: { status: 200 }
               }
             },
             {
-              name: 'Imported Stub 2',
               isActive: false,
               mapping: {
+                name: 'Imported Stub 2',
                 request: { url: '/imported2' },
                 response: { status: 201 }
               }
@@ -1007,12 +1012,19 @@ describe('Stubs API', () => {
       expect(result.data.imported).toBe(2)
       expect(result.data.skipped).toBe(0)
 
-      // Verify stubs are imported
+      // Verify stubs are imported with name/description extracted from mapping
       const listResponse = await app.inject({
         method: 'GET',
         url: `/api/stubs?projectId=${projectId}`
       })
-      expect(listResponse.json().data).toHaveLength(2)
+      const stubs = listResponse.json().data
+      expect(stubs).toHaveLength(2)
+      const stub1 = stubs.find((s: any) => s.name === 'Imported Stub 1')
+      const stub2 = stubs.find((s: any) => s.name === 'Imported Stub 2')
+      expect(stub1).toBeDefined()
+      expect(stub1.description).toBe('First imported stub')
+      expect(stub2).toBeDefined()
+      expect(stub2.description).toBeNull()
     })
 
     it('should return 404 for non-existent project', async () => {

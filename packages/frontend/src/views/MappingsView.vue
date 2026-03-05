@@ -98,6 +98,12 @@
         </template>
       </el-table-column>
 
+      <el-table-column :label="t('mappings.name')" min-width="150">
+        <template #default="{ row }">
+          {{ row.name || '-' }}
+        </template>
+      </el-table-column>
+
       <el-table-column :label="t('mappings.method')" width="100">
         <template #default="{ row }">
           <el-tag :type="getMethodTagType(row.request.method)">
@@ -229,7 +235,8 @@ const filteredMappings = computed(() => {
       const url = getUrl(m.request).toLowerCase()
       const method = (m.request.method || '').toLowerCase()
       const scenario = (m.scenarioName || '').toLowerCase()
-      return url.includes(query) || method.includes(query) || scenario.includes(query)
+      const name = (m.name || '').toLowerCase()
+      return url.includes(query) || method.includes(query) || scenario.includes(query) || name.includes(query)
     })
   }
 
@@ -277,13 +284,14 @@ function openTestDialog(mapping: Mapping) {
 
 async function copyMapping(mapping: Mapping) {
   try {
+    const stub = mapping.id ? mappingStore.getStubById(mapping.id) : undefined
     const newMapping: Mapping = {
       ...mapping,
       id: undefined,
       uuid: undefined,
       name: mapping.name ? `${mapping.name} (copy)` : undefined
     }
-    await mappingStore.createMapping(newMapping)
+    await mappingStore.createMapping(newMapping, stub?.description || undefined)
     ElMessage.success(t('common.success'))
   } catch (error) {
     console.error('Failed to copy mapping:', error)

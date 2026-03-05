@@ -15,6 +15,7 @@ export interface Mapping {
     }
     hub_project_id?: string
     hub_project_name?: string
+    hub_description?: string
     [key: string]: unknown
   }
 }
