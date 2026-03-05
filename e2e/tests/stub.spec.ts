@@ -103,6 +103,11 @@ test.describe('Stub', () => {
     // Verify stub editor opened
     await expect(page.locator('h2')).toContainText(/スタブ|Mapping|新規/)
 
+    // ========== Basic Info Tab ==========
+    // Fill in name and description
+    await page.getByPlaceholder(/外部API|External API/).fill('Create Test Stub')
+    await page.getByPlaceholder(/スタブの説明|Stub description/).fill('A stub for creation test')
+
     // ========== Request Tab ==========
     // Switch to Request tab (Basic Info is now the default)
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
@@ -130,6 +135,10 @@ test.describe('Stub', () => {
     await queryParamSection.getByRole('button', { name: /追加|Add/ }).click()
     await queryParamSection.getByPlaceholder('Key').fill('page')
     await queryParamSection.getByPlaceholder('Value').fill('1')
+
+    // Request Body
+    const requestBodyTextarea = page.getByPlaceholder('{"key": "value"}')
+    await requestBodyTextarea.fill('{"username": "testuser", "email": "test@example.com"}')
 
     // ========== Response Tab ==========
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
@@ -174,6 +183,10 @@ test.describe('Stub', () => {
     // ========== Verify saved data by reopening ==========
     await page.locator('.el-table__row', { hasText: '/api/create-test' }).click()
 
+    // Verify Basic Info tab contains name and description
+    await expect(page.getByPlaceholder(/外部API|External API/)).toHaveValue('Create Test Stub')
+    await expect(page.getByPlaceholder(/スタブの説明|Stub description/)).toHaveValue('A stub for creation test')
+
     // Verify JSON tab contains all saved values
     await page.getByRole('tab', { name: 'JSON' }).click()
     const jsonTextarea = page.locator('.json-editor textarea').last()
@@ -182,6 +195,7 @@ test.describe('Stub', () => {
     await expect(jsonTextarea).toHaveValue(/X-Request-ID/)
     await expect(jsonTextarea).toHaveValue(/test-request-123/)
     await expect(jsonTextarea).toHaveValue(/page/)
+    await expect(jsonTextarea).toHaveValue(/testuser/)
     await expect(jsonTextarea).toHaveValue(/201/)
     await expect(jsonTextarea).toHaveValue(/Created successfully/)
     await expect(jsonTextarea).toHaveValue(/X-Response-ID/)
@@ -229,6 +243,11 @@ test.describe('Stub', () => {
     // ========== Open stub for editing ==========
     await page.locator('.el-table__row', { hasText: '/api/simple-stub' }).click()
 
+    // ========== Edit Basic Info Tab ==========
+    // Fill in name and description
+    await page.getByPlaceholder(/外部API|External API/).fill('Edited Stub Name')
+    await page.getByPlaceholder(/スタブの説明|Stub description/).fill('Edited stub description')
+
     // ========== Edit Request Tab ==========
     // Switch to Request tab (Basic Info is now the default)
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
@@ -255,6 +274,10 @@ test.describe('Stub', () => {
     await queryParamSection.getByRole('button', { name: /追加|Add/ }).click()
     await queryParamSection.getByPlaceholder('Key').fill('limit')
     await queryParamSection.getByPlaceholder('Value').fill('50')
+
+    // Add request body
+    const requestBodyTextarea = page.getByPlaceholder('{"key": "value"}')
+    await requestBodyTextarea.fill('{"action": "update", "data": {"id": 1}}')
 
     // ========== Edit Response Tab ==========
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
@@ -302,6 +325,10 @@ test.describe('Stub', () => {
     // ========== Verify edited data by reopening ==========
     await page.locator('.el-table__row', { hasText: '/api/edited-stub' }).click()
 
+    // Verify Basic Info tab contains edited name and description
+    await expect(page.getByPlaceholder(/外部API|External API/)).toHaveValue('Edited Stub Name')
+    await expect(page.getByPlaceholder(/スタブの説明|Stub description/)).toHaveValue('Edited stub description')
+
     // Verify JSON tab contains all edited values
     await page.getByRole('tab', { name: 'JSON' }).click()
     const jsonTextarea = page.locator('.json-editor textarea').last()
@@ -311,6 +338,7 @@ test.describe('Stub', () => {
     await expect(jsonTextarea).toHaveValue(/Bearer token123/)
     await expect(jsonTextarea).toHaveValue(/limit/)
     await expect(jsonTextarea).toHaveValue(/50/)
+    await expect(jsonTextarea).toHaveValue(/update/)
     await expect(jsonTextarea).toHaveValue(/404/)
     await expect(jsonTextarea).toHaveValue(/Not Found/)
     await expect(jsonTextarea).toHaveValue(/X-Error-Code/)

@@ -304,6 +304,8 @@ onMounted(async () => {
 
       if (mapping) {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
+        // Restore name from stub DB column (mapping may not contain it after import cleanup)
+        formData.name = stub.name || formData.name
 
         // Detect URL type
         if (mapping.request.url) {
@@ -347,7 +349,7 @@ async function handleSave() {
   saving.value = true
   try {
     // Convert request body to bodyPatterns
-    if (requestBodyText.value && !formData.request.bodyPatterns) {
+    if (requestBodyText.value) {
       formData.request.bodyPatterns = [
         { equalTo: requestBodyText.value }
       ]

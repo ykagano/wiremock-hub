@@ -33,7 +33,8 @@ export const useMappingStore = defineStore('mapping', () => {
       // Generate mappings from stubs (for backward compatibility)
       mappings.value = stubs.value.map(s => ({
         ...s.mapping as Mapping,
-        id: s.id
+        id: s.id,
+        name: s.name ?? (s.mapping as any)?.name ?? undefined
       }))
     } catch (e: any) {
       error.value = e.message || t('messages.stub.fetchFailed')
