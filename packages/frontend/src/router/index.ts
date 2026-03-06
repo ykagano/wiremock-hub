@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useProjectStore } from '@/stores/project'
+import { createRouter, createWebHistory } from 'vue-router';
+import { useProjectStore } from '@/stores/project';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,27 +60,27 @@ const router = createRouter({
       component: () => import('@/views/SettingsView.vue')
     }
   ]
-})
+});
 
 // Navigation guard
 router.beforeEach(async (to, _from, next) => {
-  const projectStore = useProjectStore()
+  const projectStore = useProjectStore();
 
   // Restore project from localStorage on all routes
   if (projectStore.projects.length === 0) {
-    await projectStore.fetchProjects()
+    await projectStore.fetchProjects();
   }
   if (!projectStore.currentProject) {
-    await projectStore.loadCurrentProject()
+    await projectStore.loadCurrentProject();
   }
 
   // Redirect to projects page if project is required but not selected
   if (to.meta.requiresProject && !projectStore.currentProject) {
-    next('/projects')
-    return
+    next('/projects');
+    return;
   }
 
-  next()
-})
+  next();
+});
 
-export default router
+export default router;

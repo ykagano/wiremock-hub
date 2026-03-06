@@ -25,7 +25,7 @@ docker run -d \
 ```
 
 - UI: http://localhost:3000/hub/
-- WireMock Admin API: http://localhost:3000/__admin/
+- WireMock Admin API: http://localhost:3000/\_\_admin/
 - Mock responses: http://localhost:3000/
 
 See [allinone/README.md](./allinone/README.md) for details.
@@ -66,6 +66,7 @@ pnpm run dev
 ```
 
 URLs after startup:
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3000
 
@@ -107,6 +108,7 @@ URLs after startup:
 A single container bundling Hub + WireMock + nginx.
 
 **Features:**
+
 - Complete in one container (only port 3000 exposed)
 - Ideal for environments with single-port constraints like ECS/Fargate
 - Easy setup
@@ -122,6 +124,7 @@ docker run -d \
 ```
 
 **Access URLs:**
+
 - Hub UI: `http://localhost:3000/hub/`
 - WireMock Admin API: `http://localhost:3000/__admin/`
 - Mock responses: `http://localhost:3000/`
@@ -161,15 +164,17 @@ docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 SQLite file is stored at `data/wiremock-hub.db` (project root).
 
 ### Local Development
+
 - File is auto-generated in project root `data/` directory
 - Backup by simply copying the file
 
 ### Docker Operation
+
 ```yaml
 services:
   wiremock-hub:
     volumes:
-      - ./data:/data  # Persist SQLite file
+      - ./data:/data # Persist SQLite file
     environment:
       - DATABASE_URL=file:/data/wiremock-hub.db
 ```
@@ -192,19 +197,19 @@ git push origin v0.1.0
 
 #### GitHub Container Registry (ghcr.io)
 
-| Image | Description |
-|-------|-------------|
-| `ghcr.io/ykagano/wiremock-hub:latest` | All-in-One version (recommended) |
-| `ghcr.io/ykagano/wiremock-hub:0.1.0` | Version-specific |
-| `ghcr.io/ykagano/wiremock-hub-standalone:latest` | Hub standalone version |
+| Image                                            | Description                      |
+| ------------------------------------------------ | -------------------------------- |
+| `ghcr.io/ykagano/wiremock-hub:latest`            | All-in-One version (recommended) |
+| `ghcr.io/ykagano/wiremock-hub:0.1.0`             | Version-specific                 |
+| `ghcr.io/ykagano/wiremock-hub-standalone:latest` | Hub standalone version           |
 
 #### Docker Hub
 
-| Image | Description |
-|-------|-------------|
-| `ykagano/wiremock-hub:latest` | All-in-One version (recommended) |
-| `ykagano/wiremock-hub:0.1.0` | Version-specific |
-| `ykagano/wiremock-hub-standalone:latest` | Hub standalone version |
+| Image                                    | Description                      |
+| ---------------------------------------- | -------------------------------- |
+| `ykagano/wiremock-hub:latest`            | All-in-One version (recommended) |
+| `ykagano/wiremock-hub:0.1.0`             | Version-specific                 |
+| `ykagano/wiremock-hub-standalone:latest` | Hub standalone version           |
 
 ### GitHub Secrets Configuration
 
@@ -236,10 +241,37 @@ Defined in `.github/workflows/docker-publish.yml`.
 ## Project Structure
 
 Monorepo structure (pnpm workspace):
+
 - `packages/frontend` - Vue 3 frontend
 - `packages/backend` - Fastify + Prisma API server
 - `packages/shared` - Shared type definitions
 - `e2e` - Playwright E2E tests
+
+## Lint & Format
+
+ESLint + Prettier でコードの品質とスタイルを統一しています。
+
+```bash
+# Lint チェック
+pnpm run lint
+
+# Lint 自動修正
+pnpm run lint:fix
+
+# フォーマットチェック（CIで使用）
+pnpm run format:check
+
+# フォーマット自動修正
+pnpm run format
+```
+
+- 設定ファイル: `eslint.config.mjs`, `.prettierrc.json`
+- コードスタイル: 2スペース、シングルクォート、セミコロンあり、トレイリングカンマなし、100文字幅
+- CIで `pnpm run lint` と `pnpm run format:check` が自動実行されます
+- `git blame` の精度を保つため、初回セットアップ時に以下を実行してください:
+  ```bash
+  git config blame.ignoreRevsFile .git-blame-ignore-revs
+  ```
 
 ## Commands
 
@@ -281,6 +313,7 @@ pnpm run db:studio
 ## Tech Stack
 
 ### Frontend
+
 - Vue 3 + TypeScript
 - Element Plus (UI library)
 - Pinia (state management)
@@ -290,6 +323,7 @@ pnpm run db:studio
 - Axios (HTTP client)
 
 ### Backend
+
 - Fastify (web framework)
 - Prisma (ORM)
 - SQLite (database)
@@ -321,6 +355,7 @@ packages/
 ## API Endpoints
 
 ### Projects
+
 - `GET /api/projects` - List projects
 - `POST /api/projects` - Create project
 - `GET /api/projects/:id` - Get project details
@@ -329,6 +364,7 @@ packages/
 - `POST /api/projects/:id/instances/bulk-update` - Bulk replace instances
 
 ### Stubs
+
 - `GET /api/stubs?projectId=` - List stubs
 - `POST /api/stubs` - Create stub
 - `PUT /api/stubs/:id` - Update stub
@@ -339,6 +375,7 @@ packages/
 - `POST /api/stubs/sync-all` - Sync all stubs to WireMock (reset then register)
 
 ### WireMock Instances
+
 - `GET /api/wiremock-instances?projectId=` - List instances
 - `POST /api/wiremock-instances` - Register instance
 - `GET /api/wiremock-instances/:id` - Get instance details (includes health check)
@@ -363,16 +400,17 @@ java -jar wiremock-standalone.jar --port 8080
 
 ### Project vs Instance
 
-| Item | Purpose | Example |
-|------|---------|---------|
-| **Project** | Container for organizing stubs and instances | `My API Mock` |
-| **Instance URL** | Admin API URL for individual servers | `http://wiremock-1:8080` |
+| Item             | Purpose                                      | Example                  |
+| ---------------- | -------------------------------------------- | ------------------------ |
+| **Project**      | Container for organizing stubs and instances | `My API Mock`            |
+| **Instance URL** | Admin API URL for individual servers         | `http://wiremock-1:8080` |
 
 A project can have multiple WireMock instances for distributed environments.
 
 ### Sync Behavior
 
 When clicking "Sync All Instances":
+
 1. Delete all WireMock mappings (reset)
 2. Register all stubs from SQLite
 
@@ -381,6 +419,7 @@ This ensures SQLite and WireMock states are always consistent.
 ### Append Behavior
 
 When clicking "Append All Instances":
+
 1. Keep existing WireMock mappings (no reset)
 2. Register all stubs from SQLite on top of existing mappings
 
@@ -468,12 +507,12 @@ packages/backend/
 Tests use Fastify's `inject` method for HTTP request simulation:
 
 ```typescript
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getTestApp } from '../setup.js'
+import { describe, it, expect, beforeEach } from 'vitest';
+import { getTestApp } from '../setup.js';
 
 describe('POST /api/projects', () => {
   it('should create a project', async () => {
-    const app = await getTestApp()
+    const app = await getTestApp();
 
     const response = await app.inject({
       method: 'POST',
@@ -482,13 +521,13 @@ describe('POST /api/projects', () => {
         name: 'Test Project',
         description: 'Test description'
       }
-    })
+    });
 
-    expect(response.statusCode).toBe(201)
-    const result = response.json()
-    expect(result.success).toBe(true)
-  })
-})
+    expect(response.statusCode).toBe(201);
+    const result = response.json();
+    expect(result.success).toBe(true);
+  });
+});
 ```
 
 ### Test Database

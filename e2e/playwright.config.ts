@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
@@ -11,16 +11,16 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    permissions: ['clipboard-read', 'clipboard-write'],
+    permissions: ['clipboard-read', 'clipboard-write']
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
+      use: { ...devices['Desktop Chrome'] }
+    }
   ],
   timeout: 30000,
   expect: {
-    timeout: 10000,
-  },
-})
+    timeout: 10000
+  }
+});

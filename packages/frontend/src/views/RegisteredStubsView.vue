@@ -6,7 +6,11 @@
         <el-select
           v-model="selectedInstanceId"
           :placeholder="t('registeredStubs.selectInstance')"
-          :style="{ width: isMobile ? '100%' : '200px', marginRight: isMobile ? '0' : '12px', marginBottom: isMobile ? '8px' : '0' }"
+          :style="{
+            width: isMobile ? '100%' : '200px',
+            marginRight: isMobile ? '0' : '12px',
+            marginBottom: isMobile ? '8px' : '0'
+          }"
           @change="onInstanceChange"
         >
           <el-option
@@ -20,14 +24,22 @@
           <el-icon><Refresh /></el-icon>
           {{ t('registeredStubs.refresh') }}
         </el-button>
-        <el-button type="danger" plain @click="confirmDeleteAll" :disabled="!selectedInstanceId || mappings.length === 0">
+        <el-button
+          type="danger"
+          plain
+          @click="confirmDeleteAll"
+          :disabled="!selectedInstanceId || mappings.length === 0"
+        >
           <el-icon><Delete /></el-icon>
           {{ t('registeredStubs.deleteAll') }}
         </el-button>
       </div>
     </div>
 
-    <el-empty v-if="wiremockInstances.length === 0" :description="t('registeredStubs.noInstances')" />
+    <el-empty
+      v-if="wiremockInstances.length === 0"
+      :description="t('registeredStubs.noInstances')"
+    />
     <el-empty v-else-if="!selectedInstanceId" :description="t('registeredStubs.selectInstance')" />
 
     <template v-else>
@@ -40,7 +52,7 @@
       >
         <el-table-column type="expand">
           <template #default="{ row }">
-            <div style="padding: 12px 24px;">
+            <div style="padding: 12px 24px">
               <pre class="mapping-json">{{ JSON.stringify(row, null, 2) }}</pre>
             </div>
           </template>
@@ -89,11 +101,7 @@
         </el-table-column>
         <el-table-column :label="t('common.actions')" width="80" fixed="right">
           <template #default="{ row }">
-            <el-button
-              size="small"
-              type="danger"
-              @click.stop="confirmDeleteMapping(row)"
-            >
+            <el-button size="small" type="danger" @click.stop="confirmDeleteMapping(row)">
               <el-icon><Delete /></el-icon>
             </el-button>
           </template>
@@ -110,60 +118,63 @@
         />
       </div>
 
-      <el-empty v-if="!loading && mappings.length === 0" :description="t('registeredStubs.noMappings')" />
+      <el-empty
+        v-if="!loading && mappings.length === 0"
+        :description="t('registeredStubs.noMappings')"
+      />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, h } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
-import { useProjectStore } from '@/stores/project'
-import { wiremockInstanceApi } from '@/services/api'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { Mapping } from '@/types/wiremock'
-import { getMethodTagType, getUrl } from '@/utils/wiremock'
-import { useResponsive } from '@/composables/useResponsive'
-import { usePageSize } from '@/composables/usePageSize'
+import { ref, computed, onMounted, watch, h } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { useProjectStore } from '@/stores/project';
+import { wiremockInstanceApi } from '@/services/api';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import type { Mapping } from '@/types/wiremock';
+import { getMethodTagType, getUrl } from '@/utils/wiremock';
+import { useResponsive } from '@/composables/useResponsive';
+import { usePageSize } from '@/composables/usePageSize';
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
-const projectStore = useProjectStore()
-const { wiremockInstances } = storeToRefs(projectStore)
+const { t } = useI18n();
+const { isMobile } = useResponsive();
+const projectStore = useProjectStore();
+const { wiremockInstances } = storeToRefs(projectStore);
 
-const selectedInstanceId = ref<string | null>(null)
-const mappings = ref<Mapping[]>([])
-const loading = ref(false)
-const currentPage = ref(1)
-const { pageSize, pageSizes } = usePageSize()
+const selectedInstanceId = ref<string | null>(null);
+const mappings = ref<Mapping[]>([]);
+const loading = ref(false);
+const currentPage = ref(1);
+const { pageSize, pageSizes } = usePageSize();
 
 const paginatedMappings = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return mappings.value.slice(start, end)
-})
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return mappings.value.slice(start, end);
+});
 
 function onInstanceChange(instanceId: string) {
   if (instanceId) {
-    fetchMappings()
+    fetchMappings();
   }
 }
 
 async function fetchMappings() {
-  if (!selectedInstanceId.value) return
+  if (!selectedInstanceId.value) return;
 
-  loading.value = true
+  loading.value = true;
   try {
-    const data = await wiremockInstanceApi.getMappings(selectedInstanceId.value)
-    mappings.value = data?.mappings || []
-    currentPage.value = 1
+    const data = await wiremockInstanceApi.getMappings(selectedInstanceId.value);
+    mappings.value = data?.mappings || [];
+    currentPage.value = 1;
   } catch (error) {
-    console.error('Failed to fetch mappings:', error)
-    mappings.value = []
-    ElMessage.error(t('registeredStubs.fetchFailed'))
+    console.error('Failed to fetch mappings:', error);
+    mappings.value = [];
+    ElMessage.error(t('registeredStubs.fetchFailed'));
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -171,9 +182,14 @@ function confirmDeleteAll() {
   ElMessageBox.confirm(
     h('div', [
       h('p', { style: 'margin: 0;' }, t('registeredStubs.confirmDeleteAll')),
-      h('p', {
-        style: 'color: var(--wh-text-tertiary); font-size: 12px; margin-top: 8px; margin-bottom: 0;'
-      }, t('registeredStubs.confirmDeleteAllNote'))
+      h(
+        'p',
+        {
+          style:
+            'color: var(--wh-text-tertiary); font-size: 12px; margin-top: 8px; margin-bottom: 0;'
+        },
+        t('registeredStubs.confirmDeleteAllNote')
+      )
     ]),
     t('common.confirm'),
     {
@@ -181,69 +197,69 @@ function confirmDeleteAll() {
       cancelButtonText: t('common.no'),
       type: 'warning'
     }
-  ).then(async () => {
-    try {
-      await wiremockInstanceApi.reset(selectedInstanceId.value!)
-      ElMessage.success(t('common.success'))
-      await fetchMappings()
-    } catch (error) {
-      console.error('Failed to delete all mappings:', error)
-      ElMessage.error(t('registeredStubs.deleteAllFailed'))
-    }
-  }).catch(() => {
-    // Cancelled
-  })
+  )
+    .then(async () => {
+      try {
+        await wiremockInstanceApi.reset(selectedInstanceId.value!);
+        ElMessage.success(t('common.success'));
+        await fetchMappings();
+      } catch (error) {
+        console.error('Failed to delete all mappings:', error);
+        ElMessage.error(t('registeredStubs.deleteAllFailed'));
+      }
+    })
+    .catch(() => {
+      // Cancelled
+    });
 }
 
 function confirmDeleteMapping(row: Mapping) {
-  ElMessageBox.confirm(
-    t('registeredStubs.confirmDeleteMapping'),
-    t('common.confirm'),
-    {
-      confirmButtonText: t('common.yes'),
-      cancelButtonText: t('common.no'),
-      type: 'warning'
-    }
-  ).then(async () => {
-    try {
-      const mappingId = row.id || row.uuid
-      if (!mappingId) {
-        console.error('Mapping has no id or uuid:', row)
-        ElMessage.error(t('registeredStubs.deleteFailed'))
-        return
-      }
-      await wiremockInstanceApi.deleteMapping(selectedInstanceId.value!, mappingId)
-      ElMessage.success(t('common.success'))
-      await fetchMappings()
-    } catch (error) {
-      console.error('Failed to delete mapping:', error)
-      ElMessage.error(t('registeredStubs.deleteFailed'))
-    }
-  }).catch(() => {
-    // Cancelled
+  ElMessageBox.confirm(t('registeredStubs.confirmDeleteMapping'), t('common.confirm'), {
+    confirmButtonText: t('common.yes'),
+    cancelButtonText: t('common.no'),
+    type: 'warning'
   })
+    .then(async () => {
+      try {
+        const mappingId = row.id || row.uuid;
+        if (!mappingId) {
+          console.error('Mapping has no id or uuid:', row);
+          ElMessage.error(t('registeredStubs.deleteFailed'));
+          return;
+        }
+        await wiremockInstanceApi.deleteMapping(selectedInstanceId.value!, mappingId);
+        ElMessage.success(t('common.success'));
+        await fetchMappings();
+      } catch (error) {
+        console.error('Failed to delete mapping:', error);
+        ElMessage.error(t('registeredStubs.deleteFailed'));
+      }
+    })
+    .catch(() => {
+      // Cancelled
+    });
 }
 
 onMounted(async () => {
   if (projectStore.currentProjectId) {
-    await projectStore.fetchWiremockInstances(projectStore.currentProjectId)
+    await projectStore.fetchWiremockInstances(projectStore.currentProjectId);
   }
 
   if (wiremockInstances.value.length > 0) {
-    selectedInstanceId.value = wiremockInstances.value[0].id
-    onInstanceChange(selectedInstanceId.value)
+    selectedInstanceId.value = wiremockInstances.value[0].id;
+    onInstanceChange(selectedInstanceId.value);
   }
-})
+});
 
 watch(wiremockInstances, (instances) => {
   if (instances.length > 0 && !selectedInstanceId.value) {
-    selectedInstanceId.value = instances[0].id
-    onInstanceChange(selectedInstanceId.value)
+    selectedInstanceId.value = instances[0].id;
+    onInstanceChange(selectedInstanceId.value);
   } else if (instances.length === 0) {
-    selectedInstanceId.value = null
-    mappings.value = []
+    selectedInstanceId.value = null;
+    mappings.value = [];
   }
-})
+});
 </script>
 
 <style scoped>

@@ -22,13 +22,14 @@
       <!-- Basic Info -->
       <el-tab-pane :label="t('editor.basicInfo')" name="basic">
         <el-card>
-          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
+          <el-form
+            :model="formData"
+            :label-width="isMobile ? undefined : '150px'"
+            :label-position="isMobile ? 'top' : 'left'"
+          >
             <!-- Name -->
             <el-form-item :label="t('editor.stubName')">
-              <el-input
-                v-model="formData.name"
-                :placeholder="t('editor.placeholder.stubName')"
-              />
+              <el-input v-model="formData.name" :placeholder="t('editor.placeholder.stubName')" />
             </el-form-item>
 
             <!-- Description -->
@@ -47,10 +48,18 @@
       <!-- Request settings -->
       <el-tab-pane :label="t('editor.request')" name="request">
         <el-card>
-          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
+          <el-form
+            :model="formData"
+            :label-width="isMobile ? undefined : '150px'"
+            :label-position="isMobile ? 'top' : 'left'"
+          >
             <!-- Method -->
             <el-form-item :label="t('editor.requestMethod')">
-              <el-select v-model="formData.request.method" :placeholder="t('labels.selectMethod')" clearable>
+              <el-select
+                v-model="formData.request.method"
+                :placeholder="t('labels.selectMethod')"
+                clearable
+              >
                 <el-option label="GET" value="GET" />
                 <el-option label="POST" value="POST" />
                 <el-option label="PUT" value="PUT" />
@@ -109,14 +118,14 @@
       <!-- Response settings -->
       <el-tab-pane :label="t('editor.response')" name="response">
         <el-card>
-          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
+          <el-form
+            :model="formData"
+            :label-width="isMobile ? undefined : '150px'"
+            :label-position="isMobile ? 'top' : 'left'"
+          >
             <!-- Status code -->
             <el-form-item :label="t('editor.responseStatus')" required>
-              <el-input-number
-                v-model="formData.response.status"
-                :min="100"
-                :max="599"
-              />
+              <el-input-number v-model="formData.response.status" :min="100" :max="599" />
             </el-form-item>
 
             <!-- Response body -->
@@ -151,15 +160,15 @@
       <!-- Advanced settings -->
       <el-tab-pane :label="t('editor.advanced')" name="advanced">
         <el-card>
-          <el-form :model="formData" :label-width="isMobile ? undefined : '150px'" :label-position="isMobile ? 'top' : 'left'">
+          <el-form
+            :model="formData"
+            :label-width="isMobile ? undefined : '150px'"
+            :label-position="isMobile ? 'top' : 'left'"
+          >
             <!-- Priority -->
             <el-form-item :label="t('editor.priority')">
               <el-input-number v-model="formData.priority" :min="1" />
-              <el-alert
-                type="info"
-                :closable="false"
-                style="margin-top: 8px"
-              >
+              <el-alert type="info" :closable="false" style="margin-top: 8px">
                 {{ t('labels.priorityHint') }}
               </el-alert>
             </el-form-item>
@@ -191,11 +200,7 @@
             <!-- Persistence -->
             <el-form-item :label="t('editor.persistent')">
               <el-switch v-model="formData.persistent" />
-              <el-alert
-                type="info"
-                :closable="false"
-                style="margin-top: 8px"
-              >
+              <el-alert type="info" :closable="false" style="margin-top: 8px">
                 {{ t('labels.persistentHint') }}
               </el-alert>
             </el-form-item>
@@ -206,11 +211,7 @@
       <!-- JSON view -->
       <el-tab-pane :label="t('editor.json')" name="json">
         <el-card>
-          <JsonEditor
-            :modelValue="formData"
-            @update:modelValue="handleJsonUpdate"
-            :rows="25"
-          />
+          <JsonEditor :modelValue="formData" @update:modelValue="handleJsonUpdate" :rows="25" />
         </el-card>
       </el-tab-pane>
     </el-tabs>
@@ -220,36 +221,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMappingStore } from '@/stores/mapping'
-import { useResponsive } from '@/composables/useResponsive'
-import { stubApi } from '@/services/api'
-import { ElMessage } from 'element-plus'
-import type { Mapping } from '@/types/wiremock'
-import JsonEditor from '@/components/mapping/JsonEditor.vue'
-import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue'
-import BodyPatternsEditor from '@/components/mapping/BodyPatternsEditor.vue'
-import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useMappingStore } from '@/stores/mapping';
+import { useResponsive } from '@/composables/useResponsive';
+import { stubApi } from '@/services/api';
+import { ElMessage } from 'element-plus';
+import type { Mapping } from '@/types/wiremock';
+import JsonEditor from '@/components/mapping/JsonEditor.vue';
+import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
+import BodyPatternsEditor from '@/components/mapping/BodyPatternsEditor.vue';
+import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
-const route = useRoute()
-const router = useRouter()
-const mappingStore = useMappingStore()
+const { t } = useI18n();
+const { isMobile } = useResponsive();
+const route = useRoute();
+const router = useRouter();
+const mappingStore = useMappingStore();
 
-const activeTab = ref('basic')
-const saving = ref(false)
-const testDialogVisible = ref(false)
-const currentStubId = computed(() => (route.params.id as string) || '')
-const urlType = ref<'url' | 'urlPattern' | 'urlPath' | 'urlPathPattern'>('url')
-const urlValue = ref('')
-const requestBodyText = ref('')
+const activeTab = ref('basic');
+const saving = ref(false);
+const testDialogVisible = ref(false);
+const currentStubId = computed(() => (route.params.id as string) || '');
+const urlType = ref<'url' | 'urlPattern' | 'urlPath' | 'urlPathPattern'>('url');
+const urlValue = ref('');
+const requestBodyText = ref('');
 
-const isNew = computed(() => route.name === 'mapping-new')
+const isNew = computed(() => route.name === 'mapping-new');
 
-const stubDescription = ref('')
+const stubDescription = ref('');
 
 const formData = reactive<Mapping>({
   request: {
@@ -263,112 +264,120 @@ const formData = reactive<Mapping>({
   },
   priority: 5,
   persistent: true
-})
+});
 
 // Handle URL type change
 watch(urlValue, (newValue) => {
   // Clear existing URL settings
-  delete formData.request.url
-  delete formData.request.urlPattern
-  delete formData.request.urlPath
-  delete formData.request.urlPathPattern
+  delete formData.request.url;
+  delete formData.request.urlPattern;
+  delete formData.request.urlPath;
+  delete formData.request.urlPathPattern;
 
   // Set new value
   if (newValue) {
-    formData.request[urlType.value] = newValue
+    formData.request[urlType.value] = newValue;
   }
-})
+});
 
 function handleUrlTypeChange() {
-  const currentValue = urlValue.value
-  delete formData.request.url
-  delete formData.request.urlPattern
-  delete formData.request.urlPath
-  delete formData.request.urlPathPattern
+  const currentValue = urlValue.value;
+  delete formData.request.url;
+  delete formData.request.urlPattern;
+  delete formData.request.urlPath;
+  delete formData.request.urlPathPattern;
 
   if (currentValue) {
-    formData.request[urlType.value] = currentValue
+    formData.request[urlType.value] = currentValue;
   }
 }
 
 // Sync helper refs (urlType, urlValue, requestBodyText) from request data
 function syncHelperRefsFromRequest(req: Mapping['request']) {
-  if (req.url) { urlType.value = 'url'; urlValue.value = req.url }
-  else if (req.urlPattern) { urlType.value = 'urlPattern'; urlValue.value = req.urlPattern }
-  else if (req.urlPath) { urlType.value = 'urlPath'; urlValue.value = req.urlPath }
-  else if (req.urlPathPattern) { urlType.value = 'urlPathPattern'; urlValue.value = req.urlPathPattern }
-  else { urlValue.value = '' }
+  if (req.url) {
+    urlType.value = 'url';
+    urlValue.value = req.url;
+  } else if (req.urlPattern) {
+    urlType.value = 'urlPattern';
+    urlValue.value = req.urlPattern;
+  } else if (req.urlPath) {
+    urlType.value = 'urlPath';
+    urlValue.value = req.urlPath;
+  } else if (req.urlPathPattern) {
+    urlType.value = 'urlPathPattern';
+    urlValue.value = req.urlPathPattern;
+  } else {
+    urlValue.value = '';
+  }
 
   if (req.bodyPatterns && req.bodyPatterns[0]?.equalTo) {
-    requestBodyText.value = req.bodyPatterns[0].equalTo
+    requestBodyText.value = req.bodyPatterns[0].equalTo;
   } else {
-    requestBodyText.value = ''
+    requestBodyText.value = '';
   }
 }
 
 // Initialization
 onMounted(async () => {
   if (!isNew.value) {
-    const id = route.params.id as string
+    const id = route.params.id as string;
     try {
       // Fetch the latest stub data from API
-      const stub = await stubApi.get(id)
-      const mapping = stub.mapping as unknown as Mapping
+      const stub = await stubApi.get(id);
+      const mapping = stub.mapping as unknown as Mapping;
 
       // Load description from stub (not from mapping)
-      stubDescription.value = stub.description || ''
+      stubDescription.value = stub.description || '';
 
       if (mapping) {
-        Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
+        Object.assign(formData, JSON.parse(JSON.stringify(mapping)));
         // Restore name from stub DB column (mapping may not contain it after import cleanup)
-        formData.name = stub.name || formData.name
-        syncHelperRefsFromRequest(mapping.request)
+        formData.name = stub.name || formData.name;
+        syncHelperRefsFromRequest(mapping.request);
       }
     } catch (error) {
-      console.error('Failed to load mapping:', error)
-      ElMessage.error(t('messages.mapping.loadFailed'))
+      console.error('Failed to load mapping:', error);
+      ElMessage.error(t('messages.mapping.loadFailed'));
     }
   }
-})
+});
 
 async function handleSave() {
   // Validation
   if (!formData.response.status) {
-    ElMessage.error(t('messages.mapping.statusRequired'))
-    return
+    ElMessage.error(t('messages.mapping.statusRequired'));
+    return;
   }
 
   if (!urlValue.value) {
-    ElMessage.error(t('messages.mapping.urlRequired'))
-    return
+    ElMessage.error(t('messages.mapping.urlRequired'));
+    return;
   }
 
-  saving.value = true
+  saving.value = true;
   try {
     // Sync request body text to bodyPatterns
     if (requestBodyText.value) {
-      formData.request.bodyPatterns = [
-        { equalTo: requestBodyText.value }
-      ]
+      formData.request.bodyPatterns = [{ equalTo: requestBodyText.value }];
     } else {
-      delete formData.request.bodyPatterns
+      delete formData.request.bodyPatterns;
     }
 
     if (isNew.value) {
-      await mappingStore.createMapping(formData, stubDescription.value)
-      ElMessage.success(t('messages.mapping.created'))
+      await mappingStore.createMapping(formData, stubDescription.value);
+      ElMessage.success(t('messages.mapping.created'));
     } else {
-      const id = route.params.id as string
-      await mappingStore.updateMapping(id, formData, stubDescription.value)
-      ElMessage.success(t('messages.mapping.updated'))
+      const id = route.params.id as string;
+      await mappingStore.updateMapping(id, formData, stubDescription.value);
+      ElMessage.success(t('messages.mapping.updated'));
     }
 
-    router.push('/mappings')
+    router.push('/mappings');
   } catch (error: any) {
-    console.error('Failed to save mapping:', error)
-    ElMessage.error(error.message || t('messages.mapping.saveFailed'))
+    console.error('Failed to save mapping:', error);
+    ElMessage.error(error.message || t('messages.mapping.saveFailed'));
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
@@ -376,19 +385,19 @@ function handleJsonUpdate(newValue: Mapping | undefined) {
   if (newValue) {
     // Clear all existing keys, then merge new data
     for (const key of Object.keys(formData)) {
-      delete (formData as any)[key]
+      delete (formData as any)[key];
     }
-    Object.assign(formData, newValue)
-    syncHelperRefsFromRequest(formData.request || {})
+    Object.assign(formData, newValue);
+    syncHelperRefsFromRequest(formData.request || {});
   }
 }
 
 function goBack() {
-  router.push('/mappings')
+  router.push('/mappings');
 }
 
 function openTestDialog() {
-  testDialogVisible.value = true
+  testDialogVisible.value = true;
 }
 </script>
 

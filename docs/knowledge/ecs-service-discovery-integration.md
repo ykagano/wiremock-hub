@@ -56,6 +56,7 @@ Replace all WireMock instances for a project with new ones discovered from Servi
 **Endpoint:** `POST /api/projects/:projectId/instances/bulk-update`
 
 **Request Body:**
+
 ```json
 {
   "instances": [
@@ -72,6 +73,7 @@ Replace all WireMock instances for a project with new ones discovered from Servi
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -240,7 +242,11 @@ Run the startup script as an ECS task that executes after WireMock services star
       "name": "sync-instances",
       "image": "amazon/aws-cli:latest",
       "essential": true,
-      "command": ["/bin/bash", "-c", "curl -o /tmp/sync.sh https://your-bucket/sync.sh && chmod +x /tmp/sync.sh && /tmp/sync.sh"],
+      "command": [
+        "/bin/bash",
+        "-c",
+        "curl -o /tmp/sync.sh https://your-bucket/sync.sh && chmod +x /tmp/sync.sh && /tmp/sync.sh"
+      ],
       "environment": [
         {
           "name": "WIREMOCK_HUB_URL",
@@ -286,9 +292,7 @@ The task role needs the following permissions:
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "servicediscovery:DiscoverInstances"
-      ],
+      "Action": ["servicediscovery:DiscoverInstances"],
       "Resource": "*"
     }
   ]

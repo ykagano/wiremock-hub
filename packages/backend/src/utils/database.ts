@@ -1,5 +1,5 @@
-import path from 'path'
-import fs from 'fs'
+import path from 'path';
+import fs from 'fs';
 
 /**
  * Get the default database file path relative to the project root's data/ directory.
@@ -8,8 +8,8 @@ import fs from 'fs'
  * @returns Absolute path to the database file
  */
 export function getDefaultDatabasePath(dirname: string, levelsToRoot: number): string {
-  const relativePath = '../'.repeat(levelsToRoot) + 'data/wiremock-hub.db'
-  return path.resolve(dirname, relativePath)
+  const relativePath = '../'.repeat(levelsToRoot) + 'data/wiremock-hub.db';
+  return path.resolve(dirname, relativePath);
 }
 
 /**
@@ -19,7 +19,7 @@ export function getDefaultDatabasePath(dirname: string, levelsToRoot: number): s
  * @returns Database URL with file: prefix
  */
 export function getDatabaseUrl(dirname: string, levelsToRoot: number): string {
-  return process.env.DATABASE_URL || `file:${getDefaultDatabasePath(dirname, levelsToRoot)}`
+  return process.env.DATABASE_URL || `file:${getDefaultDatabasePath(dirname, levelsToRoot)}`;
 }
 
 /**
@@ -32,28 +32,27 @@ export function getDatabaseUrl(dirname: string, levelsToRoot: number): string {
 export function migrateDatabase(dirname: string, levelsToRoot: number): boolean {
   // Skip migration if DATABASE_URL is explicitly set
   if (process.env.DATABASE_URL) {
-    return false
+    return false;
   }
 
-  const projectRoot = path.resolve(dirname, '../'.repeat(levelsToRoot))
-  const oldPath = path.join(projectRoot, 'packages/backend/data/wiremock-hub.db')
-  const newPath = path.join(projectRoot, 'data/wiremock-hub.db')
-  const newDir = path.dirname(newPath)
+  const projectRoot = path.resolve(dirname, '../'.repeat(levelsToRoot));
+  const oldPath = path.join(projectRoot, 'packages/backend/data/wiremock-hub.db');
+  const newPath = path.join(projectRoot, 'data/wiremock-hub.db');
+  const newDir = path.dirname(newPath);
 
   // Check if migration is needed
   if (!fs.existsSync(oldPath) || fs.existsSync(newPath)) {
-    return false
+    return false;
   }
 
   // Create new directory if needed
   if (!fs.existsSync(newDir)) {
-    fs.mkdirSync(newDir, { recursive: true })
+    fs.mkdirSync(newDir, { recursive: true });
   }
 
   // Move database file
-  fs.renameSync(oldPath, newPath)
-  console.log(`[Database Migration] Moved database from ${oldPath} to ${newPath}`)
+  fs.renameSync(oldPath, newPath);
+  console.log(`[Database Migration] Moved database from ${oldPath} to ${newPath}`);
 
-  return true
+  return true;
 }
-

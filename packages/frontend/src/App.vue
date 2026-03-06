@@ -5,12 +5,7 @@
       <el-header class="app-header">
         <div class="header-content">
           <div class="header-left">
-            <el-icon
-              v-if="isMobile"
-              class="hamburger-icon"
-              :size="24"
-              @click="drawerOpen = true"
-            >
+            <el-icon v-if="isMobile" class="hamburger-icon" :size="24" @click="drawerOpen = true">
               <Menu />
             </el-icon>
             <h1>{{ t('app.title') }}</h1>
@@ -25,11 +20,7 @@
               :options="themeOptions"
               size="small"
             />
-            <el-select
-              v-model="currentLocale"
-              size="small"
-              style="width: 120px"
-            >
+            <el-select v-model="currentLocale" size="small" style="width: 120px">
               <el-option label="English" value="en" />
               <el-option label="日本語" value="ja" />
             </el-select>
@@ -63,24 +54,15 @@
               <el-icon><Folder /></el-icon>
               <span>{{ t('nav.projects') }}</span>
             </el-menu-item>
-            <el-menu-item
-              index="/mappings"
-              :disabled="!currentProject"
-            >
+            <el-menu-item index="/mappings" :disabled="!currentProject">
               <el-icon><Document /></el-icon>
               <span>{{ t('nav.mappings') }}</span>
             </el-menu-item>
-            <el-menu-item
-              index="/registered-stubs"
-              :disabled="!currentProject"
-            >
+            <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
             </el-menu-item>
-            <el-menu-item
-              index="/requests"
-              :disabled="!currentProject"
-            >
+            <el-menu-item index="/requests" :disabled="!currentProject">
               <el-icon><List /></el-icon>
               <span>{{ t('nav.requests') }}</span>
             </el-menu-item>
@@ -93,11 +75,7 @@
 
         <!-- Desktop sidebar -->
         <el-aside v-else width="200px" class="app-aside">
-          <el-menu
-            :default-active="currentRoute"
-            router
-            class="app-menu"
-          >
+          <el-menu :default-active="currentRoute" router class="app-menu">
             <el-menu-item index="/projects">
               <el-icon><FolderOpened /></el-icon>
               <span>{{ t('nav.projectList') }}</span>
@@ -109,24 +87,15 @@
               <el-icon><Folder /></el-icon>
               <span>{{ t('nav.projects') }}</span>
             </el-menu-item>
-            <el-menu-item
-              index="/mappings"
-              :disabled="!currentProject"
-            >
+            <el-menu-item index="/mappings" :disabled="!currentProject">
               <el-icon><Document /></el-icon>
               <span>{{ t('nav.mappings') }}</span>
             </el-menu-item>
-            <el-menu-item
-              index="/registered-stubs"
-              :disabled="!currentProject"
-            >
+            <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
             </el-menu-item>
-            <el-menu-item
-              index="/requests"
-              :disabled="!currentProject"
-            >
+            <el-menu-item index="/requests" :disabled="!currentProject">
               <el-icon><List /></el-icon>
               <span>{{ t('nav.requests') }}</span>
             </el-menu-item>
@@ -151,59 +120,59 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
-import { useProjectStore } from '@/stores/project'
-import { useTheme, type ThemeMode } from '@/composables/useTheme'
-import { useResponsive } from '@/composables/useResponsive'
-import { saveLocale } from '@/i18n'
-import jaLocale from 'element-plus/es/locale/lang/ja'
-import enLocale from 'element-plus/es/locale/lang/en'
+import { computed, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { useProjectStore } from '@/stores/project';
+import { useTheme, type ThemeMode } from '@/composables/useTheme';
+import { useResponsive } from '@/composables/useResponsive';
+import { saveLocale } from '@/i18n';
+import jaLocale from 'element-plus/es/locale/lang/ja';
+import enLocale from 'element-plus/es/locale/lang/en';
 
-const route = useRoute()
-const { t, locale } = useI18n({ useScope: 'global' })
-const projectStore = useProjectStore()
-const { currentProject } = storeToRefs(projectStore)
-const { themeMode } = useTheme()
-const { isMobile } = useResponsive()
+const route = useRoute();
+const { t, locale } = useI18n({ useScope: 'global' });
+const projectStore = useProjectStore();
+const { currentProject } = storeToRefs(projectStore);
+const { themeMode } = useTheme();
+const { isMobile } = useResponsive();
 
-const drawerOpen = ref(false)
+const drawerOpen = ref(false);
 
-const currentRoute = computed(() => route.path)
+const currentRoute = computed(() => route.path);
 
 const currentLocale = computed({
   get: () => locale.value,
   set: (value: string) => {
-    locale.value = value
-    saveLocale(value)
+    locale.value = value;
+    saveLocale(value);
   }
-})
+});
 
 const currentTheme = computed({
   get: () => themeMode.value,
   set: (value: string) => {
-    themeMode.value = value as ThemeMode
+    themeMode.value = value as ThemeMode;
   }
-})
+});
 
 const themeOptions = computed(() => [
   { label: t('settings.themeLight'), value: 'light' },
   { label: t('settings.themeDark'), value: 'dark' },
-  { label: t('settings.themeSystem'), value: 'system' },
-])
+  { label: t('settings.themeSystem'), value: 'system' }
+]);
 
 const elementLocale = computed(() => {
-  return locale.value === 'ja' ? jaLocale : enLocale
-})
+  return locale.value === 'ja' ? jaLocale : enLocale;
+});
 </script>
 
 <style>
 :root {
-  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', 'Yu Gothic UI',
-    'Yu Gothic', sans-serif;
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans',
+    'Meiryo', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
   --wh-sidebar-bg: #f5f7fa;
   --wh-sidebar-border: #e4e7ed;
   --wh-main-bg: #ffffff;
@@ -267,7 +236,11 @@ html.dark body {
 }
 
 .app-header {
-  background: linear-gradient(135deg, var(--wh-header-gradient-from) 0%, var(--wh-header-gradient-to) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--wh-header-gradient-from) 0%,
+    var(--wh-header-gradient-to) 100%
+  );
   color: white;
   display: flex;
   align-items: center;

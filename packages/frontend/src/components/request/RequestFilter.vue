@@ -62,53 +62,57 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useResponsive } from '@/composables/useResponsive'
+import { reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useResponsive } from '@/composables/useResponsive';
 
 export interface FilterState {
-  urlPattern: string
-  method: string
-  statusFrom: number | undefined
-  statusTo: number | undefined
+  urlPattern: string;
+  method: string;
+  statusFrom: number | undefined;
+  statusTo: number | undefined;
 }
 
 const emit = defineEmits<{
-  (e: 'filter-change', filter: FilterState): void
-}>()
+  (e: 'filter-change', filter: FilterState): void;
+}>();
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
+const { t } = useI18n();
+const { isMobile } = useResponsive();
 
 const filter = reactive<FilterState>({
   urlPattern: '',
   method: '',
   statusFrom: undefined,
   statusTo: undefined
-})
+});
 
 function applyFilter() {
-  emit('filter-change', { ...filter })
+  emit('filter-change', { ...filter });
 }
 
 function resetFilter() {
-  filter.urlPattern = ''
-  filter.method = ''
-  filter.statusFrom = undefined
-  filter.statusTo = undefined
-  emit('filter-change', { ...filter })
+  filter.urlPattern = '';
+  filter.method = '';
+  filter.statusFrom = undefined;
+  filter.statusTo = undefined;
+  emit('filter-change', { ...filter });
 }
 
 // Auto-apply filter when any value changes (debounced via watch)
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-watch(filter, () => {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer)
-  }
-  debounceTimer = setTimeout(() => {
-    applyFilter()
-  }, 300)
-}, { deep: true })
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+watch(
+  filter,
+  () => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    debounceTimer = setTimeout(() => {
+      applyFilter();
+    }, 300);
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>

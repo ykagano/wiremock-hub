@@ -1,277 +1,292 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { stubApi, type Stub, type CreateStubInput, type UpdateStubInput } from '@/services/api'
-import { useProjectStore } from './project'
-import { ElMessage } from 'element-plus'
-import { t } from '@/i18n'
-import type { Mapping, StubTestRequest, StubTestResponse } from '@/types/wiremock'
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import { stubApi, type Stub, type CreateStubInput, type UpdateStubInput } from '@/services/api';
+import { useProjectStore } from './project';
+import { ElMessage } from 'element-plus';
+import { t } from '@/i18n';
+import type { Mapping, StubTestRequest, StubTestResponse } from '@/types/wiremock';
 
 export const useMappingStore = defineStore('mapping', () => {
-  const stubs = ref<Stub[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
-  const testResult = ref<StubTestResponse | null>(null)
-  const testing = ref(false)
-  const testError = ref<string | null>(null)
+  const stubs = ref<Stub[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+  const testResult = ref<StubTestResponse | null>(null);
+  const testing = ref(false);
+  const testError = ref<string | null>(null);
 
   // Expose mappings for backward compatibility (generated from stub's mapping field)
-  const mappings = ref<Mapping[]>([])
+  const mappings = ref<Mapping[]>([]);
 
   // Fetch stub list
   async function fetchMappings() {
-    const projectStore = useProjectStore()
+    const projectStore = useProjectStore();
     if (!projectStore.currentProjectId) {
-      error.value = t('messages.project.notSelected')
-      return
+      error.value = t('messages.project.notSelected');
+      return;
     }
 
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
-      stubs.value = await stubApi.list(projectStore.currentProjectId)
+      stubs.value = await stubApi.list(projectStore.currentProjectId);
       // Generate mappings from stubs (for backward compatibility)
-      mappings.value = stubs.value.map(s => ({
-        ...s.mapping as Mapping,
+      mappings.value = stubs.value.map((s) => ({
+        ...(s.mapping as Mapping),
         id: s.id,
         name: s.name ?? (s.mapping as any)?.name ?? undefined
-      }))
+      }));
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.fetchFailed')
-      ElMessage.error(error.value!)
+      error.value = e.message || t('messages.stub.fetchFailed');
+      ElMessage.error(error.value!);
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Create stub
   async function createMapping(mapping: Mapping, description?: string): Promise<Stub | null> {
-    const projectStore = useProjectStore()
-    if (!projectStore.currentProjectId) return null
+    const projectStore = useProjectStore();
+    if (!projectStore.currentProjectId) return null;
 
-    loading.value = true
+    loading.value = true;
     try {
       const input: CreateStubInput = {
         projectId: projectStore.currentProjectId,
         name: mapping.name,
         description: description || undefined,
         mapping: mapping as Record<string, unknown>
-      }
-      const created = await stubApi.create(input)
-      stubs.value.push(created)
-      mappings.value.push({ ...mapping, id: created.id })
-      return created
+      };
+      const created = await stubApi.create(input);
+      stubs.value.push(created);
+      mappings.value.push({ ...mapping, id: created.id });
+      return created;
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.createFailed')
-      throw e
+      error.value = e.message || t('messages.stub.createFailed');
+      throw e;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Update stub
-  async function updateMapping(id: string, mapping: Mapping, description?: string): Promise<Stub | null> {
-    loading.value = true
+  async function updateMapping(
+    id: string,
+    mapping: Mapping,
+    description?: string
+  ): Promise<Stub | null> {
+    loading.value = true;
     try {
       const input: UpdateStubInput = {
         name: mapping.name,
-        description: description !== undefined ? (description || null) : undefined,
+        description: description !== undefined ? description || null : undefined,
         mapping: mapping as Record<string, unknown>
-      }
-      const updated = await stubApi.update(id, input)
-      const index = stubs.value.findIndex(s => s.id === id)
+      };
+      const updated = await stubApi.update(id, input);
+      const index = stubs.value.findIndex((s) => s.id === id);
       if (index !== -1) {
-        stubs.value[index] = updated
-        mappings.value[index] = { ...mapping, id: updated.id }
+        stubs.value[index] = updated;
+        mappings.value[index] = { ...mapping, id: updated.id };
       }
-      return updated
+      return updated;
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.updateFailed')
-      throw e
+      error.value = e.message || t('messages.stub.updateFailed');
+      throw e;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Delete stub
   async function deleteMapping(id: string): Promise<boolean> {
-    loading.value = true
+    loading.value = true;
     try {
-      await stubApi.delete(id)
-      stubs.value = stubs.value.filter(s => s.id !== id)
-      mappings.value = mappings.value.filter(m => m.id !== id)
-      ElMessage.success(t('messages.stub.deleted'))
-      return true
+      await stubApi.delete(id);
+      stubs.value = stubs.value.filter((s) => s.id !== id);
+      mappings.value = mappings.value.filter((m) => m.id !== id);
+      ElMessage.success(t('messages.stub.deleted'));
+      return true;
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.deleteFailed')
-      ElMessage.error(error.value!)
-      throw e
+      error.value = e.message || t('messages.stub.deleteFailed');
+      ElMessage.error(error.value!);
+      throw e;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Sync to WireMock
   async function syncToWiremock(stubId: string, instanceId: string): Promise<boolean> {
-    loading.value = true
+    loading.value = true;
     try {
-      await stubApi.sync(stubId, instanceId)
-      ElMessage.success(t('messages.stub.synced'))
-      return true
+      await stubApi.sync(stubId, instanceId);
+      ElMessage.success(t('messages.stub.synced'));
+      return true;
     } catch (e: any) {
-      ElMessage.error(e.message || t('messages.stub.syncFailed'))
-      return false
+      ElMessage.error(e.message || t('messages.stub.syncFailed'));
+      return false;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Sync all stubs to WireMock
-  async function syncAllToWiremock(instanceId: string): Promise<{ success: number; failed: number } | null> {
-    const projectStore = useProjectStore()
-    if (!projectStore.currentProjectId) return null
+  async function syncAllToWiremock(
+    instanceId: string
+  ): Promise<{ success: number; failed: number } | null> {
+    const projectStore = useProjectStore();
+    if (!projectStore.currentProjectId) return null;
 
-    loading.value = true
+    loading.value = true;
     try {
-      const result = await stubApi.syncAll(projectStore.currentProjectId, instanceId)
+      const result = await stubApi.syncAll(projectStore.currentProjectId, instanceId);
       if (result.failed === 0) {
-        ElMessage.success(t('messages.stub.syncedCount', { count: result.success }))
+        ElMessage.success(t('messages.stub.syncedCount', { count: result.success }));
       } else {
-        ElMessage.warning(t('messages.stub.syncResult', { success: result.success, failed: result.failed }))
+        ElMessage.warning(
+          t('messages.stub.syncResult', { success: result.success, failed: result.failed })
+        );
       }
-      return result
+      return result;
     } catch (e: any) {
-      ElMessage.error(e.message || t('messages.stub.syncFailed'))
-      return null
+      ElMessage.error(e.message || t('messages.stub.syncFailed'));
+      return null;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   function clearMappings() {
-    stubs.value = []
-    mappings.value = []
+    stubs.value = [];
+    mappings.value = [];
   }
 
   // Get stub by ID
   function getStubById(id: string): Stub | undefined {
-    return stubs.value.find(s => s.id === id)
+    return stubs.value.find((s) => s.id === id);
   }
 
   // Delete all stubs from wiremock-hub
   async function deleteAllStubs(): Promise<boolean> {
-    const projectStore = useProjectStore()
+    const projectStore = useProjectStore();
     if (!projectStore.currentProjectId) {
-      ElMessage.warning(t('messages.project.notSelected'))
-      return false
+      ElMessage.warning(t('messages.project.notSelected'));
+      return false;
     }
 
-    loading.value = true
+    loading.value = true;
 
     try {
-      await stubApi.deleteAll(projectStore.currentProjectId)
-      stubs.value = []
-      mappings.value = []
-      ElMessage.success(t('messages.stub.resetSuccess'))
-      return true
+      await stubApi.deleteAll(projectStore.currentProjectId);
+      stubs.value = [];
+      mappings.value = [];
+      ElMessage.success(t('messages.stub.resetSuccess'));
+      return true;
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.resetFailed')
-      ElMessage.error(error.value!)
-      return false
+      error.value = e.message || t('messages.stub.resetFailed');
+      ElMessage.error(error.value!);
+      return false;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Export stubs to JSON file
   async function exportStubs(): Promise<boolean> {
-    const projectStore = useProjectStore()
+    const projectStore = useProjectStore();
     if (!projectStore.currentProjectId) {
-      ElMessage.warning(t('messages.project.notSelected'))
-      return false
+      ElMessage.warning(t('messages.project.notSelected'));
+      return false;
     }
 
-    loading.value = true
+    loading.value = true;
     try {
-      const blob = await stubApi.exportStubs(projectStore.currentProjectId)
+      const blob = await stubApi.exportStubs(projectStore.currentProjectId);
 
       // Generate filename for download
-      const projectName = projectStore.currentProject?.name || 'project'
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-      const filename = `${projectName.replace(/[^a-zA-Z0-9]/g, '-')}-stubs-${timestamp}.json`
+      const projectName = projectStore.currentProject?.name || 'project';
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `${projectName.replace(/[^a-zA-Z0-9]/g, '-')}-stubs-${timestamp}.json`;
 
       // Download the file
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-      ElMessage.success(t('messages.stub.exported'))
-      return true
+      ElMessage.success(t('messages.stub.exported'));
+      return true;
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.exportFailed')
-      ElMessage.error(error.value!)
-      return false
+      error.value = e.message || t('messages.stub.exportFailed');
+      ElMessage.error(error.value!);
+      return false;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Import stubs from JSON file
-  async function importStubs(data: Record<string, unknown>): Promise<{ imported: number; skipped: number } | null> {
-    const projectStore = useProjectStore()
+  async function importStubs(
+    data: Record<string, unknown>
+  ): Promise<{ imported: number; skipped: number } | null> {
+    const projectStore = useProjectStore();
     if (!projectStore.currentProjectId) {
-      ElMessage.warning(t('messages.project.notSelected'))
-      return null
+      ElMessage.warning(t('messages.project.notSelected'));
+      return null;
     }
 
-    loading.value = true
+    loading.value = true;
     try {
-      const result = await stubApi.importStubs(projectStore.currentProjectId, data)
+      const result = await stubApi.importStubs(projectStore.currentProjectId, data);
 
       if (result.skipped === 0) {
-        ElMessage.success(t('messages.stub.importedCount', { count: result.imported }))
+        ElMessage.success(t('messages.stub.importedCount', { count: result.imported }));
       } else {
-        ElMessage.warning(t('messages.stub.importResult', { imported: result.imported, skipped: result.skipped }))
+        ElMessage.warning(
+          t('messages.stub.importResult', { imported: result.imported, skipped: result.skipped })
+        );
       }
 
       // Refresh the stub list
-      await fetchMappings()
+      await fetchMappings();
 
-      return result
+      return result;
     } catch (e: any) {
-      error.value = e.message || t('messages.stub.importFailed')
-      ElMessage.error(error.value!)
-      return null
+      error.value = e.message || t('messages.stub.importFailed');
+      ElMessage.error(error.value!);
+      return null;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   // Test stub against all WireMock instances
-  async function testStub(stubId: string, overrides?: StubTestRequest): Promise<StubTestResponse | null> {
-    testing.value = true
-    testResult.value = null
-    testError.value = null
+  async function testStub(
+    stubId: string,
+    overrides?: StubTestRequest
+  ): Promise<StubTestResponse | null> {
+    testing.value = true;
+    testResult.value = null;
+    testError.value = null;
     try {
-      const result = await stubApi.testStub(stubId, overrides)
-      testResult.value = result
-      return result
+      const result = await stubApi.testStub(stubId, overrides);
+      testResult.value = result;
+      return result;
     } catch (e: any) {
-      testError.value = e.message || 'Test failed'
-      return null
+      testError.value = e.message || 'Test failed';
+      return null;
     } finally {
-      testing.value = false
+      testing.value = false;
     }
   }
 
   function clearTestResult() {
-    testResult.value = null
-    testError.value = null
+    testResult.value = null;
+    testError.value = null;
   }
 
   return {
@@ -295,5 +310,5 @@ export const useMappingStore = defineStore('mapping', () => {
     importStubs,
     testStub,
     clearTestResult
-  }
-})
+  };
+});

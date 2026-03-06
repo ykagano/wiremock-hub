@@ -6,7 +6,11 @@
         <el-select
           v-model="selectedInstanceId"
           :placeholder="t('requests.selectInstance')"
-          :style="{ width: isMobile ? '100%' : '200px', marginRight: isMobile ? '0' : '12px', marginBottom: isMobile ? '8px' : '0' }"
+          :style="{
+            width: isMobile ? '100%' : '200px',
+            marginRight: isMobile ? '0' : '12px',
+            marginBottom: isMobile ? '8px' : '0'
+          }"
           @change="onInstanceChange"
         >
           <el-option
@@ -38,10 +42,16 @@
         <el-tab-pane :label="`${t('requests.all')} (${filteredRequests.length})`" name="all">
           <RequestTable :requests="filteredRequests" @row-click="onRequestClick" />
         </el-tab-pane>
-        <el-tab-pane :label="`${t('requests.matched')} (${filteredMatchedRequests.length})`" name="matched">
+        <el-tab-pane
+          :label="`${t('requests.matched')} (${filteredMatchedRequests.length})`"
+          name="matched"
+        >
           <RequestTable :requests="filteredMatchedRequests" @row-click="onRequestClick" />
         </el-tab-pane>
-        <el-tab-pane :label="`${t('requests.unmatched')} (${filteredUnmatchedRequests.length})`" name="unmatched">
+        <el-tab-pane
+          :label="`${t('requests.unmatched')} (${filteredUnmatchedRequests.length})`"
+          name="unmatched"
+        >
           <RequestTable :requests="filteredUnmatchedRequests" @row-click="onRequestClick" />
         </el-tab-pane>
       </el-tabs>
@@ -50,86 +60,89 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, reactive } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useRequestStore } from '@/stores/request'
-import { useProjectStore } from '@/stores/project'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import RequestTable from '@/components/request/RequestTable.vue'
-import RequestFilter, { type FilterState } from '@/components/request/RequestFilter.vue'
-import type { LoggedRequest } from '@/types/wiremock'
-import { useResponsive } from '@/composables/useResponsive'
+import { ref, computed, onMounted, watch, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useRequestStore } from '@/stores/request';
+import { useProjectStore } from '@/stores/project';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import RequestTable from '@/components/request/RequestTable.vue';
+import RequestFilter, { type FilterState } from '@/components/request/RequestFilter.vue';
+import type { LoggedRequest } from '@/types/wiremock';
+import { useResponsive } from '@/composables/useResponsive';
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
-const router = useRouter()
-const requestStore = useRequestStore()
-const projectStore = useProjectStore()
-const { requests, loading } = storeToRefs(requestStore)
-const { wiremockInstances } = storeToRefs(projectStore)
+const { t } = useI18n();
+const { isMobile } = useResponsive();
+const router = useRouter();
+const requestStore = useRequestStore();
+const projectStore = useProjectStore();
+const { requests, loading } = storeToRefs(requestStore);
+const { wiremockInstances } = storeToRefs(projectStore);
 
-const activeTab = ref('all')
-const selectedInstanceId = ref<string | null>(null)
+const activeTab = ref('all');
+const selectedInstanceId = ref<string | null>(null);
 
 const filter = reactive<FilterState>({
   urlPattern: '',
   method: '',
   statusFrom: undefined,
   statusTo: undefined
-})
+});
 
 function applyFilter(requestList: LoggedRequest[]): LoggedRequest[] {
-  if (!requestList) return []
-  return requestList.filter(r => {
+  if (!requestList) return [];
+  return requestList.filter((r) => {
     // Null check for request object
     if (!r || !r.request) {
-      return false
+      return false;
     }
     // URL filter
-    if (filter.urlPattern && !r.request.url?.toLowerCase().includes(filter.urlPattern.toLowerCase())) {
-      return false
+    if (
+      filter.urlPattern &&
+      !r.request.url?.toLowerCase().includes(filter.urlPattern.toLowerCase())
+    ) {
+      return false;
     }
     // Method filter
     if (filter.method && r.request.method !== filter.method) {
-      return false
+      return false;
     }
     // Status filter
-    const status = r.response?.status || r.responseDefinition?.status
+    const status = r.response?.status || r.responseDefinition?.status;
     if (filter.statusFrom && (!status || status < filter.statusFrom)) {
-      return false
+      return false;
     }
     if (filter.statusTo && (!status || status > filter.statusTo)) {
-      return false
+      return false;
     }
-    return true
-  })
+    return true;
+  });
 }
 
 const filteredRequests = computed(() => {
-  return applyFilter(requests.value)
-})
+  return applyFilter(requests.value);
+});
 
 const filteredMatchedRequests = computed(() => {
-  return applyFilter(requests.value.filter(r => r.wasMatched))
-})
+  return applyFilter(requests.value.filter((r) => r.wasMatched));
+});
 
 const filteredUnmatchedRequests = computed(() => {
-  return applyFilter(requests.value.filter(r => r.wasMatched === false))
-})
+  return applyFilter(requests.value.filter((r) => r.wasMatched === false));
+});
 
 function onFilterChange(newFilter: FilterState) {
-  Object.assign(filter, newFilter)
+  Object.assign(filter, newFilter);
 }
 
 function onRequestClick(request: LoggedRequest) {
   if (selectedInstanceId.value) {
     // For unmatched requests (wasMatched is not strictly true), store the request data in Pinia store
     // since WireMock API doesn't provide individual request lookup for unmatched requests
-    const isUnmatched = request.wasMatched !== true
+    const isUnmatched = request.wasMatched !== true;
     if (isUnmatched) {
-      requestStore.setPendingRequestDetail(request)
+      requestStore.setPendingRequestDetail(request);
     }
     router.push({
       name: 'request-detail',
@@ -137,65 +150,63 @@ function onRequestClick(request: LoggedRequest) {
         instanceId: selectedInstanceId.value,
         requestId: request.id
       }
-    })
+    });
   }
 }
 
 function onInstanceChange(instanceId: string) {
-  requestStore.setCurrentInstance(instanceId)
+  requestStore.setCurrentInstance(instanceId);
   if (instanceId) {
-    fetchRequests()
+    fetchRequests();
   }
 }
 
 async function fetchRequests() {
-  await requestStore.fetchRequests()
+  await requestStore.fetchRequests();
 }
 
 function confirmClear() {
-  ElMessageBox.confirm(
-    t('requests.confirmClear'),
-    t('common.confirm'),
-    {
-      confirmButtonText: t('common.yes'),
-      cancelButtonText: t('common.no'),
-      type: 'warning'
-    }
-  ).then(async () => {
-    try {
-      await requestStore.resetRequests()
-      ElMessage.success(t('common.success'))
-    } catch (error) {
-      console.error('Failed to clear requests:', error)
-    }
-  }).catch(() => {
-    // Cancelled
+  ElMessageBox.confirm(t('requests.confirmClear'), t('common.confirm'), {
+    confirmButtonText: t('common.yes'),
+    cancelButtonText: t('common.no'),
+    type: 'warning'
   })
+    .then(async () => {
+      try {
+        await requestStore.resetRequests();
+        ElMessage.success(t('common.success'));
+      } catch (error) {
+        console.error('Failed to clear requests:', error);
+      }
+    })
+    .catch(() => {
+      // Cancelled
+    });
 }
 
 // On initialization, fetch instances and select the first one
 onMounted(async () => {
   // Always fetch the latest instances if current project is set
   if (projectStore.currentProjectId) {
-    await projectStore.fetchWiremockInstances(projectStore.currentProjectId)
+    await projectStore.fetchWiremockInstances(projectStore.currentProjectId);
   }
 
   if (wiremockInstances.value.length > 0) {
-    selectedInstanceId.value = wiremockInstances.value[0].id
-    onInstanceChange(selectedInstanceId.value)
+    selectedInstanceId.value = wiremockInstances.value[0].id;
+    onInstanceChange(selectedInstanceId.value);
   }
-})
+});
 
 // Re-check when instance list changes
 watch(wiremockInstances, (instances) => {
   if (instances.length > 0 && !selectedInstanceId.value) {
-    selectedInstanceId.value = instances[0].id
-    onInstanceChange(selectedInstanceId.value)
+    selectedInstanceId.value = instances[0].id;
+    onInstanceChange(selectedInstanceId.value);
   } else if (instances.length === 0) {
-    selectedInstanceId.value = null
-    requestStore.setCurrentInstance(null)
+    selectedInstanceId.value = null;
+    requestStore.setCurrentInstance(null);
   }
-})
+});
 </script>
 
 <style scoped>

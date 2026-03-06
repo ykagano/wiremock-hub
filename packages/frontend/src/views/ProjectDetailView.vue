@@ -49,11 +49,21 @@
     <!-- Instance list -->
     <div class="instances-section">
       <div class="section-header">
-        <el-button type="success" @click="handleSyncAll" :loading="syncing" :disabled="instances.length === 0">
+        <el-button
+          type="success"
+          @click="handleSyncAll"
+          :loading="syncing"
+          :disabled="instances.length === 0"
+        >
           <el-icon><Refresh /></el-icon>
           {{ t('instances.syncAll') }}
         </el-button>
-        <el-button type="warning" @click="handleAppendAll" :loading="appending" :disabled="instances.length === 0">
+        <el-button
+          type="warning"
+          @click="handleAppendAll"
+          :loading="appending"
+          :disabled="instances.length === 0"
+        >
           <el-icon><Plus /></el-icon>
           {{ t('instances.appendAll') }}
         </el-button>
@@ -63,7 +73,10 @@
         </el-button>
       </div>
 
-      <el-empty v-if="!loadingInstances && instances.length === 0" :description="t('instances.noInstances')">
+      <el-empty
+        v-if="!loadingInstances && instances.length === 0"
+        :description="t('instances.noInstances')"
+      >
         <el-button type="primary" @click="showInstanceDialog = true">
           {{ t('instances.addFirst') }}
         </el-button>
@@ -165,10 +178,7 @@
           />
         </el-form-item>
         <el-form-item :label="t('instances.url')" prop="url">
-          <el-input
-            v-model="instanceFormData.url"
-            :placeholder="t('instances.placeholder.url')"
-          />
+          <el-input v-model="instanceFormData.url" :placeholder="t('instances.placeholder.url')" />
         </el-form-item>
       </el-form>
 
@@ -217,41 +227,53 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useProjectStore } from '@/stores/project'
-import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
-import { useResponsive } from '@/composables/useResponsive'
-import { projectApi, wiremockInstanceApi, type Project, type WiremockInstance } from '@/services/api'
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import dayjs from 'dayjs'
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useProjectStore } from '@/stores/project';
+import { useSyncAllInstances } from '@/composables/useSyncAllInstances';
+import { useResponsive } from '@/composables/useResponsive';
+import {
+  projectApi,
+  wiremockInstanceApi,
+  type Project,
+  type WiremockInstance
+} from '@/services/api';
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
+import dayjs from 'dayjs';
 
-const route = useRoute()
-const router = useRouter()
-const { t } = useI18n()
-const { isMobile } = useResponsive()
-const projectStore = useProjectStore()
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n();
+const { isMobile } = useResponsive();
+const projectStore = useProjectStore();
 
-const project = ref<Project | null>(null)
-const instances = ref<WiremockInstance[]>([])
-const loadingInstances = ref(true)
-const { syncing, appending, confirmAndSyncAllWithInstances, confirmAndSyncInstance, confirmAndAppendAllWithInstances, confirmAndAppendInstance } = useSyncAllInstances()
-const syncingIds = ref(new Set<string>())
-const appendingIds = ref(new Set<string>())
+const project = ref<Project | null>(null);
+const instances = ref<WiremockInstance[]>([]);
+const loadingInstances = ref(true);
+const {
+  syncing,
+  appending,
+  confirmAndSyncAllWithInstances,
+  confirmAndSyncInstance,
+  confirmAndAppendAllWithInstances,
+  confirmAndAppendInstance
+} = useSyncAllInstances();
+const syncingIds = ref(new Set<string>());
+const appendingIds = ref(new Set<string>());
 
 // Instance dialog
-const showInstanceDialog = ref(false)
-const editingInstance = ref<WiremockInstance | null>(null)
-const savingInstance = ref(false)
-const instanceFormRef = ref<FormInstance>()
-const instanceFormData = reactive({ name: '', url: '' })
+const showInstanceDialog = ref(false);
+const editingInstance = ref<WiremockInstance | null>(null);
+const savingInstance = ref(false);
+const instanceFormRef = ref<FormInstance>();
+const instanceFormData = reactive({ name: '', url: '' });
 
 // Project dialog
-const showProjectDialog = ref(false)
-const savingProject = ref(false)
-const projectFormRef = ref<FormInstance>()
-const projectFormData = reactive({ name: '', description: '' })
+const showProjectDialog = ref(false);
+const savingProject = ref(false);
+const projectFormRef = ref<FormInstance>();
+const projectFormData = reactive({ name: '', description: '' });
 
 const instanceFormRules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('instances.validation.nameRequired'), trigger: 'blur' }],
@@ -259,98 +281,98 @@ const instanceFormRules = computed<FormRules>(() => ({
     { required: true, message: t('instances.validation.urlRequired'), trigger: 'blur' },
     { pattern: /^https?:\/\/.+/, message: t('instances.validation.urlInvalid'), trigger: 'blur' }
   ]
-}))
+}));
 
 const projectFormRules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('projects.validation.nameRequired'), trigger: 'blur' }]
-}))
+}));
 
 onMounted(async () => {
-  const projectId = route.params.id as string
-  await loadProject(projectId)
-})
+  const projectId = route.params.id as string;
+  await loadProject(projectId);
+});
 
 async function loadProject(projectId: string) {
   try {
-    project.value = await projectApi.get(projectId)
-    projectStore.setCurrentProject(projectId)
-    await loadInstances(projectId)
+    project.value = await projectApi.get(projectId);
+    projectStore.setCurrentProject(projectId);
+    await loadInstances(projectId);
   } catch (error: any) {
-    ElMessage.error(error.message || t('common.error'))
-    router.push('/projects')
+    ElMessage.error(error.message || t('common.error'));
+    router.push('/projects');
   }
 }
 
-const checkingHealthIds = ref(new Set<string>())
+const checkingHealthIds = ref(new Set<string>());
 
 function updateInstance(id: string, data: Partial<WiremockInstance>) {
-  const idx = instances.value.findIndex(i => i.id === id)
-  if (idx !== -1) instances.value[idx] = { ...instances.value[idx], ...data }
+  const idx = instances.value.findIndex((i) => i.id === id);
+  if (idx !== -1) instances.value[idx] = { ...instances.value[idx], ...data };
 }
 
 async function runHealthCheck(instance: WiremockInstance): Promise<WiremockInstance> {
-  checkingHealthIds.value.add(instance.id)
+  checkingHealthIds.value.add(instance.id);
   try {
-    const detail = await wiremockInstanceApi.get(instance.id)
-    updateInstance(instance.id, detail)
-    return detail
+    const detail = await wiremockInstanceApi.get(instance.id);
+    updateInstance(instance.id, detail);
+    return detail;
   } catch {
-    updateInstance(instance.id, { isHealthy: false })
-    return { ...instance, isHealthy: false }
+    updateInstance(instance.id, { isHealthy: false });
+    return { ...instance, isHealthy: false };
   } finally {
-    checkingHealthIds.value.delete(instance.id)
+    checkingHealthIds.value.delete(instance.id);
   }
 }
 
 async function loadInstances(projectId: string) {
-  loadingInstances.value = true
+  loadingInstances.value = true;
   try {
-    const list = await wiremockInstanceApi.list(projectId)
-    instances.value = list
-    await Promise.all(list.map(runHealthCheck))
+    const list = await wiremockInstanceApi.list(projectId);
+    instances.value = list;
+    await Promise.all(list.map(runHealthCheck));
   } finally {
-    loadingInstances.value = false
+    loadingInstances.value = false;
   }
 }
 
 function formatDate(dateString: string) {
-  return dayjs(dateString).format('YYYY/MM/DD HH:mm')
+  return dayjs(dateString).format('YYYY/MM/DD HH:mm');
 }
 
 function goBack() {
-  router.push('/projects')
+  router.push('/projects');
 }
 
 async function copyProjectId() {
-  if (!project.value) return
+  if (!project.value) return;
   try {
-    await navigator.clipboard.writeText(project.value.id)
-    ElMessage.success(t('projectDetail.copyProjectId'))
+    await navigator.clipboard.writeText(project.value.id);
+    ElMessage.success(t('projectDetail.copyProjectId'));
   } catch {
-    ElMessage.error(t('common.error'))
+    ElMessage.error(t('common.error'));
   }
 }
 
 // Project
 function editProject() {
-  if (!project.value) return
-  projectFormData.name = project.value.name
-  projectFormData.description = project.value.description || ''
-  showProjectDialog.value = true
+  if (!project.value) return;
+  projectFormData.name = project.value.name;
+  projectFormData.description = project.value.description || '';
+  showProjectDialog.value = true;
 }
 
 async function saveProject() {
-  if (!projectFormRef.value || !project.value) return
+  if (!projectFormRef.value || !project.value) return;
   try {
-    await projectFormRef.value.validate()
-    savingProject.value = true
-    project.value = await projectApi.update(project.value.id, projectFormData)
-    showProjectDialog.value = false
-    ElMessage.success(t('common.success'))
+    await projectFormRef.value.validate();
+    savingProject.value = true;
+    project.value = await projectApi.update(project.value.id, projectFormData);
+    showProjectDialog.value = false;
+    ElMessage.success(t('common.success'));
   } catch (error: any) {
-    if (error.message) ElMessage.error(error.message)
+    if (error.message) ElMessage.error(error.message);
   } finally {
-    savingProject.value = false
+    savingProject.value = false;
   }
 }
 
@@ -358,71 +380,71 @@ async function saveProject() {
 // Health status has 3 states: checking (in checkingHealthIds), healthy (true), unhealthy (false).
 // isHealthy is undefined only briefly before runHealthCheck runs; the fallback treats it as unhealthy.
 function isCheckingHealth(instance: WiremockInstance) {
-  return checkingHealthIds.value.has(instance.id)
+  return checkingHealthIds.value.has(instance.id);
 }
 
 function getHealthIcon(instance: WiremockInstance) {
-  if (isCheckingHealth(instance)) return 'Loading'
-  return instance.isHealthy ? 'CircleCheckFilled' : 'CircleCloseFilled'
+  if (isCheckingHealth(instance)) return 'Loading';
+  return instance.isHealthy ? 'CircleCheckFilled' : 'CircleCloseFilled';
 }
 
 function getHealthClass(instance: WiremockInstance) {
-  if (isCheckingHealth(instance)) return 'health-checking'
-  return instance.isHealthy ? 'health-ok' : 'health-error'
+  if (isCheckingHealth(instance)) return 'health-checking';
+  return instance.isHealthy ? 'health-ok' : 'health-error';
 }
 
 function getHealthTagType(instance: WiremockInstance) {
-  if (isCheckingHealth(instance)) return 'warning'
-  return instance.isHealthy ? 'success' : 'danger'
+  if (isCheckingHealth(instance)) return 'warning';
+  return instance.isHealthy ? 'success' : 'danger';
 }
 
 function getHealthText(instance: WiremockInstance) {
-  if (isCheckingHealth(instance)) return t('instances.statusChecking')
-  return instance.isHealthy ? t('instances.statusHealthy') : t('instances.statusUnhealthy')
+  if (isCheckingHealth(instance)) return t('instances.statusChecking');
+  return instance.isHealthy ? t('instances.statusHealthy') : t('instances.statusUnhealthy');
 }
 
 async function checkHealth(instance: WiremockInstance) {
-  const result = await runHealthCheck(instance)
+  const result = await runHealthCheck(instance);
   ElMessage[result.isHealthy ? 'success' : 'warning'](
     result.isHealthy ? t('instances.healthOk') : t('instances.healthFailed')
-  )
+  );
 }
 
 function syncInstance(instance: WiremockInstance) {
-  if (!project.value) return
+  if (!project.value) return;
   confirmAndSyncInstance(
     project.value.id,
     instance,
     () => syncingIds.value.add(instance.id),
     () => syncingIds.value.delete(instance.id)
-  )
+  );
 }
 
 function handleSyncAll() {
-  if (!project.value) return
-  confirmAndSyncAllWithInstances(project.value.id, instances.value)
+  if (!project.value) return;
+  confirmAndSyncAllWithInstances(project.value.id, instances.value);
 }
 
 function appendInstance(instance: WiremockInstance) {
-  if (!project.value) return
+  if (!project.value) return;
   confirmAndAppendInstance(
     project.value.id,
     instance,
     () => appendingIds.value.add(instance.id),
     () => appendingIds.value.delete(instance.id)
-  )
+  );
 }
 
 function handleAppendAll() {
-  if (!project.value) return
-  confirmAndAppendAllWithInstances(project.value.id, instances.value)
+  if (!project.value) return;
+  confirmAndAppendAllWithInstances(project.value.id, instances.value);
 }
 
 function editInstance(instance: WiremockInstance) {
-  editingInstance.value = instance
-  instanceFormData.name = instance.name
-  instanceFormData.url = instance.url
-  showInstanceDialog.value = true
+  editingInstance.value = instance;
+  instanceFormData.name = instance.name;
+  instanceFormData.url = instance.url;
+  showInstanceDialog.value = true;
 }
 
 function confirmDeleteInstance(instance: WiremockInstance) {
@@ -430,41 +452,46 @@ function confirmDeleteInstance(instance: WiremockInstance) {
     confirmButtonText: t('common.yes'),
     cancelButtonText: t('common.no'),
     type: 'warning'
-  }).then(async () => {
-    await wiremockInstanceApi.delete(instance.id)
-    instances.value = instances.value.filter(i => i.id !== instance.id)
-    ElMessage.success(t('common.success'))
-  }).catch(() => {})
+  })
+    .then(async () => {
+      await wiremockInstanceApi.delete(instance.id);
+      instances.value = instances.value.filter((i) => i.id !== instance.id);
+      ElMessage.success(t('common.success'));
+    })
+    .catch(() => {});
 }
 
 async function saveInstance() {
-  if (!instanceFormRef.value || !project.value) return
+  if (!instanceFormRef.value || !project.value) return;
   try {
-    await instanceFormRef.value.validate()
-    savingInstance.value = true
+    await instanceFormRef.value.validate();
+    savingInstance.value = true;
     if (editingInstance.value) {
-      const updated = await wiremockInstanceApi.update(editingInstance.value.id, instanceFormData)
-      updateInstance(editingInstance.value.id, updated)
+      const updated = await wiremockInstanceApi.update(editingInstance.value.id, instanceFormData);
+      updateInstance(editingInstance.value.id, updated);
     } else {
-      const created = await wiremockInstanceApi.create({ ...instanceFormData, projectId: project.value.id })
-      instances.value.unshift(created)
-      runHealthCheck(created)
+      const created = await wiremockInstanceApi.create({
+        ...instanceFormData,
+        projectId: project.value.id
+      });
+      instances.value.unshift(created);
+      runHealthCheck(created);
     }
-    closeInstanceDialog()
-    ElMessage.success(t('common.success'))
+    closeInstanceDialog();
+    ElMessage.success(t('common.success'));
   } catch (error: any) {
-    if (error.message) ElMessage.error(error.message)
+    if (error.message) ElMessage.error(error.message);
   } finally {
-    savingInstance.value = false
+    savingInstance.value = false;
   }
 }
 
 function closeInstanceDialog() {
-  showInstanceDialog.value = false
-  editingInstance.value = null
-  instanceFormData.name = ''
-  instanceFormData.url = ''
-  instanceFormRef.value?.resetFields()
+  showInstanceDialog.value = false;
+  editingInstance.value = null;
+  instanceFormData.name = '';
+  instanceFormData.url = '';
+  instanceFormRef.value?.resetFields();
 }
 </script>
 
@@ -571,16 +598,24 @@ function closeInstanceDialog() {
   margin-top: 2px;
 }
 
-.health-ok { color: var(--el-color-success); }
-.health-error { color: var(--el-color-danger); }
+.health-ok {
+  color: var(--el-color-success);
+}
+.health-error {
+  color: var(--el-color-danger);
+}
 .health-checking {
   color: var(--el-color-warning);
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .card-actions {
@@ -605,7 +640,9 @@ function closeInstanceDialog() {
   margin-bottom: 12px;
 }
 
-.info-icon { color: var(--wh-text-tertiary); }
+.info-icon {
+  color: var(--wh-text-tertiary);
+}
 
 .instance-url {
   font-family: monospace;
