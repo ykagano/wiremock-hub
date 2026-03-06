@@ -5,6 +5,7 @@
       type="textarea"
       :rows="rows"
       :placeholder="placeholder"
+      @focus="isEditing = true"
       @blur="handleBlur"
       class="json-input"
     />
@@ -36,9 +37,11 @@ const emit = defineEmits<{
 
 const jsonText = ref('')
 const error = ref('')
+const isEditing = ref(false)
 
-// Initialization
+// Sync from parent to jsonText, but skip while user is editing
 watch(() => props.modelValue, (value) => {
+  if (isEditing.value) return
   if (value) {
     try {
       jsonText.value = JSON.stringify(value, null, 2)
@@ -52,6 +55,7 @@ watch(() => props.modelValue, (value) => {
 }, { immediate: true, deep: true })
 
 function handleBlur() {
+  isEditing.value = false
   try {
     if (jsonText.value.trim()) {
       const parsed = JSON.parse(jsonText.value)

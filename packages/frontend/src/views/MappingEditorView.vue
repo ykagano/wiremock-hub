@@ -207,7 +207,8 @@
       <el-tab-pane :label="t('editor.json')" name="json">
         <el-card>
           <JsonEditor
-            v-model="formData"
+            :modelValue="formData"
+            @update:modelValue="handleJsonUpdate"
             :rows="25"
           />
         </el-card>
@@ -290,6 +291,21 @@ function handleUrlTypeChange() {
   }
 }
 
+// Sync helper refs (urlType, urlValue, requestBodyText) from request data
+function syncHelperRefsFromRequest(req: Mapping['request']) {
+  if (req.url) { urlType.value = 'url'; urlValue.value = req.url }
+  else if (req.urlPattern) { urlType.value = 'urlPattern'; urlValue.value = req.urlPattern }
+  else if (req.urlPath) { urlType.value = 'urlPath'; urlValue.value = req.urlPath }
+  else if (req.urlPathPattern) { urlType.value = 'urlPathPattern'; urlValue.value = req.urlPathPattern }
+  else { urlValue.value = '' }
+
+  if (req.bodyPatterns && req.bodyPatterns[0]?.equalTo) {
+    requestBodyText.value = req.bodyPatterns[0].equalTo
+  } else {
+    requestBodyText.value = ''
+  }
+}
+
 // Initialization
 onMounted(async () => {
   if (!isNew.value) {
@@ -306,26 +322,7 @@ onMounted(async () => {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
         // Restore name from stub DB column (mapping may not contain it after import cleanup)
         formData.name = stub.name || formData.name
-
-        // Detect URL type
-        if (mapping.request.url) {
-          urlType.value = 'url'
-          urlValue.value = mapping.request.url
-        } else if (mapping.request.urlPattern) {
-          urlType.value = 'urlPattern'
-          urlValue.value = mapping.request.urlPattern
-        } else if (mapping.request.urlPath) {
-          urlType.value = 'urlPath'
-          urlValue.value = mapping.request.urlPath
-        } else if (mapping.request.urlPathPattern) {
-          urlType.value = 'urlPathPattern'
-          urlValue.value = mapping.request.urlPathPattern
-        }
-
-        // Request body
-        if (mapping.request.bodyPatterns && mapping.request.bodyPatterns[0]?.equalTo) {
-          requestBodyText.value = mapping.request.bodyPatterns[0].equalTo
-        }
+        syncHelperRefsFromRequest(mapping.request)
       }
     } catch (error) {
       console.error('Failed to load mapping:', error)
@@ -348,11 +345,13 @@ async function handleSave() {
 
   saving.value = true
   try {
-    // Convert request body to bodyPatterns
+    // Sync request body text to bodyPatterns
     if (requestBodyText.value) {
       formData.request.bodyPatterns = [
         { equalTo: requestBodyText.value }
       ]
+    } else {
+      delete formData.request.bodyPatterns
     }
 
     if (isNew.value) {
@@ -370,6 +369,17 @@ async function handleSave() {
     ElMessage.error(error.message || t('messages.mapping.saveFailed'))
   } finally {
     saving.value = false
+  }
+}
+
+function handleJsonUpdate(newValue: Mapping | undefined) {
+  if (newValue) {
+    // Clear all existing keys, then merge new data
+    for (const key of Object.keys(formData)) {
+      delete (formData as any)[key]
+    }
+    Object.assign(formData, newValue)
+    syncHelperRefsFromRequest(formData.request || {})
   }
 }
 

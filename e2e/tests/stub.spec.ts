@@ -353,6 +353,131 @@ test.describe('Stub', () => {
     await cleanupProject(page, testProjectName)
   })
 
+  test('should save changes made via JSON editor tab', async ({ page }) => {
+    const testProjectName = `JSON Edit Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Create a simple stub first
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await urlInput.fill('/api/json-edit-test')
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    const responseTextarea = page.getByPlaceholder('{"message": "success"}')
+    await responseTextarea.fill('{"message": "original"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/json-edit-test' })).toBeVisible({ timeout: 10000 })
+
+    // Open stub for editing
+    await page.locator('.el-table__row', { hasText: '/api/json-edit-test' }).click()
+
+    // Switch to JSON tab
+    await page.getByRole('tab', { name: 'JSON' }).click()
+    const jsonTextarea = page.locator('.json-editor textarea').last()
+    await expect(jsonTextarea).toBeVisible()
+
+    // Get current JSON, modify response body and URL via JSON editor
+    const currentJson = await jsonTextarea.inputValue()
+    const parsed = JSON.parse(currentJson)
+    parsed.request.url = '/api/json-edited'
+    parsed.response.body = '{"message": "edited-via-json"}'
+    parsed.response.status = 201
+
+    // Clear and type new JSON
+    await jsonTextarea.click()
+    await jsonTextarea.fill(JSON.stringify(parsed, null, 2))
+
+    // Click save (this triggers blur on textarea first)
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/json-edited' })).toBeVisible({ timeout: 10000 })
+
+    // Reopen stub and verify changes were saved
+    await page.locator('.el-table__row', { hasText: '/api/json-edited' }).click()
+
+    // Verify via JSON tab
+    await page.getByRole('tab', { name: 'JSON' }).click()
+    const verifyTextarea = page.locator('.json-editor textarea').last()
+    await expect(verifyTextarea).toHaveValue(/\/api\/json-edited/)
+    await expect(verifyTextarea).toHaveValue(/edited-via-json/)
+    await expect(verifyTextarea).toHaveValue(/201/)
+
+    // Also verify form fields were synced
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+    await expect(page.getByPlaceholder('e.g. /api/users')).toHaveValue('/api/json-edited')
+
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click()
+    await expect(page.getByPlaceholder('{"message": "success"}')).toHaveValue('{"message": "edited-via-json"}')
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
+  test('should clear request body when text is emptied', async ({ page }) => {
+    const testProjectName = `Body Clear Test ${Date.now()}`
+
+    // Create project
+    await page.locator('.page-header').getByRole('button', { name: /プロジェクト追加|Add Project/ }).click()
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName)
+    await page.locator('.el-dialog').getByRole('button', { name: /保存|Save/ }).click()
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName })
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click()
+    await page.waitForTimeout(1000)
+
+    // Create a stub with request body
+    await page.getByRole('button', { name: /新規作成|Create New/ }).first().click()
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+    const urlInput = page.getByPlaceholder('e.g. /api/users')
+    await urlInput.fill('/api/body-clear-test')
+    const requestBodyTextarea = page.getByPlaceholder('{"key": "value"}')
+    await requestBodyTextarea.fill('{"name": "to-be-deleted"}')
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/body-clear-test' })).toBeVisible({ timeout: 10000 })
+
+    // Verify body was saved by checking JSON
+    await page.locator('.el-table__row', { hasText: '/api/body-clear-test' }).click()
+    await page.getByRole('tab', { name: 'JSON' }).click()
+    const jsonTextarea = page.locator('.json-editor textarea').last()
+    await expect(jsonTextarea).toHaveValue(/to-be-deleted/)
+
+    // Go to Request tab and clear the body
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click()
+    const bodyTextarea = page.getByPlaceholder('{"key": "value"}')
+    await bodyTextarea.clear()
+
+    // Save
+    await page.getByRole('button', { name: /保存|Save/ }).click()
+    await expect(page.locator('.el-table__row', { hasText: '/api/body-clear-test' })).toBeVisible({ timeout: 10000 })
+
+    // Reopen and verify body is gone
+    await page.locator('.el-table__row', { hasText: '/api/body-clear-test' }).click()
+    await page.getByRole('tab', { name: 'JSON' }).click()
+    const verifyTextarea = page.locator('.json-editor textarea').last()
+    await expect(verifyTextarea).not.toHaveValue(/to-be-deleted/)
+    await expect(verifyTextarea).not.toHaveValue(/bodyPatterns/)
+
+    // Clean up
+    await cleanupProject(page, testProjectName)
+  })
+
   test('should reset all stubs in wiremock-hub', async ({ page, request }) => {
     const testProjectName = `Reset Stubs Test ${Date.now()}`
 
