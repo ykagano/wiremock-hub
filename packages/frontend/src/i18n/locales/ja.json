@@ -234,7 +234,7 @@
     "addFirst": "最初のインスタンスを追加してください",
     "statusHealthy": "接続OK",
     "statusUnhealthy": "接続エラー",
-    "statusUnknown": "未確認",
+    "statusChecking": "確認中...",
     "inactive": "無効",
     "healthOk": "接続に成功しました",
     "healthFailed": "接続に失敗しました",
