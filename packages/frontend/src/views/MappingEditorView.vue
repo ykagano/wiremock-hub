@@ -349,11 +349,13 @@ async function handleSave() {
 
   saving.value = true
   try {
-    // Convert request body to bodyPatterns
+    // Sync request body text to bodyPatterns
     if (requestBodyText.value) {
       formData.request.bodyPatterns = [
         { equalTo: requestBodyText.value }
       ]
+    } else {
+      delete formData.request.bodyPatterns
     }
 
     if (isNew.value) {
