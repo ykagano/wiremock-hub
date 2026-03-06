@@ -112,7 +112,7 @@
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
+          :page-sizes="pageSizes"
           :total="mappings.length"
           layout="total, sizes, prev, pager, next, jumper"
         />
@@ -136,6 +136,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { Mapping } from '@/types/wiremock';
 import { getMethodTagType, getUrl } from '@/utils/wiremock';
 import { useResponsive } from '@/composables/useResponsive';
+import { usePageSize } from '@/composables/usePageSize';
 
 const { t } = useI18n();
 const { isMobile } = useResponsive();
@@ -146,7 +147,7 @@ const selectedInstanceId = ref<string | null>(null);
 const mappings = ref<Mapping[]>([]);
 const loading = ref(false);
 const currentPage = ref(1);
-const pageSize = ref(20);
+const { pageSize, pageSizes } = usePageSize();
 
 const paginatedMappings = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;

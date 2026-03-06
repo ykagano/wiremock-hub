@@ -176,7 +176,7 @@
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="pageSizes"
         :total="filteredMappings.length"
         layout="total, sizes, prev, pager, next, jumper"
       />
@@ -195,6 +195,7 @@ import { useMappingStore } from '@/stores/mapping';
 import { useProjectStore } from '@/stores/project';
 import { useSyncAllInstances } from '@/composables/useSyncAllInstances';
 import { useResponsive } from '@/composables/useResponsive';
+import { usePageSize } from '@/composables/usePageSize';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { Mapping, MappingRequest } from '@/types/wiremock';
@@ -211,7 +212,7 @@ const { isMobile } = useResponsive();
 const searchQuery = ref('');
 const filterMethod = ref('');
 const currentPage = ref(1);
-const pageSize = ref(20);
+const { pageSize, pageSizes } = usePageSize();
 const testDialogVisible = ref(false);
 const testTargetStubId = ref('');
 

@@ -130,6 +130,17 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  validate-nginx-config:
+    name: Validate nginx Config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate nginx config syntax
+        run: docker run --rm -v ${{ github.workspace }}/allinone/nginx.conf:/etc/nginx/http.d/default.conf:ro nginx:alpine nginx -t
+
   docker-build-allinone:
     name: Docker Build - All-in-One
     runs-on: ubuntu-latest

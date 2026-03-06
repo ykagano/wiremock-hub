@@ -60,7 +60,7 @@
 
         <el-table-column :label="t('common.actions')" width="80" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click.stop="onRowClick(row)">
+            <el-button type="primary" size="small" @click.stop="onRowClick(row)">
               {{ t('requests.detail') }}
             </el-button>
           </template>
@@ -71,7 +71,7 @@
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
+          :page-sizes="pageSizes"
           :total="requests.length"
           layout="total, sizes, prev, pager, next, jumper"
         />
@@ -86,6 +86,7 @@ import { useI18n } from 'vue-i18n';
 import type { LoggedRequest } from '@/types/wiremock';
 import { getMethodTagType, getStatusTagType } from '@/utils/wiremock';
 import { useResponsive } from '@/composables/useResponsive';
+import { usePageSize } from '@/composables/usePageSize';
 import dayjs from 'dayjs';
 
 const props = defineProps<{
@@ -100,7 +101,7 @@ const { t } = useI18n();
 const { isMobile } = useResponsive();
 
 const currentPage = ref(1);
-const pageSize = ref(20);
+const { pageSize, pageSizes } = usePageSize();
 
 const paginatedRequests = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
