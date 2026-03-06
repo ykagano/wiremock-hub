@@ -1,9 +1,6 @@
 <template>
   <div>
-    <el-empty
-      v-if="requests.length === 0"
-      :description="t('requests.noRequests')"
-    />
+    <el-empty v-if="requests.length === 0" :description="t('requests.noRequests')" />
 
     <template v-else>
       <el-table
@@ -84,49 +81,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import type { LoggedRequest } from '@/types/wiremock'
-import { getMethodTagType, getStatusTagType } from '@/utils/wiremock'
-import { useResponsive } from '@/composables/useResponsive'
-import dayjs from 'dayjs'
+import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import type { LoggedRequest } from '@/types/wiremock';
+import { getMethodTagType, getStatusTagType } from '@/utils/wiremock';
+import { useResponsive } from '@/composables/useResponsive';
+import dayjs from 'dayjs';
 
 const props = defineProps<{
-  requests: LoggedRequest[]
-}>()
+  requests: LoggedRequest[];
+}>();
 
 const emit = defineEmits<{
-  (e: 'row-click', request: LoggedRequest): void
-}>()
+  (e: 'row-click', request: LoggedRequest): void;
+}>();
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
+const { t } = useI18n();
+const { isMobile } = useResponsive();
 
-const currentPage = ref(1)
-const pageSize = ref(20)
+const currentPage = ref(1);
+const pageSize = ref(20);
 
 const paginatedRequests = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return props.requests.slice(start, end)
-})
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return props.requests.slice(start, end);
+});
 
 // Reset to first page when requests change
-watch(() => props.requests, () => {
-  currentPage.value = 1
-})
+watch(
+  () => props.requests,
+  () => {
+    currentPage.value = 1;
+  }
+);
 
 function formatDate(timestamp: number) {
-  return dayjs(timestamp).format('YYYY/MM/DD HH:mm:ss')
+  return dayjs(timestamp).format('YYYY/MM/DD HH:mm:ss');
 }
 
-
 function getResponseStatus(row: LoggedRequest): number | undefined {
-  return row.response?.status || row.responseDefinition?.status
+  return row.response?.status || row.responseDefinition?.status;
 }
 
 function onRowClick(row: LoggedRequest) {
-  emit('row-click', row)
+  emit('row-click', row);
 }
 </script>
 

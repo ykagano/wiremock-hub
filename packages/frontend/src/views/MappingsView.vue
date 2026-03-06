@@ -15,11 +15,21 @@
           <el-icon><Download /></el-icon>
           {{ t('mappings.export') }}
         </el-button>
-        <el-button type="success" @click="handleSyncAll" :loading="syncing" :disabled="mappings.length === 0">
+        <el-button
+          type="success"
+          @click="handleSyncAll"
+          :loading="syncing"
+          :disabled="mappings.length === 0"
+        >
           <el-icon><Refresh /></el-icon>
           {{ t('instances.syncAll') }}
         </el-button>
-        <el-button type="warning" @click="handleAppendAll" :loading="appending" :disabled="mappings.length === 0">
+        <el-button
+          type="warning"
+          @click="handleAppendAll"
+          :loading="appending"
+          :disabled="mappings.length === 0"
+        >
           <el-icon><Plus /></el-icon>
           {{ t('instances.appendAll') }}
         </el-button>
@@ -144,30 +154,16 @@
       <el-table-column :label="t('common.actions')" :width="isMobile ? 150 : 220" fixed="right">
         <template #default="{ row }">
           <el-button-group>
-            <el-button
-              size="small"
-              type="success"
-              @click.stop="openTestDialog(row)"
-            >
+            <el-button size="small" type="success" @click.stop="openTestDialog(row)">
               <el-icon><CaretRight /></el-icon>
             </el-button>
-            <el-button
-              size="small"
-              @click.stop="editMapping(row)"
-            >
+            <el-button size="small" @click.stop="editMapping(row)">
               <el-icon><Edit /></el-icon>
             </el-button>
-            <el-button
-              size="small"
-              @click.stop="copyMapping(row)"
-            >
+            <el-button size="small" @click.stop="copyMapping(row)">
               <el-icon><CopyDocument /></el-icon>
             </el-button>
-            <el-button
-              size="small"
-              type="danger"
-              @click.stop="confirmDelete(row)"
-            >
+            <el-button size="small" type="danger" @click.stop="confirmDelete(row)">
               <el-icon><Delete /></el-icon>
             </el-button>
           </el-button-group>
@@ -191,141 +187,147 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
-import { useMappingStore } from '@/stores/mapping'
-import { useProjectStore } from '@/stores/project'
-import { useSyncAllInstances } from '@/composables/useSyncAllInstances'
-import { useResponsive } from '@/composables/useResponsive'
-import StubTestDialog from '@/components/mapping/StubTestDialog.vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { Mapping, MappingRequest } from '@/types/wiremock'
-import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock'
+import { ref, computed, onMounted, h } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { useMappingStore } from '@/stores/mapping';
+import { useProjectStore } from '@/stores/project';
+import { useSyncAllInstances } from '@/composables/useSyncAllInstances';
+import { useResponsive } from '@/composables/useResponsive';
+import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import type { Mapping, MappingRequest } from '@/types/wiremock';
+import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock';
 
-const { t } = useI18n()
-const router = useRouter()
-const mappingStore = useMappingStore()
-const { mappings, loading } = storeToRefs(mappingStore)
-const projectStore = useProjectStore()
-const { syncing, appending, confirmAndSyncAll, confirmAndAppendAll } = useSyncAllInstances()
-const { isMobile } = useResponsive()
+const { t } = useI18n();
+const router = useRouter();
+const mappingStore = useMappingStore();
+const { mappings, loading } = storeToRefs(mappingStore);
+const projectStore = useProjectStore();
+const { syncing, appending, confirmAndSyncAll, confirmAndAppendAll } = useSyncAllInstances();
+const { isMobile } = useResponsive();
 
-const searchQuery = ref('')
-const filterMethod = ref('')
-const currentPage = ref(1)
-const pageSize = ref(20)
-const testDialogVisible = ref(false)
-const testTargetStubId = ref('')
+const searchQuery = ref('');
+const filterMethod = ref('');
+const currentPage = ref(1);
+const pageSize = ref(20);
+const testDialogVisible = ref(false);
+const testTargetStubId = ref('');
 
 // Filtering
 const filteredMappings = computed(() => {
-  let result = mappings.value
+  let result = mappings.value;
 
   // Method filter
   if (filterMethod.value) {
-    result = result.filter(m => m.request.method === filterMethod.value)
+    result = result.filter((m) => m.request.method === filterMethod.value);
   }
 
   // Search query filter
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(m => {
-      const url = getUrl(m.request).toLowerCase()
-      const method = (m.request.method || '').toLowerCase()
-      const scenario = (m.scenarioName || '').toLowerCase()
-      const name = (m.name || '').toLowerCase()
-      return url.includes(query) || method.includes(query) || scenario.includes(query) || name.includes(query)
-    })
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter((m) => {
+      const url = getUrl(m.request).toLowerCase();
+      const method = (m.request.method || '').toLowerCase();
+      const scenario = (m.scenarioName || '').toLowerCase();
+      const name = (m.name || '').toLowerCase();
+      return (
+        url.includes(query) ||
+        method.includes(query) ||
+        scenario.includes(query) ||
+        name.includes(query)
+      );
+    });
   }
 
-  return result
-})
+  return result;
+});
 
 // Pagination
 const paginatedMappings = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredMappings.value.slice(start, end)
-})
-
-
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredMappings.value.slice(start, end);
+});
 
 function formatRequest(request: MappingRequest): string {
-  return JSON.stringify(request, null, 2)
+  return JSON.stringify(request, null, 2);
 }
 
 function formatResponse(response: any): string {
-  return JSON.stringify(response, null, 2)
+  return JSON.stringify(response, null, 2);
 }
 
 // Actions
 async function fetchMappings() {
-  await mappingStore.fetchMappings()
+  await mappingStore.fetchMappings();
 }
 
 function createNewMapping() {
-  router.push('/mappings/new')
+  router.push('/mappings/new');
 }
 
 function editMapping(mapping: Mapping) {
-  router.push(`/mappings/${mapping.id || mapping.uuid}`)
+  router.push(`/mappings/${mapping.id || mapping.uuid}`);
 }
 
 function handleRowClick(row: Mapping) {
-  editMapping(row)
+  editMapping(row);
 }
 
 function openTestDialog(mapping: Mapping) {
-  testTargetStubId.value = mapping.id || mapping.uuid || ''
-  testDialogVisible.value = true
+  testTargetStubId.value = mapping.id || mapping.uuid || '';
+  testDialogVisible.value = true;
 }
 
 async function copyMapping(mapping: Mapping) {
   try {
-    const stub = mapping.id ? mappingStore.getStubById(mapping.id) : undefined
+    const stub = mapping.id ? mappingStore.getStubById(mapping.id) : undefined;
     const newMapping: Mapping = {
       ...mapping,
       id: undefined,
       uuid: undefined,
       name: mapping.name ? `${mapping.name} (copy)` : undefined
-    }
-    await mappingStore.createMapping(newMapping, stub?.description || undefined)
-    ElMessage.success(t('common.success'))
+    };
+    await mappingStore.createMapping(newMapping, stub?.description || undefined);
+    ElMessage.success(t('common.success'));
   } catch (error) {
-    console.error('Failed to copy mapping:', error)
+    console.error('Failed to copy mapping:', error);
   }
 }
 
 function confirmDelete(mapping: Mapping) {
-  ElMessageBox.confirm(
-    t('common.confirmDelete'),
-    t('common.confirm'),
-    {
-      confirmButtonText: t('common.yes'),
-      cancelButtonText: t('common.no'),
-      type: 'warning'
-    }
-  ).then(async () => {
-    try {
-      await mappingStore.deleteMapping(mapping.id || mapping.uuid!)
-      ElMessage.success(t('common.success'))
-    } catch (error) {
-      console.error('Failed to delete mapping:', error)
-    }
-  }).catch(() => {
-    // Cancelled
+  ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirm'), {
+    confirmButtonText: t('common.yes'),
+    cancelButtonText: t('common.no'),
+    type: 'warning'
   })
+    .then(async () => {
+      try {
+        await mappingStore.deleteMapping(mapping.id || mapping.uuid!);
+        ElMessage.success(t('common.success'));
+      } catch (error) {
+        console.error('Failed to delete mapping:', error);
+      }
+    })
+    .catch(() => {
+      // Cancelled
+    });
 }
 
 function confirmResetAll() {
   ElMessageBox.confirm(
     h('div', [
       h('p', { style: 'margin: 0;' }, t('mappings.confirmReset')),
-      h('p', {
-        style: 'color: var(--wh-text-tertiary); font-size: 12px; margin-top: 8px; margin-bottom: 0;'
-      }, t('mappings.confirmResetNote'))
+      h(
+        'p',
+        {
+          style:
+            'color: var(--wh-text-tertiary); font-size: 12px; margin-top: 8px; margin-bottom: 0;'
+        },
+        t('mappings.confirmResetNote')
+      )
     ]),
     t('common.confirm'),
     {
@@ -333,71 +335,73 @@ function confirmResetAll() {
       cancelButtonText: t('common.no'),
       type: 'warning'
     }
-  ).then(async () => {
-    try {
-      await mappingStore.deleteAllStubs()
-    } catch (error) {
-      console.error('Failed to delete all stubs:', error)
-    }
-  }).catch(() => {
-    // Cancelled
-  })
+  )
+    .then(async () => {
+      try {
+        await mappingStore.deleteAllStubs();
+      } catch (error) {
+        console.error('Failed to delete all stubs:', error);
+      }
+    })
+    .catch(() => {
+      // Cancelled
+    });
 }
 
 async function handleExport() {
-  await mappingStore.exportStubs()
+  await mappingStore.exportStubs();
 }
 
 function handleImport() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.json'
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
   input.onchange = async (event) => {
-    const file = (event.target as HTMLInputElement).files?.[0]
-    if (!file) return
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
 
     // Check file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      ElMessage.error(t('messages.stub.importFileTooLarge'))
-      return
+      ElMessage.error(t('messages.stub.importFileTooLarge'));
+      return;
     }
 
     try {
-      const text = await file.text()
-      const data = JSON.parse(text)
-      await mappingStore.importStubs(data)
+      const text = await file.text();
+      const data = JSON.parse(text);
+      await mappingStore.importStubs(data);
     } catch (e: any) {
       if (e instanceof SyntaxError) {
-        ElMessage.error(t('messages.json.parseError', { message: e.message }))
+        ElMessage.error(t('messages.json.parseError', { message: e.message }));
       } else {
-        ElMessage.error(e.message || t('messages.stub.importFailed'))
+        ElMessage.error(e.message || t('messages.stub.importFailed'));
       }
     }
-  }
-  input.click()
+  };
+  input.click();
 }
 
 function handleSyncAll() {
   if (!projectStore.currentProjectId) {
-    ElMessage.warning(t('messages.project.notSelected'))
-    return
+    ElMessage.warning(t('messages.project.notSelected'));
+    return;
   }
-  confirmAndSyncAll(projectStore.currentProjectId)
+  confirmAndSyncAll(projectStore.currentProjectId);
 }
 
 function handleAppendAll() {
   if (!projectStore.currentProjectId) {
-    ElMessage.warning(t('messages.project.notSelected'))
-    return
+    ElMessage.warning(t('messages.project.notSelected'));
+    return;
   }
-  confirmAndAppendAll(projectStore.currentProjectId)
+  confirmAndAppendAll(projectStore.currentProjectId);
 }
 
 // Initialization
 onMounted(() => {
-  fetchMappings()
-})
+  fetchMappings();
+});
 </script>
 
 <style scoped>

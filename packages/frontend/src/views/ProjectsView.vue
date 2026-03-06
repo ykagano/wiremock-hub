@@ -9,10 +9,7 @@
     </div>
 
     <!-- When there are no projects -->
-    <el-empty
-      v-if="projects.length === 0"
-      :description="t('projects.noProjects')"
-    >
+    <el-empty v-if="projects.length === 0" :description="t('projects.noProjects')">
       <el-button type="primary" @click="showAddDialog = true">
         {{ t('projects.addFirst') }}
       </el-button>
@@ -20,21 +17,12 @@
 
     <!-- Project list -->
     <div v-else class="project-grid">
-      <el-card
-        v-for="project in projects"
-        :key="project.id"
-        class="project-card"
-        shadow="hover"
-      >
+      <el-card v-for="project in projects" :key="project.id" class="project-card" shadow="hover">
         <template #header>
           <div class="card-header">
             <span class="project-name">{{ project.name }}</span>
             <div class="card-actions">
-              <el-button
-                type="primary"
-                size="small"
-                @click="goToProjectDetail(project.id)"
-              >
+              <el-button type="primary" size="small" @click="goToProjectDetail(project.id)">
                 {{ t('projects.detail') }}
               </el-button>
               <el-dropdown trigger="click">
@@ -71,7 +59,6 @@
           <el-icon><Calendar /></el-icon>
           <span>{{ formatDate(project.createdAt) }}</span>
         </div>
-
       </el-card>
     </div>
 
@@ -89,10 +76,7 @@
         :label-position="isMobile ? 'top' : 'right'"
       >
         <el-form-item :label="t('projects.name')" prop="name">
-          <el-input
-            v-model="formData.name"
-            :placeholder="t('projects.placeholder.name')"
-          />
+          <el-input v-model="formData.name" :placeholder="t('projects.placeholder.name')" />
         </el-form-item>
         <el-form-item :label="t('projects.description')" prop="description">
           <el-input
@@ -115,99 +99,95 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
-import { useProjectStore } from '@/stores/project'
-import { useResponsive } from '@/composables/useResponsive'
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import type { Project } from '@/services/api'
-import dayjs from 'dayjs'
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { useProjectStore } from '@/stores/project';
+import { useResponsive } from '@/composables/useResponsive';
+import { ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
+import type { Project } from '@/services/api';
+import dayjs from 'dayjs';
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
-const router = useRouter()
-const projectStore = useProjectStore()
-const { projects } = storeToRefs(projectStore)
+const { t } = useI18n();
+const { isMobile } = useResponsive();
+const router = useRouter();
+const projectStore = useProjectStore();
+const { projects } = storeToRefs(projectStore);
 
-const showAddDialog = ref(false)
-const editingProject = ref<Project | null>(null)
-const formRef = ref<FormInstance>()
+const showAddDialog = ref(false);
+const editingProject = ref<Project | null>(null);
+const formRef = ref<FormInstance>();
 
 const formData = reactive({
   name: '',
   description: ''
-})
+});
 
 const formRules = computed<FormRules>(() => ({
-  name: [
-    { required: true, message: t('projects.validation.nameRequired'), trigger: 'blur' }
-  ]
-}))
+  name: [{ required: true, message: t('projects.validation.nameRequired'), trigger: 'blur' }]
+}));
 
 // Fetch project list on initialization
 onMounted(async () => {
-  await projectStore.fetchProjects()
-})
+  await projectStore.fetchProjects();
+});
 
 function formatDate(dateString: string) {
-  return dayjs(dateString).format('YYYY/MM/DD HH:mm')
+  return dayjs(dateString).format('YYYY/MM/DD HH:mm');
 }
 
 function goToProjectDetail(id: string) {
-  router.push(`/projects/${id}`)
+  router.push(`/projects/${id}`);
 }
 
 function editProject(project: Project) {
-  editingProject.value = project
-  formData.name = project.name
-  formData.description = project.description || ''
-  showAddDialog.value = true
+  editingProject.value = project;
+  formData.name = project.name;
+  formData.description = project.description || '';
+  showAddDialog.value = true;
 }
 
 async function duplicateProject(project: Project) {
-  await projectStore.duplicateProject(project.id)
+  await projectStore.duplicateProject(project.id);
 }
 
 function confirmDelete(project: Project) {
-  ElMessageBox.confirm(
-    t('projects.confirmDelete', { name: project.name }),
-    t('common.confirm'),
-    {
-      confirmButtonText: t('common.yes'),
-      cancelButtonText: t('common.no'),
-      type: 'warning'
-    }
-  ).then(async () => {
-    await projectStore.deleteProject(project.id)
-  }).catch(() => {
-    // Cancelled
+  ElMessageBox.confirm(t('projects.confirmDelete', { name: project.name }), t('common.confirm'), {
+    confirmButtonText: t('common.yes'),
+    cancelButtonText: t('common.no'),
+    type: 'warning'
   })
+    .then(async () => {
+      await projectStore.deleteProject(project.id);
+    })
+    .catch(() => {
+      // Cancelled
+    });
 }
 
 async function saveProject() {
-  if (!formRef.value) return
+  if (!formRef.value) return;
 
   try {
-    await formRef.value.validate()
+    await formRef.value.validate();
     if (editingProject.value) {
-      await projectStore.updateProject(editingProject.value.id, formData)
+      await projectStore.updateProject(editingProject.value.id, formData);
     } else {
-      await projectStore.addProject(formData)
+      await projectStore.addProject(formData);
     }
-    closeDialog()
+    closeDialog();
   } catch {
     // Validation error
   }
 }
 
 function closeDialog() {
-  showAddDialog.value = false
-  editingProject.value = null
-  formData.name = ''
-  formData.description = ''
-  formRef.value?.resetFields()
+  showAddDialog.value = false;
+  editingProject.value = null;
+  formData.name = '';
+  formData.description = '';
+  formRef.value?.resetFields();
 }
 </script>
 
@@ -290,5 +270,4 @@ function closeDialog() {
   font-size: 12px;
   color: var(--wh-text-tertiary);
 }
-
 </style>

@@ -31,13 +31,9 @@
         <el-descriptions-item label="Version">
           {{ appVersion }}
         </el-descriptions-item>
-        <el-descriptions-item label="License">
-          Apache 2.0
-        </el-descriptions-item>
+        <el-descriptions-item label="License"> Apache 2.0 </el-descriptions-item>
         <el-descriptions-item label="GitHub">
-          <a href="https://github.com/ykagano/wiremock-hub" target="_blank">
-            wiremock-hub
-          </a>
+          <a href="https://github.com/ykagano/wiremock-hub" target="_blank"> wiremock-hub </a>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -45,30 +41,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { saveLocale } from '@/i18n'
-import { useTheme, type ThemeMode } from '@/composables/useTheme'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { saveLocale } from '@/i18n';
+import { useTheme, type ThemeMode } from '@/composables/useTheme';
 
-const { t, locale } = useI18n({ useScope: 'global' })
-const { themeMode } = useTheme()
+const { t, locale } = useI18n({ useScope: 'global' });
+const { themeMode } = useTheme();
 
-const appVersion = __APP_VERSION__
+const appVersion = __APP_VERSION__;
 
 const currentLocale = computed({
   get: () => locale.value,
   set: (value: string) => {
-    locale.value = value
-    saveLocale(value)
+    locale.value = value;
+    saveLocale(value);
   }
-})
+});
 
 const currentTheme = computed({
   get: () => themeMode.value,
   set: (value: string) => {
-    themeMode.value = value as ThemeMode
+    themeMode.value = value as ThemeMode;
   }
-})
+});
 </script>
 
 <style scoped>

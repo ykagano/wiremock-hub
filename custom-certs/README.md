@@ -20,6 +20,7 @@ security find-certificate -a -c "YourCompany" -p \
 ```
 
 Common certificate names:
+
 - Zscaler: `security find-certificate -a -c "Zscaler" -p ...`
 - Netskope: `security find-certificate -a -c "Netskope" -p ...`
 

@@ -1,13 +1,13 @@
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
-import monacoEditorPluginModule from 'vite-plugin-monaco-editor'
+import { fileURLToPath, URL } from 'node:url';
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import vueDevTools from 'vite-plugin-vue-devtools';
+import monacoEditorPluginModule from 'vite-plugin-monaco-editor';
 // vite-plugin-monaco-editor の default export の扱いが異なる場合の対応
-const monacoEditorPlugin = (monacoEditorPluginModule as any).default || monacoEditorPluginModule
+const monacoEditorPlugin = (monacoEditorPluginModule as any).default || monacoEditorPluginModule;
 
 // Use VITE_APP_VERSION env var (from CI/CD tag) or default
-const appVersion = process.env.VITE_APP_VERSION || '0.1.0'
+const appVersion = process.env.VITE_APP_VERSION || '0.1.0';
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
@@ -41,4 +41,4 @@ export default defineConfig({
       }
     }
   }
-})
+});

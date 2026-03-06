@@ -9,7 +9,10 @@
   >
     <!-- Request Preview -->
     <h4 style="margin-top: 0">{{ t('stubTest.requestPreview') }}</h4>
-    <el-form :label-width="isMobile ? undefined : '120px'" :label-position="isMobile ? 'top' : 'left'">
+    <el-form
+      :label-width="isMobile ? undefined : '120px'"
+      :label-position="isMobile ? 'top' : 'left'"
+    >
       <el-form-item :label="t('stubTest.method')">
         <el-tag :type="getMethodTagType(requestMethod)">{{ requestMethod }}</el-tag>
       </el-form-item>
@@ -19,7 +22,10 @@
           v-model="requestUrl"
           :placeholder="isPatternUrl ? t('stubTest.urlPlaceholder') : ''"
         />
-        <div v-if="isPatternUrl" style="color: var(--el-color-warning); font-size: 12px; margin-top: 4px">
+        <div
+          v-if="isPatternUrl"
+          style="color: var(--el-color-warning); font-size: 12px; margin-top: 4px"
+        >
           {{ t('stubTest.urlRequired') }}
         </div>
       </el-form-item>
@@ -32,7 +38,10 @@
         </div>
       </el-form-item>
 
-      <el-form-item v-if="Object.keys(requestQueryParams).length > 0" :label="t('stubTest.queryParameters')">
+      <el-form-item
+        v-if="Object.keys(requestQueryParams).length > 0"
+        :label="t('stubTest.queryParameters')"
+      >
         <div class="headers-display">
           <div v-for="(value, key) in requestQueryParams" :key="key" class="header-row">
             <code>{{ key }}={{ value }}</code>
@@ -41,22 +50,13 @@
       </el-form-item>
 
       <el-form-item v-if="requestBody" :label="t('stubTest.body')">
-        <el-input
-          v-model="requestBody"
-          type="textarea"
-          :rows="4"
-          style="font-family: monospace"
-        />
+        <el-input v-model="requestBody" type="textarea" :rows="4" style="font-family: monospace" />
       </el-form-item>
     </el-form>
 
     <!-- Send Button -->
     <div style="text-align: center; margin-bottom: 16px">
-      <el-button
-        type="primary"
-        @click="handleSendTest"
-        :loading="testing"
-      >
+      <el-button type="primary" @click="handleSendTest" :loading="testing">
         {{ testing ? t('stubTest.sending') : t('stubTest.sendButton') }}
       </el-button>
     </div>
@@ -77,7 +77,12 @@
 
       <!-- Summary -->
       <el-alert
-        :title="t('stubTest.summary', { passed: testResult.summary.passed, total: testResult.summary.total })"
+        :title="
+          t('stubTest.summary', {
+            passed: testResult.summary.passed,
+            total: testResult.summary.total
+          })
+        "
         :type="getSummaryType(testResult.summary)"
         show-icon
         :closable="false"
@@ -139,12 +144,14 @@
                 v-if="isBodyMatched(row.expectedBody, row.actualBody) === true"
                 type="success"
                 size="small"
-              >{{ t('stubTest.bodyMatch') }}</el-tag>
+                >{{ t('stubTest.bodyMatch') }}</el-tag
+              >
               <el-tag
                 v-else-if="isBodyMatched(row.expectedBody, row.actualBody) === false"
                 type="warning"
                 size="small"
-              >{{ t('stubTest.bodyMismatch') }}</el-tag>
+                >{{ t('stubTest.bodyMismatch') }}</el-tag
+              >
               <span v-else>{{ t('stubTest.bodyNA') }}</span>
             </template>
           </template>
@@ -161,156 +168,167 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
-import { useMappingStore } from '@/stores/mapping'
-import { useResponsive } from '@/composables/useResponsive'
-import type { Mapping, StubTestRequest } from '@/types/wiremock'
-import { getMethodTagType } from '@/utils/wiremock'
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { useMappingStore } from '@/stores/mapping';
+import { useResponsive } from '@/composables/useResponsive';
+import type { Mapping, StubTestRequest } from '@/types/wiremock';
+import { getMethodTagType } from '@/utils/wiremock';
 
-const { t } = useI18n()
-const { isMobile } = useResponsive()
+const { t } = useI18n();
+const { isMobile } = useResponsive();
 
 // Type guard for WireMock matcher objects with equalTo field
 function isMatcherWithEqualTo(value: unknown): value is { equalTo: string } {
-  return typeof value === 'object' && value !== null && 'equalTo' in value && typeof (value as Record<string, unknown>).equalTo === 'string'
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'equalTo' in value &&
+    typeof (value as Record<string, unknown>).equalTo === 'string'
+  );
 }
 
 const props = defineProps<{
-  modelValue: boolean
-  stubId: string
-}>()
+  modelValue: boolean;
+  stubId: string;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+  'update:modelValue': [value: boolean];
+}>();
 
-const mappingStore = useMappingStore()
-const { testResult, testError, testing } = storeToRefs(mappingStore)
+const mappingStore = useMappingStore();
+const { testResult, testError, testing } = storeToRefs(mappingStore);
 
-const stubName = ref('')
-const requestMethod = ref('GET')
-const requestUrl = ref('')
-const requestHeaders = ref<Record<string, string>>({})
-const requestQueryParams = ref<Record<string, string>>({})
-const requestBody = ref('')
-const isPatternUrl = ref(false)
+const stubName = ref('');
+const requestMethod = ref('GET');
+const requestUrl = ref('');
+const requestHeaders = ref<Record<string, string>>({});
+const requestQueryParams = ref<Record<string, string>>({});
+const requestBody = ref('');
+const isPatternUrl = ref(false);
 
 // Build request from mapping when dialog opens
-watch(() => props.modelValue, (visible) => {
-  if (visible && props.stubId) {
-    mappingStore.clearTestResult()
-    buildRequestFromMapping()
+watch(
+  () => props.modelValue,
+  (visible) => {
+    if (visible && props.stubId) {
+      mappingStore.clearTestResult();
+      buildRequestFromMapping();
+    }
   }
-})
+);
 
 function buildRequestFromMapping() {
-  const stub = mappingStore.getStubById(props.stubId)
-  if (!stub) return
+  const stub = mappingStore.getStubById(props.stubId);
+  if (!stub) return;
 
-  const mapping = stub.mapping as unknown as Mapping
-  stubName.value = stub.name || mapping.name || `${mapping.request.method || 'GET'} ${mapping.request.url || mapping.request.urlPath || mapping.request.urlPattern || mapping.request.urlPathPattern || '/'}`
+  const mapping = stub.mapping as unknown as Mapping;
+  stubName.value =
+    stub.name ||
+    mapping.name ||
+    `${mapping.request.method || 'GET'} ${mapping.request.url || mapping.request.urlPath || mapping.request.urlPattern || mapping.request.urlPathPattern || '/'}`;
 
   // Method
-  requestMethod.value = mapping.request.method || 'GET'
+  requestMethod.value = mapping.request.method || 'GET';
 
   // URL
-  isPatternUrl.value = false
+  isPatternUrl.value = false;
   if (mapping.request.url) {
-    requestUrl.value = mapping.request.url
+    requestUrl.value = mapping.request.url;
   } else if (mapping.request.urlPath) {
-    requestUrl.value = mapping.request.urlPath
+    requestUrl.value = mapping.request.urlPath;
   } else if (mapping.request.urlPattern || mapping.request.urlPathPattern) {
-    isPatternUrl.value = true
-    requestUrl.value = ''
+    isPatternUrl.value = true;
+    requestUrl.value = '';
   } else {
-    requestUrl.value = '/'
+    requestUrl.value = '/';
   }
 
   // Headers (extract equalTo values)
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = {};
   if (mapping.request.headers) {
     for (const [key, value] of Object.entries(mapping.request.headers)) {
       if (isMatcherWithEqualTo(value)) {
-        headers[key] = value.equalTo
+        headers[key] = value.equalTo;
       }
     }
   }
-  requestHeaders.value = headers
+  requestHeaders.value = headers;
 
   // Query parameters (extract equalTo values)
-  const queryParams: Record<string, string> = {}
+  const queryParams: Record<string, string> = {};
   if (mapping.request.queryParameters) {
     for (const [key, value] of Object.entries(mapping.request.queryParameters)) {
       if (isMatcherWithEqualTo(value)) {
-        queryParams[key] = value.equalTo
+        queryParams[key] = value.equalTo;
       }
     }
   }
-  requestQueryParams.value = queryParams
+  requestQueryParams.value = queryParams;
 
   // Body (first equalTo/equalToJson)
-  requestBody.value = ''
+  requestBody.value = '';
   if (mapping.request.bodyPatterns && mapping.request.bodyPatterns.length > 0) {
-    const firstPattern = mapping.request.bodyPatterns[0]
+    const firstPattern = mapping.request.bodyPatterns[0];
     if (firstPattern.equalToJson) {
-      requestBody.value = typeof firstPattern.equalToJson === 'string'
-        ? firstPattern.equalToJson
-        : JSON.stringify(firstPattern.equalToJson)
+      requestBody.value =
+        typeof firstPattern.equalToJson === 'string'
+          ? firstPattern.equalToJson
+          : JSON.stringify(firstPattern.equalToJson);
     } else if (firstPattern.equalTo) {
-      requestBody.value = firstPattern.equalTo
+      requestBody.value = firstPattern.equalTo;
     }
   }
 }
 
 async function handleSendTest() {
-  const overrides: StubTestRequest = {}
+  const overrides: StubTestRequest = {};
 
   if (requestUrl.value) {
-    overrides.url = requestUrl.value
+    overrides.url = requestUrl.value;
   }
 
   if (requestBody.value) {
-    overrides.body = requestBody.value
+    overrides.body = requestBody.value;
   }
 
-  await mappingStore.testStub(props.stubId, overrides)
+  await mappingStore.testStub(props.stubId, overrides);
 }
 
 function handleClose(val: boolean) {
   if (!val) {
-    mappingStore.clearTestResult()
+    mappingStore.clearTestResult();
   }
-  emit('update:modelValue', val)
+  emit('update:modelValue', val);
 }
 
-
 function getSummaryType(summary: { total: number; passed: number; failed: number }): string {
-  if (summary.passed === summary.total) return 'success'
-  if (summary.passed === 0) return 'error'
-  return 'warning'
+  if (summary.passed === summary.total) return 'success';
+  if (summary.passed === 0) return 'error';
+  return 'warning';
 }
 
 function isBodyMatched(expected?: string, actual?: string): boolean | null {
-  if (expected === undefined || expected === null) return null
-  if (actual === undefined || actual === null) return false
+  if (expected === undefined || expected === null) return null;
+  if (actual === undefined || actual === null) return false;
 
   try {
-    const expectedObj = JSON.parse(expected)
-    const actualObj = JSON.parse(actual)
-    return JSON.stringify(expectedObj) === JSON.stringify(actualObj)
+    const expectedObj = JSON.parse(expected);
+    const actualObj = JSON.parse(actual);
+    return JSON.stringify(expectedObj) === JSON.stringify(actualObj);
   } catch {
-    return expected === actual
+    return expected === actual;
   }
 }
 
 function formatBody(body?: string): string {
-  if (!body) return '-'
+  if (!body) return '-';
   try {
-    return JSON.stringify(JSON.parse(body), null, 2)
+    return JSON.stringify(JSON.parse(body), null, 2);
   } catch {
-    return body
+    return body;
   }
 }
 </script>

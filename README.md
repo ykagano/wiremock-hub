@@ -9,22 +9,26 @@ Extends [WireMock](https://wiremock.org/) with a graphical user interface for ce
 ## Features
 
 ### Distributed WireMock Support
+
 - **Bulk sync to multiple instances**: Deploy stubs to all WireMock instances with a single click
 - **Health check**: Monitor connection status of each instance in real-time
 - **Project-based management**: Organize stubs by environment (dev/staging/production)
 
 ### Request Recording & Analysis
+
 - **View request logs**: Browse all HTTP requests processed by WireMock instances
 - **Advanced filtering**: Filter by URL pattern, HTTP method, and status code range
 - **Request details**: Inspect full request/response headers, body, and timing information
 - **Stub generation**: Import requests as stubs with customizable matching rules
 
 ### Data Persistence
+
 - **SQLite storage**: Simple file-based persistence, no external database required
 - **Team sharing**: Share the database file or mount it via Docker volumes
 - **Easy backup**: Just copy the SQLite file
 
 ### Ease of Use
+
 - **Multilingual UI**: Switch between English and Japanese
 - **Intuitive interface**: Modern UI powered by Element Plus
 - **No authentication required**: Simple setup for team-wide access
@@ -54,12 +58,12 @@ Extends [WireMock](https://wiremock.org/) with a graphical user interface for ce
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
+| Layer    | Technology                        |
+| -------- | --------------------------------- |
 | Frontend | Vue 3 + TypeScript + Element Plus |
-| Backend | Node.js + Fastify + Prisma |
-| Database | SQLite |
-| Build | Vite + pnpm workspace |
+| Backend  | Node.js + Fastify + Prisma        |
+| Database | SQLite                            |
+| Build    | Vite + pnpm workspace             |
 
 ## Quick Start
 
@@ -104,7 +108,7 @@ services:
   wiremock-hub:
     image: ghcr.io/yourusername/wiremock-hub:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - wiremock-hub-data:/data
     environment:
@@ -122,7 +126,7 @@ services:
   wiremock-hub:
     image: ghcr.io/yourusername/wiremock-hub-standalone:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - wiremock-hub-data:/data
     environment:
@@ -136,6 +140,7 @@ volumes:
 ## Local Development
 
 ### Prerequisites
+
 - Node.js 20.19+ or 22.12+
 - pnpm
 
@@ -165,23 +170,29 @@ DATABASE_URL="file:../../data/wiremock-hub.db"
 ## Usage
 
 ### 1. Create a Project
+
 A project represents an environment (dev/staging/etc.).
 Set the load balancer URL as the WireMock URL.
 
 ### 2. Add Instances
+
 Register each WireMock server URL.
 Use health check to verify connection status.
 
 ### 3. Create Stubs
+
 Create stub mappings in the Stub Mappings screen.
 Stubs are saved to the SQLite database.
 
 ### 4. Sync
+
 Click "Sync All Instances" to deploy stubs to all WireMock instances at once.
 Sync performs a full reset before deploying to ensure consistency.
 
 ### 5. View Requests
+
 Navigate to the Requests screen to view HTTP requests processed by WireMock instances.
+
 - Filter requests by URL pattern, HTTP method, or status code
 - Click on any request to view detailed information
 - Import requests as stubs for future testing scenarios

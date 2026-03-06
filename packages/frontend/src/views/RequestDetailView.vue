@@ -47,7 +47,9 @@
           </el-table-column>
         </el-table>
 
-        <template v-if="request.request.queryParams && Object.keys(request.request.queryParams).length > 0">
+        <template
+          v-if="request.request.queryParams && Object.keys(request.request.queryParams).length > 0"
+        >
           <h4>{{ t('requests.queryParams') }}</h4>
           <el-table :data="queryParams" stripe size="small" style="width: 100%">
             <el-table-column prop="name" :label="t('requests.paramName')" width="200" />
@@ -101,7 +103,10 @@
           </div>
         </template>
 
-        <el-empty v-if="!responseBody && responseHeaders.length === 0" :description="t('requests.noResponse')" />
+        <el-empty
+          v-if="!responseBody && responseHeaders.length === 0"
+          :description="t('requests.noResponse')"
+        />
       </el-card>
 
       <el-card v-if="request.wasMatched && request.stubMapping" class="detail-card">
@@ -130,122 +135,123 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
-import { ArrowLeft } from '@element-plus/icons-vue'
-import dayjs from 'dayjs'
-import type { LoggedRequest } from '@/types/wiremock'
-import { getMethodTagType, getStatusTagType } from '@/utils/wiremock'
-import api from '@/services/api'
-import ImportStubDialog from '@/components/request/ImportStubDialog.vue'
-import { useRequestStore } from '@/stores/request'
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { ElMessage } from 'element-plus';
+import { ArrowLeft } from '@element-plus/icons-vue';
+import dayjs from 'dayjs';
+import type { LoggedRequest } from '@/types/wiremock';
+import { getMethodTagType, getStatusTagType } from '@/utils/wiremock';
+import api from '@/services/api';
+import ImportStubDialog from '@/components/request/ImportStubDialog.vue';
+import { useRequestStore } from '@/stores/request';
 
-const route = useRoute()
-const router = useRouter()
-const { t } = useI18n()
-const requestStore = useRequestStore()
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n();
+const requestStore = useRequestStore();
 
-const instanceId = computed(() => route.params.instanceId as string)
-const requestId = computed(() => route.params.requestId as string)
+const instanceId = computed(() => route.params.instanceId as string);
+const requestId = computed(() => route.params.requestId as string);
 
-const loading = ref(false)
-const error = ref<string | null>(null)
-const request = ref<LoggedRequest | null>(null)
-const importDialogVisible = ref(false)
+const loading = ref(false);
+const error = ref<string | null>(null);
+const request = ref<LoggedRequest | null>(null);
+const importDialogVisible = ref(false);
 
 const requestHeaders = computed(() => {
-  if (!request.value?.request.headers) return []
+  if (!request.value?.request.headers) return [];
   return Object.entries(request.value.request.headers).map(([name, value]) => ({
     name,
     value: typeof value === 'object' ? JSON.stringify(value) : String(value)
-  }))
-})
+  }));
+});
 
 const responseHeaders = computed(() => {
-  const headers = request.value?.response?.headers || request.value?.responseDefinition?.headers
-  if (!headers) return []
+  const headers = request.value?.response?.headers || request.value?.responseDefinition?.headers;
+  if (!headers) return [];
   return Object.entries(headers).map(([name, value]) => ({
     name,
     value: typeof value === 'object' ? JSON.stringify(value) : String(value)
-  }))
-})
+  }));
+});
 
 const queryParams = computed(() => {
-  if (!request.value?.request.queryParams) return []
+  if (!request.value?.request.queryParams) return [];
   return Object.entries(request.value.request.queryParams).map(([name, value]) => ({
     name,
     value: String(value)
-  }))
-})
+  }));
+});
 
 const responseStatus = computed(() => {
-  return request.value?.response?.status || request.value?.responseDefinition?.status
-})
+  return request.value?.response?.status || request.value?.responseDefinition?.status;
+});
 
 const responseBody = computed(() => {
-  return request.value?.response?.body || request.value?.responseDefinition?.body
-})
+  return request.value?.response?.body || request.value?.responseDefinition?.body;
+});
 
 function formatDate(timestamp: number) {
-  return dayjs(timestamp).format('YYYY/MM/DD HH:mm:ss.SSS')
+  return dayjs(timestamp).format('YYYY/MM/DD HH:mm:ss.SSS');
 }
 
 function formatBody(body: string): string {
   try {
-    const parsed = JSON.parse(body)
-    return JSON.stringify(parsed, null, 2)
+    const parsed = JSON.parse(body);
+    return JSON.stringify(parsed, null, 2);
   } catch {
-    return body
+    return body;
   }
 }
 
-
 function goBack() {
-  router.push({ name: 'requests' })
+  router.push({ name: 'requests' });
 }
 
 function openImportDialog() {
-  importDialogVisible.value = true
+  importDialogVisible.value = true;
 }
 
 function onStubImported() {
-  ElMessage.success(t('requests.import.success'))
+  ElMessage.success(t('requests.import.success'));
 }
 
 async function fetchRequestDetail() {
-  if (!instanceId.value || !requestId.value) return
+  if (!instanceId.value || !requestId.value) return;
 
   // Check if request data was passed via Pinia store (for unmatched requests)
-  const pendingRequest = requestStore.consumePendingRequestDetail()
+  const pendingRequest = requestStore.consumePendingRequestDetail();
   if (pendingRequest) {
-    request.value = pendingRequest
-    return
+    request.value = pendingRequest;
+    return;
   }
 
   // Unmatched requests cannot be fetched individually from WireMock API
   // They need to be accessed via the store from the requests list
   if (requestId.value.startsWith('unmatched-')) {
-    error.value = t('requests.unmatchedNotAvailable')
-    return
+    error.value = t('requests.unmatchedNotAvailable');
+    return;
   }
 
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
-    const response = await api.get(`/wiremock-instances/${instanceId.value}/requests/${requestId.value}`)
+    const response = await api.get(
+      `/wiremock-instances/${instanceId.value}/requests/${requestId.value}`
+    );
     if (response.data.success) {
-      request.value = response.data.data
+      request.value = response.data.data;
     } else {
-      error.value = response.data.error || t('requests.fetchError')
+      error.value = response.data.error || t('requests.fetchError');
     }
   } catch (e: any) {
-    console.error('Failed to fetch request detail:', e)
-    error.value = e.response?.data?.error || t('requests.fetchError')
+    console.error('Failed to fetch request detail:', e);
+    error.value = e.response?.data?.error || t('requests.fetchError');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -253,10 +259,10 @@ async function fetchRequestDetail() {
 watch(
   () => [route.params.instanceId, route.params.requestId],
   () => {
-    fetchRequestDetail()
+    fetchRequestDetail();
   },
   { immediate: true }
-)
+);
 </script>
 
 <style scoped>

@@ -17,56 +17,63 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const props = withDefaults(defineProps<{
-  modelValue: any
-  placeholder?: string
-  rows?: number
-}>(), {
-  placeholder: '',
-  rows: 10
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue: any;
+    placeholder?: string;
+    rows?: number;
+  }>(),
+  {
+    placeholder: '',
+    rows: 10
+  }
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: any]
-}>()
+  'update:modelValue': [value: any];
+}>();
 
-const jsonText = ref('')
-const error = ref('')
-const isEditing = ref(false)
+const jsonText = ref('');
+const error = ref('');
+const isEditing = ref(false);
 
 // Sync from parent to jsonText, but skip while user is editing
-watch(() => props.modelValue, (value) => {
-  if (isEditing.value) return
-  if (value) {
-    try {
-      jsonText.value = JSON.stringify(value, null, 2)
-      error.value = ''
-    } catch (e) {
-      console.error('Failed to stringify:', e)
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (isEditing.value) return;
+    if (value) {
+      try {
+        jsonText.value = JSON.stringify(value, null, 2);
+        error.value = '';
+      } catch (e) {
+        console.error('Failed to stringify:', e);
+      }
+    } else {
+      jsonText.value = '';
     }
-  } else {
-    jsonText.value = ''
-  }
-}, { immediate: true, deep: true })
+  },
+  { immediate: true, deep: true }
+);
 
 function handleBlur() {
-  isEditing.value = false
+  isEditing.value = false;
   try {
     if (jsonText.value.trim()) {
-      const parsed = JSON.parse(jsonText.value)
-      emit('update:modelValue', parsed)
-      error.value = ''
+      const parsed = JSON.parse(jsonText.value);
+      emit('update:modelValue', parsed);
+      error.value = '';
     } else {
-      emit('update:modelValue', undefined)
-      error.value = ''
+      emit('update:modelValue', undefined);
+      error.value = '';
     }
   } catch (e: any) {
-    error.value = t('messages.json.parseError', { message: e.message })
+    error.value = t('messages.json.parseError', { message: e.message });
   }
 }
 </script>
