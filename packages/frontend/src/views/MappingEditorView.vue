@@ -291,6 +291,21 @@ function handleUrlTypeChange() {
   }
 }
 
+// Sync helper refs (urlType, urlValue, requestBodyText) from request data
+function syncHelperRefsFromRequest(req: Mapping['request']) {
+  if (req.url) { urlType.value = 'url'; urlValue.value = req.url }
+  else if (req.urlPattern) { urlType.value = 'urlPattern'; urlValue.value = req.urlPattern }
+  else if (req.urlPath) { urlType.value = 'urlPath'; urlValue.value = req.urlPath }
+  else if (req.urlPathPattern) { urlType.value = 'urlPathPattern'; urlValue.value = req.urlPathPattern }
+  else { urlValue.value = '' }
+
+  if (req.bodyPatterns && req.bodyPatterns[0]?.equalTo) {
+    requestBodyText.value = req.bodyPatterns[0].equalTo
+  } else {
+    requestBodyText.value = ''
+  }
+}
+
 // Initialization
 onMounted(async () => {
   if (!isNew.value) {
@@ -307,26 +322,7 @@ onMounted(async () => {
         Object.assign(formData, JSON.parse(JSON.stringify(mapping)))
         // Restore name from stub DB column (mapping may not contain it after import cleanup)
         formData.name = stub.name || formData.name
-
-        // Detect URL type
-        if (mapping.request.url) {
-          urlType.value = 'url'
-          urlValue.value = mapping.request.url
-        } else if (mapping.request.urlPattern) {
-          urlType.value = 'urlPattern'
-          urlValue.value = mapping.request.urlPattern
-        } else if (mapping.request.urlPath) {
-          urlType.value = 'urlPath'
-          urlValue.value = mapping.request.urlPath
-        } else if (mapping.request.urlPathPattern) {
-          urlType.value = 'urlPathPattern'
-          urlValue.value = mapping.request.urlPathPattern
-        }
-
-        // Request body
-        if (mapping.request.bodyPatterns && mapping.request.bodyPatterns[0]?.equalTo) {
-          requestBodyText.value = mapping.request.bodyPatterns[0].equalTo
-        }
+        syncHelperRefsFromRequest(mapping.request)
       }
     } catch (error) {
       console.error('Failed to load mapping:', error)
@@ -383,20 +379,7 @@ function handleJsonUpdate(newValue: any) {
       delete (formData as any)[key]
     }
     Object.assign(formData, newValue)
-
-    // Sync helper refs from the updated formData
-    const req = formData.request || {}
-    if (req.url) { urlType.value = 'url'; urlValue.value = req.url }
-    else if (req.urlPattern) { urlType.value = 'urlPattern'; urlValue.value = req.urlPattern }
-    else if (req.urlPath) { urlType.value = 'urlPath'; urlValue.value = req.urlPath }
-    else if (req.urlPathPattern) { urlType.value = 'urlPathPattern'; urlValue.value = req.urlPathPattern }
-    else { urlValue.value = '' }
-
-    if (req.bodyPatterns && req.bodyPatterns[0]?.equalTo) {
-      requestBodyText.value = req.bodyPatterns[0].equalTo
-    } else {
-      requestBodyText.value = ''
-    }
+    syncHelperRefsFromRequest(formData.request || {})
   }
 }
 
