@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="page-header">
       <div class="header-left">
-        <el-button text @click="goBack">
+        <el-button @click="goBack">
           <el-icon><ArrowLeft /></el-icon>
           {{ t('common.back') }}
         </el-button>
