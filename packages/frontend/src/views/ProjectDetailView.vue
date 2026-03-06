@@ -63,7 +63,7 @@
         </el-button>
       </div>
 
-      <el-empty v-if="instances.length === 0" :description="t('instances.noInstances')">
+      <el-empty v-if="!loadingInstances && instances.length === 0" :description="t('instances.noInstances')">
         <el-button type="primary" @click="showInstanceDialog = true">
           {{ t('instances.addFirst') }}
         </el-button>
@@ -235,6 +235,7 @@ const projectStore = useProjectStore()
 
 const project = ref<Project | null>(null)
 const instances = ref<WiremockInstance[]>([])
+const loadingInstances = ref(true)
 const { syncing, appending, confirmAndSyncAllWithInstances, confirmAndSyncInstance, confirmAndAppendAllWithInstances, confirmAndAppendInstance } = useSyncAllInstances()
 const syncingIds = ref(new Set<string>())
 const appendingIds = ref(new Set<string>())
@@ -302,9 +303,14 @@ async function runHealthCheck(instance: WiremockInstance): Promise<WiremockInsta
 }
 
 async function loadInstances(projectId: string) {
-  const list = await wiremockInstanceApi.list(projectId)
-  instances.value = list
-  await Promise.all(list.map(runHealthCheck))
+  loadingInstances.value = true
+  try {
+    const list = await wiremockInstanceApi.list(projectId)
+    instances.value = list
+    await Promise.all(list.map(runHealthCheck))
+  } finally {
+    loadingInstances.value = false
+  }
 }
 
 function formatDate(dateString: string) {
