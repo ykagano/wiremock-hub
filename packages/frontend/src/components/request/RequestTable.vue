@@ -63,7 +63,7 @@
 
         <el-table-column :label="t('common.actions')" width="80" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click.stop="onRowClick(row)">
+            <el-button type="primary" size="small" @click.stop="onRowClick(row)">
               {{ t('requests.detail') }}
             </el-button>
           </template>
