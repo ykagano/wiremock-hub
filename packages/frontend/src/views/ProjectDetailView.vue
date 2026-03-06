@@ -280,17 +280,31 @@ async function loadProject(projectId: string) {
   }
 }
 
+const checkingHealthIds = ref(new Set<string>())
+
+function updateInstance(id: string, data: Partial<WiremockInstance>) {
+  const idx = instances.value.findIndex(i => i.id === id)
+  if (idx !== -1) instances.value[idx] = { ...instances.value[idx], ...data }
+}
+
+async function runHealthCheck(instance: WiremockInstance): Promise<WiremockInstance> {
+  checkingHealthIds.value.add(instance.id)
+  try {
+    const detail = await wiremockInstanceApi.get(instance.id)
+    updateInstance(instance.id, detail)
+    return detail
+  } catch {
+    updateInstance(instance.id, { isHealthy: false })
+    return { ...instance, isHealthy: false }
+  } finally {
+    checkingHealthIds.value.delete(instance.id)
+  }
+}
+
 async function loadInstances(projectId: string) {
   const list = await wiremockInstanceApi.list(projectId)
-  instances.value = await Promise.all(
-    list.map(async (inst) => {
-      try {
-        return await wiremockInstanceApi.get(inst.id)
-      } catch {
-        return { ...inst, isHealthy: false }
-      }
-    })
-  )
+  instances.value = list
+  await Promise.all(list.map(runHealthCheck))
 }
 
 function formatDate(dateString: string) {
@@ -335,37 +349,37 @@ async function saveProject() {
 }
 
 // Instances
+// Health status has 3 states: checking (in checkingHealthIds), healthy (true), unhealthy (false).
+// isHealthy is undefined only briefly before runHealthCheck runs; the fallback treats it as unhealthy.
+function isCheckingHealth(instance: WiremockInstance) {
+  return checkingHealthIds.value.has(instance.id)
+}
+
 function getHealthIcon(instance: WiremockInstance) {
-  if (instance.isHealthy === undefined) return 'QuestionFilled'
+  if (isCheckingHealth(instance)) return 'Loading'
   return instance.isHealthy ? 'CircleCheckFilled' : 'CircleCloseFilled'
 }
 
 function getHealthClass(instance: WiremockInstance) {
-  if (instance.isHealthy === undefined) return 'health-unknown'
+  if (isCheckingHealth(instance)) return 'health-checking'
   return instance.isHealthy ? 'health-ok' : 'health-error'
 }
 
 function getHealthTagType(instance: WiremockInstance) {
-  if (instance.isHealthy === undefined) return 'info'
+  if (isCheckingHealth(instance)) return 'warning'
   return instance.isHealthy ? 'success' : 'danger'
 }
 
 function getHealthText(instance: WiremockInstance) {
-  if (instance.isHealthy === undefined) return t('instances.statusUnknown')
+  if (isCheckingHealth(instance)) return t('instances.statusChecking')
   return instance.isHealthy ? t('instances.statusHealthy') : t('instances.statusUnhealthy')
 }
 
 async function checkHealth(instance: WiremockInstance) {
-  try {
-    const detail = await wiremockInstanceApi.get(instance.id)
-    const idx = instances.value.findIndex(i => i.id === instance.id)
-    if (idx !== -1) instances.value[idx] = detail
-    ElMessage[detail.isHealthy ? 'success' : 'warning'](
-      detail.isHealthy ? t('instances.healthOk') : t('instances.healthFailed')
-    )
-  } catch (error: any) {
-    ElMessage.error(error.message)
-  }
+  const result = await runHealthCheck(instance)
+  ElMessage[result.isHealthy ? 'success' : 'warning'](
+    result.isHealthy ? t('instances.healthOk') : t('instances.healthFailed')
+  )
 }
 
 function syncInstance(instance: WiremockInstance) {
@@ -424,11 +438,11 @@ async function saveInstance() {
     savingInstance.value = true
     if (editingInstance.value) {
       const updated = await wiremockInstanceApi.update(editingInstance.value.id, instanceFormData)
-      const idx = instances.value.findIndex(i => i.id === editingInstance.value!.id)
-      if (idx !== -1) instances.value[idx] = { ...instances.value[idx], ...updated }
+      updateInstance(editingInstance.value.id, updated)
     } else {
       const created = await wiremockInstanceApi.create({ ...instanceFormData, projectId: project.value.id })
       instances.value.unshift(created)
+      runHealthCheck(created)
     }
     closeInstanceDialog()
     ElMessage.success(t('common.success'))
@@ -553,7 +567,15 @@ function closeInstanceDialog() {
 
 .health-ok { color: var(--el-color-success); }
 .health-error { color: var(--el-color-danger); }
-.health-unknown { color: var(--wh-text-tertiary); }
+.health-checking {
+  color: var(--el-color-warning);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 .card-actions {
   display: flex;

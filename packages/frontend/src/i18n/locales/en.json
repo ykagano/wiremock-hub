@@ -234,7 +234,7 @@
     "addFirst": "Add your first instance",
     "statusHealthy": "Connected",
     "statusUnhealthy": "Connection Error",
-    "statusUnknown": "Unknown",
+    "statusChecking": "Checking...",
     "inactive": "Inactive",
     "healthOk": "Connection successful",
     "healthFailed": "Connection failed",
