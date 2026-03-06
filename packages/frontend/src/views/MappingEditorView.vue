@@ -372,7 +372,7 @@ async function handleSave() {
   }
 }
 
-function handleJsonUpdate(newValue: any) {
+function handleJsonUpdate(newValue: Mapping | undefined) {
   if (newValue) {
     // Clear all existing keys, then merge new data
     for (const key of Object.keys(formData)) {
