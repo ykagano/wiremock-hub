@@ -207,7 +207,8 @@
       <el-tab-pane :label="t('editor.json')" name="json">
         <el-card>
           <JsonEditor
-            v-model="formData"
+            :modelValue="formData"
+            @update:modelValue="handleJsonUpdate"
             :rows="25"
           />
         </el-card>
@@ -370,6 +371,30 @@ async function handleSave() {
     ElMessage.error(error.message || t('messages.mapping.saveFailed'))
   } finally {
     saving.value = false
+  }
+}
+
+function handleJsonUpdate(newValue: any) {
+  if (newValue) {
+    // Clear all existing keys, then merge new data
+    for (const key of Object.keys(formData)) {
+      delete (formData as any)[key]
+    }
+    Object.assign(formData, newValue)
+
+    // Sync helper refs from the updated formData
+    const req = formData.request || {}
+    if (req.url) { urlType.value = 'url'; urlValue.value = req.url }
+    else if (req.urlPattern) { urlType.value = 'urlPattern'; urlValue.value = req.urlPattern }
+    else if (req.urlPath) { urlType.value = 'urlPath'; urlValue.value = req.urlPath }
+    else if (req.urlPathPattern) { urlType.value = 'urlPathPattern'; urlValue.value = req.urlPathPattern }
+    else { urlValue.value = '' }
+
+    if (req.bodyPatterns && req.bodyPatterns[0]?.equalTo) {
+      requestBodyText.value = req.bodyPatterns[0].equalTo
+    } else {
+      requestBodyText.value = ''
+    }
   }
 }
 
