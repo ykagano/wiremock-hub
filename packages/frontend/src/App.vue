@@ -58,6 +58,10 @@
               <el-icon><Document /></el-icon>
               <span>{{ t('nav.mappings') }}</span>
             </el-menu-item>
+            <el-menu-item index="/scenarios" :disabled="!currentProject">
+              <el-icon><Share /></el-icon>
+              <span>{{ t('nav.scenarios') }}</span>
+            </el-menu-item>
             <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
@@ -94,6 +98,10 @@
             <el-menu-item index="/mappings" :disabled="!currentProject">
               <el-icon><Document /></el-icon>
               <span>{{ t('nav.mappings') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/scenarios" :disabled="!currentProject">
+              <el-icon><Share /></el-icon>
+              <span>{{ t('nav.scenarios') }}</span>
             </el-menu-item>
             <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>

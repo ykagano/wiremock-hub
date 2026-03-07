@@ -30,10 +30,50 @@
     "projects": "Project",
     "mappings": "Stub Mappings",
     "registeredStubs": "Registered Stubs",
+    "scenarios": "Scenarios",
     "recording": "Recording",
     "requests": "Request Log",
     "instances": "Instances",
     "settings": "Settings"
+  },
+  "scenarios": {
+    "title": "Scenarios",
+    "scenarioList": "Scenarios",
+    "createNew": "Create New",
+    "addStep": "Add Step",
+    "noScenarios": "No scenarios",
+    "noScenariosHint": "Create a scenario to manage stub state transitions",
+    "selectScenario": "Select a scenario to view its flow",
+    "scenarioName": "Scenario Name",
+    "selectFromStubs": "Select a stub as the first step",
+    "searchStubs": "Search stubs...",
+    "selectExistingStub": "Select existing stub",
+    "createNewStub": "Create new stub",
+    "removeFromScenario": "Remove from scenario",
+    "confirmRemove": "Remove this stub from the scenario?",
+    "endState": "(End)",
+    "duplicateStateWarning": "State '{state}' has multiple stubs: {stubs}",
+    "noStartState": "No stub with 'Started' state found",
+    "unreachableState": "State '{state}' is not reachable from any step",
+    "validation": {
+      "nameRequired": "Scenario name is required",
+      "nameExists": "A scenario with this name already exists",
+      "stubRequired": "Please select a stub as the first step"
+    },
+    "placeholder": {
+      "scenarioName": "e.g. login-flow"
+    },
+    "dialog": {
+      "createTitle": "Create New Scenario",
+      "addStepTitle": "Add Step"
+    },
+    "messages": {
+      "created": "Scenario created",
+      "updated": "Scenario updated",
+      "stepAdded": "Step added to scenario",
+      "stepRemoved": "Step removed from scenario",
+      "reordered": "Scenario steps reordered"
+    }
   },
   "projects": {
     "title": "Projects",
@@ -306,7 +346,10 @@
     "confirmDeleteAllNote": "This only deletes stubs on the WireMock instance. Stubs in WireMock Hub are not affected.",
     "confirmDeleteMapping": "Are you sure you want to delete this stub from the instance?",
     "deleteFailed": "Failed to delete mapping from WireMock instance",
-    "deleteAllFailed": "Failed to delete all mappings from WireMock instance"
+    "deleteAllFailed": "Failed to delete all mappings from WireMock instance",
+    "resetScenarios": "Reset Scenarios",
+    "scenariosResetSuccess": "Scenarios reset to initial state",
+    "scenariosResetFailed": "Failed to reset scenarios"
   },
   "settings": {
     "title": "Settings",

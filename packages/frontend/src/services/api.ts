@@ -174,6 +174,10 @@ export const wiremockInstanceApi = {
     await apiClient.post(`/wiremock-instances/${id}/reset`);
   },
 
+  async resetScenarios(id: string): Promise<void> {
+    await apiClient.post(`/wiremock-instances/${id}/scenarios/reset`);
+  },
+
   async getRecordingStatus(id: string): Promise<{ status: string }> {
     const response = await apiClient.get<ApiResponse<{ status: string }>>(
       `/wiremock-instances/${id}/recording/status`

@@ -385,6 +385,7 @@ packages/
 - `DELETE /api/wiremock-instances/:id/mappings/:mappingId` - Delete individual mapping
 - `GET /api/wiremock-instances/:id/requests` - Get request logs
 - `POST /api/wiremock-instances/:id/reset` - Reset instance
+- `POST /api/wiremock-instances/:id/scenarios/reset` - Reset scenarios to Started state
 - `GET /api/wiremock-instances/:id/recording/status` - Get recording status
 - `POST /api/wiremock-instances/:id/recording/start` - Start recording (requires targetBaseUrl)
 - `POST /api/wiremock-instances/:id/recording/stop` - Stop recording
@@ -429,6 +430,15 @@ When clicking "Append All Instances":
 2. Register all stubs from SQLite on top of existing mappings
 
 Use Append when you want to add stubs without removing existing mappings on WireMock. Note that Append does not check for duplicates, so running it multiple times may register the same stubs more than once.
+
+### Scenario Management
+
+WireMock supports [Stateful Behaviour](http://wiremock.org/docs/stateful-behaviour/) via scenarios. Hub provides a visual editor for managing scenario state chains:
+
+- **Scenario view** (`/scenarios`): Create scenarios, add/remove steps, reorder via drag & drop
+- Stubs are linked into a state chain using `scenarioName`, `requiredScenarioState`, and `newScenarioState` fields
+- Inline editing of state names automatically propagates changes to adjacent steps
+- **Scenario reset**: Available on the Registered Stubs page, resets all scenarios on a WireMock instance back to "Started" state via `POST /__admin/scenarios/reset`
 
 ## E2E Tests
 

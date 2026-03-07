@@ -173,8 +173,8 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
-import type { Mapping, StubTestRequest } from '@/types/wiremock';
-import { getMethodTagType } from '@/utils/wiremock';
+import type { StubTestRequest } from '@/types/wiremock';
+import { getMethodTagType, toMapping } from '@/utils/wiremock';
 
 const { t } = useI18n();
 const { isMobile } = useResponsive();
@@ -224,7 +224,7 @@ function buildRequestFromMapping() {
   const stub = mappingStore.getStubById(props.stubId);
   if (!stub) return;
 
-  const mapping = stub.mapping as unknown as Mapping;
+  const mapping = toMapping(stub);
   stubName.value =
     stub.name ||
     mapping.name ||

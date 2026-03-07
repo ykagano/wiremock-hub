@@ -24,6 +24,10 @@
           <el-icon><Refresh /></el-icon>
           {{ t('registeredStubs.refresh') }}
         </el-button>
+        <el-button @click="resetScenarios" :disabled="!selectedInstanceId">
+          <el-icon><RefreshRight /></el-icon>
+          {{ t('registeredStubs.resetScenarios') }}
+        </el-button>
         <el-button
           type="danger"
           plain
@@ -175,6 +179,18 @@ async function fetchMappings() {
     ElMessage.error(t('registeredStubs.fetchFailed'));
   } finally {
     loading.value = false;
+  }
+}
+
+async function resetScenarios() {
+  if (!selectedInstanceId.value) return;
+
+  try {
+    await wiremockInstanceApi.resetScenarios(selectedInstanceId.value);
+    ElMessage.success(t('registeredStubs.scenariosResetSuccess'));
+  } catch (error) {
+    console.error('Failed to reset scenarios:', error);
+    ElMessage.error(t('registeredStubs.scenariosResetFailed'));
   }
 }
 

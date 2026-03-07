@@ -229,6 +229,7 @@ import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
 import type { Mapping } from '@/types/wiremock';
+import { toMapping } from '@/utils/wiremock';
 import JsonEditor from '@/components/mapping/JsonEditor.vue';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
 import BodyPatternsEditor from '@/components/mapping/BodyPatternsEditor.vue';
@@ -319,12 +320,19 @@ function syncHelperRefsFromRequest(req: Mapping['request']) {
 
 // Initialization
 onMounted(async () => {
+  // Pre-fill scenarioName from query parameter (e.g. from ScenariosView "Create new stub")
+  const queryScenarioName = route.query.scenarioName as string | undefined;
+  if (isNew.value && queryScenarioName) {
+    formData.scenarioName = queryScenarioName;
+    formData.requiredScenarioState = 'Started';
+  }
+
   if (!isNew.value) {
     const id = route.params.id as string;
     try {
       // Fetch the latest stub data from API
       const stub = await stubApi.get(id);
-      const mapping = stub.mapping as unknown as Mapping;
+      const mapping = toMapping(stub);
 
       // Load description from stub (not from mapping)
       stubDescription.value = stub.description || '';

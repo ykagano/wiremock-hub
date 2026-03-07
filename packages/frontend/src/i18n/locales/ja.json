@@ -30,10 +30,50 @@
     "projects": "プロジェクト",
     "mappings": "スタブマッピング",
     "registeredStubs": "登録済みスタブ",
+    "scenarios": "シナリオ",
     "recording": "レコーディング",
     "requests": "リクエストログ",
     "instances": "インスタンス",
     "settings": "設定"
+  },
+  "scenarios": {
+    "title": "シナリオ",
+    "scenarioList": "シナリオ一覧",
+    "createNew": "新規作成",
+    "addStep": "ステップ追加",
+    "noScenarios": "シナリオがありません",
+    "noScenariosHint": "シナリオを作成してスタブの状態遷移を管理しましょう",
+    "selectScenario": "シナリオを選択してフローを表示",
+    "scenarioName": "シナリオ名",
+    "selectFromStubs": "最初のステップとなるスタブを選択",
+    "searchStubs": "スタブを検索...",
+    "selectExistingStub": "既存のスタブを選択",
+    "createNewStub": "新規スタブを作成",
+    "removeFromScenario": "シナリオから除外",
+    "confirmRemove": "このスタブをシナリオから除外しますか？",
+    "endState": "（終了）",
+    "duplicateStateWarning": "状態 '{state}' に複数のスタブがあります: {stubs}",
+    "noStartState": "'Started' 状態のスタブがありません",
+    "unreachableState": "状態 '{state}' はどのステップからも到達できません",
+    "validation": {
+      "nameRequired": "シナリオ名を入力してください",
+      "nameExists": "同名のシナリオが既に存在します",
+      "stubRequired": "最初のステップとなるスタブを選択してください"
+    },
+    "placeholder": {
+      "scenarioName": "例: login-flow"
+    },
+    "dialog": {
+      "createTitle": "新規シナリオ作成",
+      "addStepTitle": "ステップ追加"
+    },
+    "messages": {
+      "created": "シナリオを作成しました",
+      "updated": "シナリオを更新しました",
+      "stepAdded": "シナリオにステップを追加しました",
+      "stepRemoved": "シナリオからステップを除外しました",
+      "reordered": "シナリオのステップを並べ替えました"
+    }
   },
   "projects": {
     "title": "プロジェクト一覧",
@@ -306,7 +346,10 @@
     "confirmDeleteAllNote": "WireMockインスタンス上のスタブのみ削除されます。WireMock Hub内のスタブには影響しません。",
     "confirmDeleteMapping": "このスタブをインスタンスから削除しますか？",
     "deleteFailed": "WireMockインスタンスからのマッピング削除に失敗しました",
-    "deleteAllFailed": "WireMockインスタンスからの全マッピング削除に失敗しました"
+    "deleteAllFailed": "WireMockインスタンスからの全マッピング削除に失敗しました",
+    "resetScenarios": "シナリオリセット",
+    "scenariosResetSuccess": "シナリオを初期状態にリセットしました",
+    "scenariosResetFailed": "シナリオのリセットに失敗しました"
   },
   "settings": {
     "title": "設定",

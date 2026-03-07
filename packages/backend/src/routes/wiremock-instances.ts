@@ -790,6 +790,43 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+  // Reset scenarios on WireMock instance
+  fastify.post(
+    '/:id/scenarios/reset',
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const { id } = request.params;
+
+      const instance = await fastify.prisma.wiremockInstance.findUnique({
+        where: { id },
+        include: { project: true }
+      });
+
+      if (!instance) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Instance not found'
+        });
+      }
+
+      try {
+        await axios.post(`${instance.url}/__admin/scenarios/reset`, null, {
+          timeout: 10000
+        });
+
+        return reply.send({
+          success: true,
+          message: 'Scenarios reset successfully'
+        });
+      } catch (error) {
+        return reply.status(502).send({
+          success: false,
+          error: 'Failed to reset scenarios on WireMock',
+          details: axios.isAxiosError(error) ? error.message : 'Unknown error'
+        });
+      }
+    }
+  );
 }
 
 interface ImportOptions {
