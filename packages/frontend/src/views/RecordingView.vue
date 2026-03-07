@@ -21,25 +21,15 @@
       </div>
     </div>
 
-    <el-empty
-      v-if="wiremockInstances.length === 0"
-      :description="t('recording.noInstances')"
-    />
-    <el-empty
-      v-else-if="!selectedInstanceId"
-      :description="t('recording.selectInstance')"
-    />
+    <el-empty v-if="wiremockInstances.length === 0" :description="t('recording.noInstances')" />
+    <el-empty v-else-if="!selectedInstanceId" :description="t('recording.selectInstance')" />
 
     <template v-else>
       <!-- Recording Status -->
       <div class="section">
         <div class="status-row">
           <span class="status-label">{{ t('recording.status') }}:</span>
-          <el-tag
-            :type="statusTagType"
-            size="large"
-            effect="dark"
-          >
+          <el-tag :type="statusTagType" size="large" effect="dark">
             {{ statusLabel }}
           </el-tag>
         </div>
@@ -47,12 +37,7 @@
 
       <!-- Description -->
       <div class="section">
-        <el-alert
-          :title="t('recording.description')"
-          type="info"
-          :closable="false"
-          show-icon
-        />
+        <el-alert :title="t('recording.description')" type="info" :closable="false" show-icon />
       </div>
 
       <!-- Target URL and Start/Stop button -->

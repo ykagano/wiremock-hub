@@ -642,122 +642,116 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
   );
 
   // Start recording on all instances in a project
-  fastify.post(
-    '/recording/start-all',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        const body = startRecordingAllSchema.parse(request.body);
+  fastify.post('/recording/start-all', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const body = startRecordingAllSchema.parse(request.body);
 
-        const project = await checkProjectExists(body.projectId);
-        if (!project) {
-          return reply.status(404).send({
-            success: false,
-            error: 'Project not found'
-          });
-        }
-
-        const instances = await fastify.prisma.wiremockInstance.findMany({
-          where: { projectId: body.projectId, isActive: true }
+      const project = await checkProjectExists(body.projectId);
+      if (!project) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Project not found'
         });
-
-        const results = await Promise.allSettled(
-          instances.map(async (instance) => {
-            await axios.post(
-              `${instance.url}/__admin/recordings/start`,
-              { targetBaseUrl: body.targetBaseUrl },
-              { timeout: 10000 }
-            );
-            return instance.name;
-          })
-        );
-
-        let success = 0;
-        let failed = 0;
-        const errors: string[] = [];
-        for (const result of results) {
-          if (result.status === 'fulfilled') {
-            success++;
-          } else {
-            failed++;
-            const reason = result.reason;
-            errors.push(axios.isAxiosError(reason) ? reason.message : 'Unknown error');
-          }
-        }
-
-        return reply.send({
-          success: true,
-          data: { success, failed, errors }
-        });
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          return reply.status(400).send({
-            success: false,
-            error: 'Validation error',
-            details: error.issues
-          });
-        }
-        throw error;
       }
+
+      const instances = await fastify.prisma.wiremockInstance.findMany({
+        where: { projectId: body.projectId, isActive: true }
+      });
+
+      const results = await Promise.allSettled(
+        instances.map(async (instance) => {
+          await axios.post(
+            `${instance.url}/__admin/recordings/start`,
+            { targetBaseUrl: body.targetBaseUrl },
+            { timeout: 10000 }
+          );
+          return instance.name;
+        })
+      );
+
+      let success = 0;
+      let failed = 0;
+      const errors: string[] = [];
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          success++;
+        } else {
+          failed++;
+          const reason = result.reason;
+          errors.push(axios.isAxiosError(reason) ? reason.message : 'Unknown error');
+        }
+      }
+
+      return reply.send({
+        success: true,
+        data: { success, failed, errors }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation error',
+          details: error.issues
+        });
+      }
+      throw error;
     }
-  );
+  });
 
   // Stop recording on all instances in a project
-  fastify.post(
-    '/recording/stop-all',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        const body = stopRecordingAllSchema.parse(request.body);
+  fastify.post('/recording/stop-all', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const body = stopRecordingAllSchema.parse(request.body);
 
-        const project = await checkProjectExists(body.projectId);
-        if (!project) {
-          return reply.status(404).send({
-            success: false,
-            error: 'Project not found'
-          });
-        }
-
-        const instances = await fastify.prisma.wiremockInstance.findMany({
-          where: { projectId: body.projectId, isActive: true }
+      const project = await checkProjectExists(body.projectId);
+      if (!project) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Project not found'
         });
-
-        const results = await Promise.allSettled(
-          instances.map(async (instance) => {
-            await axios.post(`${instance.url}/__admin/recordings/stop`, null, {
-              timeout: 10000
-            });
-            return instance.name;
-          })
-        );
-
-        let success = 0;
-        let failed = 0;
-        const errors: string[] = [];
-        for (const result of results) {
-          if (result.status === 'fulfilled') {
-            success++;
-          } else {
-            failed++;
-            const reason = result.reason;
-            errors.push(axios.isAxiosError(reason) ? reason.message : 'Unknown error');
-          }
-        }
-
-        return reply.send({
-          success: true,
-          data: { success, failed, errors }
-        });
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          return reply.status(400).send({
-            success: false,
-            error: 'Validation error',
-            details: error.issues
-          });
-        }
-        throw error;
       }
+
+      const instances = await fastify.prisma.wiremockInstance.findMany({
+        where: { projectId: body.projectId, isActive: true }
+      });
+
+      const results = await Promise.allSettled(
+        instances.map(async (instance) => {
+          await axios.post(`${instance.url}/__admin/recordings/stop`, null, {
+            timeout: 10000
+          });
+          return instance.name;
+        })
+      );
+
+      let success = 0;
+      let failed = 0;
+      const errors: string[] = [];
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          success++;
+        } else {
+          failed++;
+          const reason = result.reason;
+          errors.push(axios.isAxiosError(reason) ? reason.message : 'Unknown error');
+        }
+      }
+
+      return reply.send({
+        success: true,
+        data: { success, failed, errors }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation error',
+          details: error.issues
+        });
+      }
+      throw error;
     }
-  );
+  });
 
   // Reset WireMock instance
   fastify.post(

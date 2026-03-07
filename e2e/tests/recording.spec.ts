@@ -48,9 +48,9 @@ test.describe('Recording', () => {
       .locator('.el-aside')
       .getByText(/レコーディング|Recording/)
       .click();
-    await expect(
-      page.getByRole('heading', { name: /レコーディング|Recording/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Verify recording status is displayed (NeverStarted or Stopped)
     await expect(
@@ -61,12 +61,12 @@ test.describe('Recording', () => {
     await expect(page.locator('.el-alert')).toBeVisible();
 
     // Verify target URL input is shown
-    await expect(
-      page.getByPlaceholder(/https:\/\/api\.example\.com/)
-    ).toBeVisible();
+    await expect(page.getByPlaceholder(/https:\/\/api\.example\.com/)).toBeVisible();
 
     // Verify start recording button is shown and disabled (no URL entered)
-    const startButton = page.getByRole('button', { name: /レコーディング開始|Start Recording/ }).first();
+    const startButton = page
+      .getByRole('button', { name: /レコーディング開始|Start Recording/ })
+      .first();
     await expect(startButton).toBeVisible();
     await expect(startButton).toBeDisabled();
 
@@ -116,18 +116,18 @@ test.describe('Recording', () => {
       .locator('.el-dialog')
       .getByRole('button', { name: /保存|Save/ })
       .click();
-    await expect(
-      page.locator('.el-card', { hasText: 'Recording Test Instance' })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.el-card', { hasText: 'Recording Test Instance' })).toBeVisible({
+      timeout: 10000
+    });
 
     // Navigate to Recording page
     await page
       .locator('.el-aside')
       .getByText(/レコーディング|Recording/)
       .click();
-    await expect(
-      page.getByRole('heading', { name: /レコーディング|Recording/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Wait for status to load
     await expect(
@@ -139,7 +139,9 @@ test.describe('Recording', () => {
     await targetUrlInput.fill('http://wiremock-2:8080');
 
     // Start recording button should now be enabled
-    const startButton = page.getByRole('button', { name: /レコーディング開始|Start Recording/ }).first();
+    const startButton = page
+      .getByRole('button', { name: /レコーディング開始|Start Recording/ })
+      .first();
     await expect(startButton).toBeEnabled();
 
     // Click start recording
@@ -156,7 +158,9 @@ test.describe('Recording', () => {
     ).toBeVisible({ timeout: 10000 });
 
     // Verify stop recording button is now shown
-    const stopButton = page.getByRole('button', { name: /レコーディング停止|Stop Recording/ }).first();
+    const stopButton = page
+      .getByRole('button', { name: /レコーディング停止|Stop Recording/ })
+      .first();
     await expect(stopButton).toBeVisible();
 
     // Verify target URL input is hidden during recording
@@ -171,9 +175,9 @@ test.describe('Recording', () => {
     ).toBeVisible({ timeout: 10000 });
 
     // Verify status changed to Stopped
-    await expect(
-      page.locator('.el-tag', { hasText: /停止|Stopped/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.el-tag', { hasText: /停止|Stopped/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Verify start recording button is shown again
     await expect(
@@ -247,9 +251,9 @@ test.describe('Recording', () => {
       .locator('.el-aside')
       .getByText(/レコーディング|Recording/)
       .click();
-    await expect(
-      page.getByRole('heading', { name: /レコーディング|Recording/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Wait for status to load
     await expect(
@@ -300,9 +304,9 @@ test.describe('Recording', () => {
     ).toBeVisible({ timeout: 10000 });
 
     // Verify status changed to Stopped
-    await expect(
-      page.locator('.el-tag', { hasText: /停止|Stopped/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.el-tag', { hasText: /停止|Stopped/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Verify start all button is shown again
     await expect(
@@ -341,9 +345,9 @@ test.describe('Recording', () => {
       .locator('.el-aside')
       .getByText(/レコーディング|Recording/)
       .click();
-    await expect(
-      page.getByRole('heading', { name: /レコーディング|Recording/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Verify empty state
     await expect(
@@ -398,9 +402,9 @@ test.describe('Recording', () => {
       .locator('.el-aside')
       .getByText(/レコーディング|Recording/)
       .click();
-    await expect(
-      page.getByRole('heading', { name: /レコーディング|Recording/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
 
     // Wait for status
     await expect(
@@ -408,7 +412,9 @@ test.describe('Recording', () => {
     ).toBeVisible({ timeout: 10000 });
 
     // Start button should be disabled (no URL)
-    const startButton = page.getByRole('button', { name: /レコーディング開始|Start Recording/ }).first();
+    const startButton = page
+      .getByRole('button', { name: /レコーディング開始|Start Recording/ })
+      .first();
     await expect(startButton).toBeDisabled();
 
     // Start all button should also be disabled
