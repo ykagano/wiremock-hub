@@ -18,33 +18,31 @@
       </div>
     </div>
 
+    <!-- Basic Info (always visible above tabs) -->
+    <el-card class="basic-info-card">
+      <el-form
+        :model="formData"
+        :label-width="isMobile ? undefined : '150px'"
+        :label-position="isMobile ? 'top' : 'left'"
+      >
+        <!-- Name -->
+        <el-form-item :label="t('editor.stubName')">
+          <el-input v-model="formData.name" :placeholder="t('editor.placeholder.stubName')" />
+        </el-form-item>
+
+        <!-- Description -->
+        <el-form-item :label="t('editor.stubDescription')" class="description-item">
+          <el-input
+            v-model="stubDescription"
+            type="textarea"
+            :rows="2"
+            :placeholder="t('editor.placeholder.stubDescription')"
+          />
+        </el-form-item>
+      </el-form>
+    </el-card>
+
     <el-tabs v-model="activeTab" type="card">
-      <!-- Basic Info -->
-      <el-tab-pane :label="t('editor.basicInfo')" name="basic">
-        <el-card>
-          <el-form
-            :model="formData"
-            :label-width="isMobile ? undefined : '150px'"
-            :label-position="isMobile ? 'top' : 'left'"
-          >
-            <!-- Name -->
-            <el-form-item :label="t('editor.stubName')">
-              <el-input v-model="formData.name" :placeholder="t('editor.placeholder.stubName')" />
-            </el-form-item>
-
-            <!-- Description -->
-            <el-form-item :label="t('editor.stubDescription')">
-              <el-input
-                v-model="stubDescription"
-                type="textarea"
-                :rows="3"
-                :placeholder="t('editor.placeholder.stubDescription')"
-              />
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </el-tab-pane>
-
       <!-- Request settings -->
       <el-tab-pane :label="t('editor.request')" name="request">
         <el-card>
@@ -241,7 +239,7 @@ const route = useRoute();
 const router = useRouter();
 const mappingStore = useMappingStore();
 
-const activeTab = ref('basic');
+const activeTab = ref('request');
 const saving = ref(false);
 const testDialogVisible = ref(false);
 const currentStubId = computed(() => (route.params.id as string) || '');
@@ -432,6 +430,14 @@ function openTestDialog() {
 .header-actions {
   display: flex;
   gap: 12px;
+}
+
+.basic-info-card {
+  margin-bottom: 16px;
+}
+
+.description-item {
+  margin-bottom: 0;
 }
 
 .full-width-textarea {
