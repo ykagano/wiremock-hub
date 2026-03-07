@@ -30,6 +30,7 @@
     "projects": "プロジェクト",
     "mappings": "スタブマッピング",
     "registeredStubs": "登録済みスタブ",
+    "recording": "レコーディング",
     "requests": "リクエストログ",
     "instances": "インスタンス",
     "settings": "設定"
@@ -258,6 +259,30 @@
       "editTitle": "インスタンス編集"
     },
     "confirmDelete": "{name} を削除しますか？"
+  },
+  "recording": {
+    "title": "レコーディング",
+    "description": "レコーディングを開始すると、WireMockはプロキシとして動作し、ターゲットURLへのリクエストとレスポンスをスタブとして自動記録します。レコーディングを停止すると、記録されたスタブがWireMockに登録されます。",
+    "selectInstance": "インスタンスを選択",
+    "noInstances": "インスタンスがありません",
+    "status": "ステータス",
+    "statusNeverStarted": "未開始",
+    "statusRecording": "レコーディング中",
+    "statusStopped": "停止",
+    "targetBaseUrl": "ターゲットURL",
+    "targetBaseUrlPlaceholder": "例: https://api.example.com",
+    "targetBaseUrlRequired": "ターゲットURLを入力してください",
+    "startRecording": "レコーディング開始",
+    "stopRecording": "レコーディング停止",
+    "startRecordingAll": "全インスタンスでレコーディング開始",
+    "stopRecordingAll": "全インスタンスでレコーディング停止",
+    "startSuccess": "レコーディングを開始しました",
+    "startFailed": "レコーディングの開始に失敗しました",
+    "stopSuccess": "レコーディングを停止しました",
+    "stopFailed": "レコーディングの停止に失敗しました",
+    "startAllSuccess": "全インスタンスでレコーディングを開始しました: 成功 {success} 件、失敗 {failed} 件",
+    "stopAllSuccess": "全インスタンスでレコーディングを停止しました: 成功 {success} 件、失敗 {failed} 件",
+    "statusFetchFailed": "ステータスの取得に失敗しました"
   },
   "registeredStubs": {
     "title": "登録済みスタブ",

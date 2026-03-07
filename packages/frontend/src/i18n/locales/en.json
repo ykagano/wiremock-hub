@@ -30,6 +30,7 @@
     "projects": "Project",
     "mappings": "Stub Mappings",
     "registeredStubs": "Registered Stubs",
+    "recording": "Recording",
     "requests": "Request Log",
     "instances": "Instances",
     "settings": "Settings"
@@ -258,6 +259,30 @@
       "editTitle": "Edit Instance"
     },
     "confirmDelete": "Delete {name}?"
+  },
+  "recording": {
+    "title": "Recording",
+    "description": "When recording starts, WireMock acts as a proxy and automatically records requests and responses to the target URL as stubs. When recording stops, the recorded stubs are registered in WireMock.",
+    "selectInstance": "Select Instance",
+    "noInstances": "No instances",
+    "status": "Recording Status",
+    "statusNeverStarted": "Never Started",
+    "statusRecording": "Recording",
+    "statusStopped": "Stopped",
+    "targetBaseUrl": "Target URL",
+    "targetBaseUrlPlaceholder": "e.g. https://api.example.com",
+    "targetBaseUrlRequired": "Target URL is required",
+    "startRecording": "Start Recording",
+    "stopRecording": "Stop Recording",
+    "startRecordingAll": "Start Recording on All Instances",
+    "stopRecordingAll": "Stop Recording on All Instances",
+    "startSuccess": "Recording started",
+    "startFailed": "Failed to start recording",
+    "stopSuccess": "Recording stopped",
+    "stopFailed": "Failed to stop recording",
+    "startAllSuccess": "Recording started on all instances: {success} succeeded, {failed} failed",
+    "stopAllSuccess": "Recording stopped on all instances: {success} succeeded, {failed} failed",
+    "statusFetchFailed": "Failed to fetch recording status"
   },
   "registeredStubs": {
     "title": "Registered Stubs",

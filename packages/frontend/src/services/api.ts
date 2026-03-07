@@ -172,6 +172,40 @@ export const wiremockInstanceApi = {
 
   async reset(id: string): Promise<void> {
     await apiClient.post(`/wiremock-instances/${id}/reset`);
+  },
+
+  async getRecordingStatus(id: string): Promise<{ status: string }> {
+    const response = await apiClient.get<ApiResponse<{ status: string }>>(
+      `/wiremock-instances/${id}/recording/status`
+    );
+    return response.data.data!;
+  },
+
+  async startRecording(id: string, targetBaseUrl: string): Promise<void> {
+    await apiClient.post(`/wiremock-instances/${id}/recording/start`, { targetBaseUrl });
+  },
+
+  async stopRecording(id: string): Promise<void> {
+    await apiClient.post(`/wiremock-instances/${id}/recording/stop`);
+  },
+
+  async startRecordingAll(
+    projectId: string,
+    targetBaseUrl: string
+  ): Promise<{ success: number; failed: number; errors: string[] }> {
+    const response = await apiClient.post<
+      ApiResponse<{ success: number; failed: number; errors: string[] }>
+    >('/wiremock-instances/recording/start-all', { projectId, targetBaseUrl });
+    return response.data.data!;
+  },
+
+  async stopRecordingAll(
+    projectId: string
+  ): Promise<{ success: number; failed: number; errors: string[] }> {
+    const response = await apiClient.post<
+      ApiResponse<{ success: number; failed: number; errors: string[] }>
+    >('/wiremock-instances/recording/stop-all', { projectId });
+    return response.data.data!;
   }
 };
 
