@@ -558,34 +558,34 @@
       <h2 class="section-title" data-i18n="nav.features">Features</h2>
       <div class="feature-grid">
         <div class="feature-card">
-          <div class="feature-icon">&#127760;</div>
-          <h3 data-i18n="features.distributed.title">Distributed WireMock Management</h3>
-          <p data-i18n="features.distributed.desc">Deploy stubs to multiple WireMock instances at once. Sync all instances with a single click.</p>
+          <div class="feature-icon">&#128260;</div>
+          <h3 data-i18n="features.stubSync.title">Visual Stub Editor & Sync</h3>
+          <p data-i18n="features.stubSync.desc">Create and edit stubs with a form-based UI. Deploy to all instances with a single click via Sync or Append mode.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#128200;</div>
-          <h3 data-i18n="features.loadtest.title">Load Testing Optimized</h3>
-          <p data-i18n="features.loadtest.desc">Run multiple WireMock instances in parallel to easily build large-scale load testing environments.</p>
+          <div class="feature-icon">&#128279;</div>
+          <h3 data-i18n="features.scenario.title">Scenario Management</h3>
+          <p data-i18n="features.scenario.desc">Build stateful stub chains with a visual editor. Drag-and-drop reordering and inline state editing with automatic propagation.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#128191;</div>
-          <h3 data-i18n="features.sqlite.title">SQLite Persistence</h3>
-          <p data-i18n="features.sqlite.desc">No external database required. Simple file-based persistence makes backup easy.</p>
+          <div class="feature-icon">&#128202;</div>
+          <h3 data-i18n="features.requestLog.title">Request Log & Recording</h3>
+          <p data-i18n="features.requestLog.desc">Browse request logs with filtering. Start/stop proxy recording on any instance. Convert logged requests into stubs.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128269;</div>
+          <h3 data-i18n="features.registeredStubs.title">Registered Stubs View</h3>
+          <p data-i18n="features.registeredStubs.desc">View stubs registered on each WireMock instance. Distinguish Hub-created stubs from external ones. Delete individual or all mappings.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#128229;</div>
-          <h3 data-i18n="features.import.title">Request to Stub Import</h3>
-          <p data-i18n="features.import.desc">Import recorded requests as stubs with one click. Quickly create stubs from actual API traffic.</p>
+          <h3 data-i18n="features.importExport.title">Import / Export</h3>
+          <p data-i18n="features.importExport.desc">Import stubs from JSON files or export for sharing. Clone existing stubs or entire projects to set up new environments quickly.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#128051;</div>
-          <h3 data-i18n="features.docker.title">Docker Support</h3>
-          <p data-i18n="features.docker.desc">Distributed as a Docker image. Start easily with docker compose up.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128218;</div>
-          <h3 data-i18n="features.project.title">Project Management</h3>
-          <p data-i18n="features.project.desc">Manage stubs as projects for each environment: development, staging, production.</p>
+          <div class="feature-icon">&#127912;</div>
+          <h3 data-i18n="features.ui.title">SQLite & Modern UI</h3>
+          <p data-i18n="features.ui.desc">File-based SQLite persistence with no external database. Dark/Light/System themes and English/Japanese support.</p>
         </div>
       </div>
     </div>
@@ -661,6 +661,12 @@
             <td><span class="check">&#10003;</span></td>
           </tr>
           <tr>
+            <td data-i18n="comparison.scenario">Visual Scenario Editor</td>
+            <td><span class="check">&#10003;</span></td>
+            <td><span class="cross">&#10005;</span></td>
+            <td><span class="cross">&#10005;</span></td>
+          </tr>
+          <tr>
             <td data-i18n="comparison.import">Request to Stub Import</td>
             <td><span class="check">&#10003;</span></td>
             <td><span class="cross">&#10005;</span></td>
@@ -710,7 +716,7 @@
           <span data-i18n="usage.step2.title">Create Stub Mappings</span>
         </h3>
         <p data-i18n="usage.step2.description">
-          Define request conditions and responses for the APIs you want to mock. You can configure detailed conditions such as URL patterns, HTTP methods, headers, and body. Created stubs are saved to SQLite and can be shared with your team.
+          Define request conditions and responses for the APIs you want to mock. Configure URL patterns, HTTP methods, headers, query parameters, and body matching. Import stubs from JSON files or clone existing ones.
         </p>
         <img id="usage-img-2a" src="images/en/create_stub.png" alt="Create Stub Screen" class="usage-image" style="margin-bottom: 24px;">
         <img id="usage-img-2b" src="images/en/stub-mapping.png" alt="Stub List Screen" class="usage-image">
@@ -719,12 +725,23 @@
       <div class="usage-step">
         <h3>
           <span class="usage-step-number">3</span>
-          <span data-i18n="usage.step3.title">Sync to All Instances</span>
+          <span data-i18n="usage.step3.title">Build Scenario Chains</span>
         </h3>
         <p data-i18n="usage.step3.description">
-          Click the "Sync All Instances" button to deploy created stubs to all registered WireMock instances at once. Instances are reset before syncing to ensure that SQLite and WireMock states are always consistent. You can view the recorded request logs on the screen after using the mock.
+          For stateful APIs, use the Scenario editor to build state chains visually. Reorder steps with drag-and-drop, edit state names inline with automatic propagation to adjacent steps.
         </p>
-        <img id="usage-img-3" src="images/en/request-log.png" alt="Request Log Screen" class="usage-image">
+        <img id="usage-img-3" src="images/en/scenario-editor.png" alt="Scenario Editor Screen" class="usage-image">
+      </div>
+
+      <div class="usage-step">
+        <h3>
+          <span class="usage-step-number">4</span>
+          <span data-i18n="usage.step4.title">Sync & Monitor</span>
+        </h3>
+        <p data-i18n="usage.step4.description">
+          Click "Sync All Instances" to deploy stubs to all WireMock instances at once. View request logs to verify mock behavior, filter by URL/method/status, and start proxy recording to capture live traffic.
+        </p>
+        <img id="usage-img-4" src="images/en/request-log.png" alt="Request Log Screen" class="usage-image">
       </div>
     </div>
   </section>
@@ -749,22 +766,23 @@
         'nav.comparison': 'ツール比較',
         'hero.description': '複数のWireMockインスタンスを一元管理できる<br>GUIクライアント',
         'hero.github': 'GitHub で見る',
-        'features.distributed.title': '分散WireMock管理',
-        'features.distributed.desc': '複数のWireMockインスタンスにスタブを一括デプロイ。ワンクリックで全インスタンスを同期できます。',
-        'features.sqlite.title': 'SQLite永続化',
-        'features.sqlite.desc': '外部データベース不要。シンプルなファイルベースの永続化でバックアップも簡単。',
-        'features.import.title': 'リクエストからスタブ登録',
-        'features.import.desc': 'リクエストログからワンクリックでスタブに登録可能。実際のAPIトラフィックから素早くスタブを作成。',
-        'features.docker.title': 'Dockerサポート',
-        'features.docker.desc': 'Dockerイメージとして配布。docker compose up で簡単に起動できます。',
-        'features.loadtest.title': '負荷試験に最適化',
-        'features.loadtest.desc': '複数のWireMockインスタンスを並列稼働させ、大規模な負荷試験環境を簡単に構築。',
-        'features.project.title': 'プロジェクト管理',
-        'features.project.desc': '開発・ステージング・本番など、環境ごとにスタブをプロジェクトとして管理。',
+        'features.stubSync.title': 'ビジュアルスタブエディタ & 同期',
+        'features.stubSync.desc': 'フォームベースのUIでスタブを作成・編集。Sync/Appendモードでワンクリックで全インスタンスに一括デプロイ。',
+        'features.scenario.title': 'シナリオ管理',
+        'features.scenario.desc': 'ビジュアルエディタでステートフルなスタブチェーンを構築。ドラッグ＆ドロップで並び替え、インライン編集で状態名を自動伝播。',
+        'features.requestLog.title': 'リクエストログ & 録画',
+        'features.requestLog.desc': 'フィルタリング機能付きリクエストログを閲覧。プロキシ録画の開始/停止。ログからワンクリックでスタブを生成。',
+        'features.registeredStubs.title': '登録済みスタブビュー',
+        'features.registeredStubs.desc': '各WireMockインスタンスに実際に登録されているスタブを確認。Hub作成と外部登録を区別。個別または一括削除に対応。',
+        'features.importExport.title': 'インポート / エクスポート',
+        'features.importExport.desc': 'JSONファイルからスタブをインポート、またはエクスポートして共有。既存スタブやプロジェクト全体を複製して環境を素早く構築。',
+        'features.ui.title': 'SQLite & モダンUI',
+        'features.ui.desc': 'ファイルベースのSQLite永続化 — 外部データベース不要。ダーク/ライト/システムテーマと日英対応。',
         'comparison.title': 'ツール比較',
         'comparison.feature': '機能',
         'comparison.gui': 'GUI',
         'comparison.distributed': '分散インスタンス一括同期',
+        'comparison.scenario': 'ビジュアルシナリオエディタ',
         'comparison.import': 'リクエストからスタブ登録',
         'comparison.opensource': 'オープンソース',
         'comparison.selfhost': 'セルフホスト',
@@ -775,11 +793,13 @@
         'quickstart.standalone.title': '# WireMock Hub 単体イメージで試す（既存のWireMockに接続）',
         'usage.title': '使い方',
         'usage.step1.title': 'プロジェクトとインスタンスを登録',
-        'usage.step1.description': 'プロジェクトを作成し、管理したいWireMockインスタンスを追加します。プロジェクトは環境（開発・ステージング・本番など）ごとに作成できます。各インスタンスのヘルスチェックで接続状態を確認できます。',
+        'usage.step1.description': 'プロジェクトを作成し、管理したいWireMockインスタンスを追加します。環境（開発・ステージング・本番など）ごとにプロジェクトを作成できます。ヘルスチェックで各インスタンスの接続状態を確認。',
         'usage.step2.title': 'スタブマッピングを作成',
-        'usage.step2.description': 'モックしたいAPIのリクエスト条件とレスポンスを定義します。URLパターン、HTTPメソッド、ヘッダー、ボディなど詳細な条件を設定できます。作成したスタブはSQLiteに保存され、チームで共有できます。',
-        'usage.step3.title': '全インスタンスに同期',
-        'usage.step3.description': '「全インスタンスに同期」ボタンで、作成したスタブを登録済みの全WireMockインスタンスに一括デプロイします。同期前にインスタンスをリセットするため、SQLiteとWireMockの状態が常に一致します。モックを使用後に記録されたリクエストログを画面で確認できます。'
+        'usage.step2.description': 'モックしたいAPIのリクエスト条件とレスポンスを定義。URLパターン、HTTPメソッド、ヘッダー、クエリパラメータ、ボディマッチングを設定。JSONファイルからのインポートや既存スタブの複製も可能。',
+        'usage.step3.title': 'シナリオチェーンを構築',
+        'usage.step3.description': 'ステートフルなAPIには、シナリオエディタで状態チェーンをビジュアルに構築。ドラッグ＆ドロップでステップを並び替え、インライン編集で状態名を自動伝播。',
+        'usage.step4.title': '同期 & モニタリング',
+        'usage.step4.description': '「全インスタンスに同期」で全WireMockインスタンスにスタブを一括デプロイ。リクエストログでモック動作を確認、URL/メソッド/ステータスでフィルタリング。プロキシ録画でライブトラフィックをキャプチャ。'
       },
       en: {
         'nav.features': 'Features',
@@ -789,22 +809,23 @@
         'nav.comparison': 'Tool Comparison',
         'hero.description': 'A GUI client for<br>centralized management of multiple WireMock instances',
         'hero.github': 'View on GitHub',
-        'features.distributed.title': 'Distributed WireMock Management',
-        'features.distributed.desc': 'Deploy stubs to multiple WireMock instances at once. Sync all instances with a single click.',
-        'features.sqlite.title': 'SQLite Persistence',
-        'features.sqlite.desc': 'No external database required. Simple file-based persistence makes backup easy.',
-        'features.import.title': 'Request to Stub Import',
-        'features.import.desc': 'Import recorded requests as stubs with one click. Quickly create stubs from actual API traffic.',
-        'features.docker.title': 'Docker Support',
-        'features.docker.desc': 'Distributed as a Docker image. Start easily with docker compose up.',
-        'features.loadtest.title': 'Load Testing Optimized',
-        'features.loadtest.desc': 'Run multiple WireMock instances in parallel to easily build large-scale load testing environments.',
-        'features.project.title': 'Project Management',
-        'features.project.desc': 'Manage stubs as projects for each environment: development, staging, production.',
+        'features.stubSync.title': 'Visual Stub Editor & Sync',
+        'features.stubSync.desc': 'Create and edit stubs with a form-based UI. Deploy to all instances with a single click via Sync or Append mode.',
+        'features.scenario.title': 'Scenario Management',
+        'features.scenario.desc': 'Build stateful stub chains with a visual editor. Drag-and-drop reordering and inline state editing with automatic propagation.',
+        'features.requestLog.title': 'Request Log & Recording',
+        'features.requestLog.desc': 'Browse request logs with filtering. Start/stop proxy recording on any instance. Convert logged requests into stubs.',
+        'features.registeredStubs.title': 'Registered Stubs View',
+        'features.registeredStubs.desc': 'View stubs registered on each WireMock instance. Distinguish Hub-created stubs from external ones. Delete individual or all mappings.',
+        'features.importExport.title': 'Import / Export',
+        'features.importExport.desc': 'Import stubs from JSON files or export for sharing. Clone existing stubs or entire projects to set up new environments quickly.',
+        'features.ui.title': 'SQLite & Modern UI',
+        'features.ui.desc': 'File-based SQLite persistence with no external database. Dark/Light/System themes and English/Japanese support.',
         'comparison.title': 'Tool Comparison',
         'comparison.feature': 'Feature',
         'comparison.gui': 'GUI',
         'comparison.distributed': 'Distributed Instance Sync',
+        'comparison.scenario': 'Visual Scenario Editor',
         'comparison.import': 'Request to Stub Import',
         'comparison.opensource': 'Open Source',
         'comparison.selfhost': 'Self-hosted',
@@ -817,9 +838,11 @@
         'usage.step1.title': 'Register Projects and Instances',
         'usage.step1.description': 'Create a project and add the WireMock instances you want to manage. Projects can be created for each environment (development, staging, production, etc.). Use health checks to verify the connection status of each instance.',
         'usage.step2.title': 'Create Stub Mappings',
-        'usage.step2.description': 'Define request conditions and responses for the APIs you want to mock. You can configure detailed conditions such as URL patterns, HTTP methods, headers, and body. Created stubs are saved to SQLite and can be shared with your team.',
-        'usage.step3.title': 'Sync to All Instances',
-        'usage.step3.description': 'Click the "Sync All Instances" button to deploy created stubs to all registered WireMock instances at once. Instances are reset before syncing to ensure that SQLite and WireMock states are always consistent. You can view the recorded request logs on the screen after using the mock.'
+        'usage.step2.description': 'Define request conditions and responses for the APIs you want to mock. Configure URL patterns, HTTP methods, headers, query parameters, and body matching. Import stubs from JSON files or clone existing ones.',
+        'usage.step3.title': 'Build Scenario Chains',
+        'usage.step3.description': 'For stateful APIs, use the Scenario editor to build state chains visually. Reorder steps with drag-and-drop, edit state names inline with automatic propagation to adjacent steps.',
+        'usage.step4.title': 'Sync & Monitor',
+        'usage.step4.description': 'Click "Sync All Instances" to deploy stubs to all WireMock instances at once. View request logs to verify mock behavior, filter by URL/method/status, and start proxy recording to capture live traffic.'
       }
     };
 
@@ -859,6 +882,7 @@
       const usageImg2a = document.getElementById('usage-img-2a');
       const usageImg2b = document.getElementById('usage-img-2b');
       const usageImg3 = document.getElementById('usage-img-3');
+      const usageImg4 = document.getElementById('usage-img-4');
 
       if (usageImg1) {
         usageImg1.src = currentLang === 'ja' ? 'images/jp/project-detail.png' : 'images/en/project-detail.png';
@@ -873,8 +897,12 @@
         usageImg2b.alt = currentLang === 'ja' ? 'スタブ一覧画面' : 'Stub List Screen';
       }
       if (usageImg3) {
-        usageImg3.src = currentLang === 'ja' ? 'images/jp/request-log.png' : 'images/en/request-log.png';
-        usageImg3.alt = currentLang === 'ja' ? 'リクエストログ画面' : 'Request Log Screen';
+        usageImg3.src = currentLang === 'ja' ? 'images/jp/scenario-editor.png' : 'images/en/scenario-editor.png';
+        usageImg3.alt = currentLang === 'ja' ? 'シナリオエディタ画面' : 'Scenario Editor Screen';
+      }
+      if (usageImg4) {
+        usageImg4.src = currentLang === 'ja' ? 'images/jp/request-log.png' : 'images/en/request-log.png';
+        usageImg4.alt = currentLang === 'ja' ? 'リクエストログ画面' : 'Request Log Screen';
       }
     }
 
