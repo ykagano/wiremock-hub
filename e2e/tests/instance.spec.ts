@@ -7,8 +7,8 @@ test.describe('WireMock Instance', () => {
     await page.goto('/');
   });
 
-  test('should add and remove instance', async ({ page }) => {
-    const testProjectName = `Instance Test ${Date.now()}`;
+  test('should manage instance lifecycle', async ({ page }) => {
+    const testProjectName = `Instance Lifecycle ${Date.now()}`;
 
     // Create project
     await page
@@ -25,18 +25,15 @@ test.describe('WireMock Instance', () => {
     const projectCard = page.locator('.el-card', { hasText: testProjectName });
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
 
-    // Verify Project ID is displayed and copy button works
+    // Verify Project ID is displayed (UUID format) and copy button works
     const projectIdCell = page.locator('.project-id-cell');
     await expect(projectIdCell).toBeVisible();
     const projectIdCode = projectIdCell.locator('span.project-id');
     await expect(projectIdCode).toBeVisible();
-    // Project ID should be a UUID format
     const projectIdText = await projectIdCode.textContent();
     expect(projectIdText).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     );
-
-    // Click copy button and verify success message
     await projectIdCell.locator('button').click();
     await expect(
       page.getByText(/プロジェクトIDをコピーしました|Project ID copied to clipboard/i).first()
@@ -63,117 +60,20 @@ test.describe('WireMock Instance', () => {
     // Wait for success message to disappear
     await page.waitForTimeout(1500);
 
-    // Delete instance
+    // Health check via dropdown
     const instanceCard = page.locator('.el-card', { hasText: 'Test Instance' });
     await instanceCard.locator('.el-dropdown').click();
-    await page.getByRole('menuitem', { name: /削除|Delete/ }).click();
-    await page
-      .locator('.el-message-box')
-      .getByRole('button', { name: /はい|Yes|確認/ })
-      .click();
-
-    // Wait for dialog to close
-    await expect(page.locator('.el-message-box')).not.toBeVisible();
-
-    // Verify instance is deleted
-    await expect(page.locator('.el-card', { hasText: 'Test Instance' })).not.toBeVisible();
-
-    // Clean up - delete project
-    await cleanupProject(page, testProjectName);
-  });
-
-  test('should check health of WireMock instances', async ({ page }) => {
-    const healthTestProject = `Health Test ${Date.now()}`;
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(healthTestProject);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: healthTestProject });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-
-    // Add instance with Docker network URL
-    await page
-      .locator('.section-header')
-      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
-      .click();
-    await page
-      .locator('.el-dialog')
-      .getByLabel(/インスタンス名|Name/)
-      .fill('Health Test Instance');
-    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Check health
-    const instanceCard = page.locator('.el-card', { hasText: 'Health Test Instance' });
-    await instanceCard.locator('.el-dropdown').click();
     await page.getByRole('menuitem', { name: /ヘルスチェック|Health Check|接続確認/ }).click();
-
-    // Should show health status - look for success message
     await expect(page.getByText(/接続に成功|接続OK|Healthy|success/i).first()).toBeVisible({
       timeout: 10000
     });
 
-    // Clean up
-    await cleanupProject(page, healthTestProject);
-  });
-
-  test('should edit instance name and URL', async ({ page }) => {
-    const testProjectName = `Instance Edit Test ${Date.now()}`;
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-
-    // Add instance
-    await page
-      .locator('.section-header')
-      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
-      .click();
-    await page
-      .locator('.el-dialog')
-      .getByLabel(/インスタンス名|Name/)
-      .fill('Original Instance');
-    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Verify instance was created
-    await expect(page.locator('.el-card', { hasText: 'Original Instance' })).toBeVisible();
-
     // Wait for success message to disappear
     await page.waitForTimeout(1500);
 
-    // Open edit dialog via dropdown menu
-    const instanceCard = page.locator('.el-card', { hasText: 'Original Instance' });
+    // Edit instance: change name and URL via dropdown
     await instanceCard.locator('.el-dropdown').click();
     await page.getByRole('menuitem', { name: /編集|Edit/ }).click();
-
-    // Edit name and URL
     const nameInput = page.locator('.el-dialog').getByLabel(/インスタンス名|Name/);
     await nameInput.clear();
     await nameInput.fill('Updated Instance');
@@ -187,9 +87,24 @@ test.describe('WireMock Instance', () => {
 
     // Verify instance was updated
     await expect(page.locator('.el-card', { hasText: 'Updated Instance' })).toBeVisible();
-    await expect(page.locator('.el-card', { hasText: 'Original Instance' })).not.toBeVisible();
-    // Verify URL is updated in the card
+    await expect(page.locator('.el-card', { hasText: 'Test Instance' })).not.toBeVisible();
     await expect(page.locator('.instance-url', { hasText: WIREMOCK_2_URL })).toBeVisible();
+
+    // Wait for success message to disappear
+    await page.waitForTimeout(1500);
+
+    // Delete instance via dropdown
+    const updatedCard = page.locator('.el-card', { hasText: 'Updated Instance' });
+    await updatedCard.locator('.el-dropdown').click();
+    await page.getByRole('menuitem', { name: /削除|Delete/ }).click();
+    await page
+      .locator('.el-message-box')
+      .getByRole('button', { name: /はい|Yes|確認/ })
+      .click();
+
+    // Verify dialog closes and instance is deleted
+    await expect(page.locator('.el-message-box')).not.toBeVisible();
+    await expect(page.locator('.el-card', { hasText: 'Updated Instance' })).not.toBeVisible();
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -544,8 +459,8 @@ test.describe('WireMock Instance', () => {
     await cleanupProject(page, testProjectName);
   });
 
-  test('should validate instance form inputs', async ({ page }) => {
-    const testProjectName = `Instance Validation Test ${Date.now()}`;
+  test('should validate instance form and handle errors', async ({ page }) => {
+    const testProjectName = `Instance Validation ${Date.now()}`;
 
     // Create project
     await page
@@ -568,16 +483,14 @@ test.describe('WireMock Instance', () => {
       .getByRole('button', { name: /インスタンス追加|Add Instance/ })
       .click();
 
-    // Try to save without filling anything
+    // Try to save without filling anything → validation error
     await page
       .locator('.el-dialog')
       .getByRole('button', { name: /保存|Save/ })
       .click();
-
-    // Should show validation errors for name and URL
     await expect(page.locator('.el-form-item__error').first()).toBeVisible();
 
-    // Fill name but leave URL empty
+    // Fill name but leave URL empty → validation error
     await page
       .locator('.el-dialog')
       .getByLabel(/インスタンス名|Name/)
@@ -588,14 +501,14 @@ test.describe('WireMock Instance', () => {
       .click();
     await expect(page.locator('.el-form-item__error').first()).toBeVisible();
 
-    // Fill invalid URL format
+    // Fill invalid URL format → validation error
     const urlInput = page.locator('.el-dialog').getByLabel(/URL/);
     await urlInput.fill('not-a-valid-url');
     await urlInput.blur();
     await page.waitForTimeout(500);
     await expect(page.locator('.el-form-item__error').first()).toBeVisible();
 
-    // Fill valid URL - validation should pass
+    // Fill valid URL → validation should pass
     await urlInput.clear();
     await urlInput.fill('http://valid-host:8080');
     await urlInput.blur();
@@ -607,28 +520,7 @@ test.describe('WireMock Instance', () => {
       .getByRole('button', { name: /キャンセル|Cancel/ })
       .click();
 
-    // Clean up
-    await cleanupProject(page, testProjectName);
-  });
-
-  test('should handle invalid WireMock instance gracefully', async ({ page }) => {
-    const errorTestProject = `Error Test ${Date.now()}`;
-
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(errorTestProject);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: errorTestProject });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-
-    // Add an invalid instance (non-existent host in Docker network)
+    // Add instance with non-existent host
     await page
       .locator('.section-header')
       .getByRole('button', { name: /インスタンス追加|Add Instance/ })
@@ -643,17 +535,15 @@ test.describe('WireMock Instance', () => {
       .getByRole('button', { name: /保存|Save/ })
       .click();
 
-    // Check health - should show unhealthy (error message will appear)
+    // Health check via dropdown → verify unhealthy/error message
     const instanceCard = page.locator('.el-card', { hasText: 'Invalid Instance' });
     await instanceCard.locator('.el-dropdown').click();
     await page.getByRole('menuitem', { name: /ヘルスチェック|Health Check|接続確認/ }).click();
-
-    // Should show unhealthy status (接続エラー is shown in the card)
     await expect(
       page.getByText(/接続に失敗|接続エラー|Unhealthy|エラー|failed/i).first()
     ).toBeVisible({ timeout: 10000 });
 
     // Clean up
-    await cleanupProject(page, errorTestProject);
+    await cleanupProject(page, testProjectName);
   });
 });

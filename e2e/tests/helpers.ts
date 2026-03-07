@@ -1,9 +1,12 @@
-import type { Page } from '@playwright/test';
+import type { Page, APIRequestContext } from '@playwright/test';
 
 // WireMock instance URLs for Docker environment
 // Backend uses Docker network hostnames to communicate with WireMock
 export const WIREMOCK_1_URL = 'http://wiremock-1:8080';
 export const WIREMOCK_2_URL = 'http://wiremock-2:8080';
+
+// API base URL for direct API calls (setup/cleanup)
+const API_BASE = 'http://localhost:3000';
 
 // localStorage keys (must match frontend constants)
 export const LOCALE_KEY = 'wiremock-hub-locale';
@@ -50,18 +53,34 @@ export async function getProjectIdFromUrl(page: Page): Promise<string> {
   return match ? match[1] : '';
 }
 
-// Delete a project by name for test cleanup
+// Create a project via API (faster than UI)
+export async function createProjectViaApi(
+  request: APIRequestContext,
+  name: string,
+  description?: string
+): Promise<{ id: number; name: string }> {
+  const res = await request.post(`${API_BASE}/api/projects`, {
+    data: { name, description: description || '' }
+  });
+  const json = await res.json();
+  return json.data;
+}
+
+// Delete a project via API (faster than UI)
+export async function deleteProjectViaApi(request: APIRequestContext, id: number): Promise<void> {
+  await request.delete(`${API_BASE}/api/projects/${id}`);
+}
+
+// Delete a project by name for test cleanup (uses API via page.request for speed)
 export async function cleanupProject(page: Page, projectName: string) {
   if (SKIP_CLEANUP) {
     console.log(`Skipping cleanup for project: ${projectName}`);
     return;
   }
-  await page.goto('/projects');
-  const card = page.locator('.el-card', { hasText: projectName });
-  await card.locator('.el-dropdown').click();
-  await page.getByRole('menuitem', { name: /削除|Delete/ }).click();
-  await page
-    .locator('.el-message-box')
-    .getByRole('button', { name: /はい|Yes|確認/ })
-    .click();
+  const res = await page.request.get(`${API_BASE}/api/projects`);
+  const json = await res.json();
+  const project = json.data?.find((p: any) => p.name === projectName);
+  if (project) {
+    await page.request.delete(`${API_BASE}/api/projects/${project.id}`);
+  }
 }

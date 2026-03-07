@@ -7,8 +7,11 @@ test.describe('Recording', () => {
     await page.goto('/');
   });
 
-  test('should display recording page with initial state', async ({ page }) => {
+  test('should display initial state and validate target URL input', async ({ page }) => {
     const testProjectName = `Recording Init Test ${Date.now()}`;
+
+    // Ensure WireMock recording is stopped
+    await page.request.post('http://localhost:8081/__admin/recordings/stop');
 
     // Create project
     await page
@@ -52,6 +55,7 @@ test.describe('Recording', () => {
       timeout: 10000
     });
 
+    // ========== Verify initial state ==========
     // Verify recording status is displayed (NeverStarted or Stopped)
     await expect(
       page.locator('.el-tag', { hasText: /未開始|Never Started|停止|Stopped/ })
@@ -61,7 +65,8 @@ test.describe('Recording', () => {
     await expect(page.locator('.el-alert')).toBeVisible();
 
     // Verify target URL input is shown
-    await expect(page.getByPlaceholder(/https:\/\/api\.example\.com/)).toBeVisible();
+    const targetUrlInput = page.getByPlaceholder(/https:\/\/api\.example\.com/);
+    await expect(targetUrlInput).toBeVisible();
 
     // Verify start recording button is shown and disabled (no URL entered)
     const startButton = page
@@ -75,6 +80,17 @@ test.describe('Recording', () => {
       name: /全インスタンスでレコーディング開始|Start Recording on All/
     });
     await expect(startAllButton).toBeVisible();
+    await expect(startAllButton).toBeDisabled();
+
+    // ========== Verify URL validation ==========
+    // Enter target URL - buttons should become enabled
+    await targetUrlInput.fill('http://wiremock-1:8080');
+    await expect(startButton).toBeEnabled();
+    await expect(startAllButton).toBeEnabled();
+
+    // Clear target URL - buttons should become disabled again
+    await targetUrlInput.fill('');
+    await expect(startButton).toBeDisabled();
     await expect(startAllButton).toBeDisabled();
 
     // Clean up
@@ -353,89 +369,6 @@ test.describe('Recording', () => {
     await expect(
       page.locator('.el-empty', { hasText: /インスタンスがありません|No instances/ })
     ).toBeVisible({ timeout: 10000 });
-
-    // Clean up
-    await cleanupProject(page, testProjectName);
-  });
-
-  test('should enable start button only when target URL is entered', async ({ page }) => {
-    const testProjectName = `Recording Validation ${Date.now()}`;
-
-    // Ensure WireMock recording is stopped
-    await page.request.post('http://localhost:8081/__admin/recordings/stop');
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-
-    // Add instance
-    await page
-      .locator('.section-header')
-      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
-      .click();
-    await page
-      .locator('.el-dialog')
-      .getByLabel(/インスタンス名|Name/)
-      .fill('Validation Instance');
-    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_2_URL);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-    await expect(page.locator('.el-card', { hasText: 'Validation Instance' })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Navigate to Recording page
-    await page
-      .locator('.el-aside')
-      .getByText(/レコーディング|Recording/)
-      .click();
-    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Wait for status
-    await expect(
-      page.locator('.el-tag', { hasText: /未開始|Never Started|停止|Stopped/ })
-    ).toBeVisible({ timeout: 10000 });
-
-    // Start button should be disabled (no URL)
-    const startButton = page
-      .getByRole('button', { name: /レコーディング開始|Start Recording/ })
-      .first();
-    await expect(startButton).toBeDisabled();
-
-    // Start all button should also be disabled
-    const startAllButton = page.getByRole('button', {
-      name: /全インスタンスでレコーディング開始|Start Recording on All/
-    });
-    await expect(startAllButton).toBeDisabled();
-
-    // Enter target URL
-    await page.getByPlaceholder(/https:\/\/api\.example\.com/).fill('http://wiremock-1:8080');
-
-    // Start button should now be enabled
-    await expect(startButton).toBeEnabled();
-    await expect(startAllButton).toBeEnabled();
-
-    // Clear target URL
-    await page.getByPlaceholder(/https:\/\/api\.example\.com/).fill('');
-
-    // Start button should be disabled again
-    await expect(startButton).toBeDisabled();
-    await expect(startAllButton).toBeDisabled();
 
     // Clean up
     await cleanupProject(page, testProjectName);
