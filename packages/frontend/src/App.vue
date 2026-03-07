@@ -62,6 +62,8 @@
               <el-icon><Share /></el-icon>
               <span>{{ t('nav.scenarios') }}</span>
             </el-menu-item>
+            <div class="menu-section-divider" />
+            <div class="menu-section-label">{{ t('nav.instances') }}</div>
             <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
@@ -74,6 +76,7 @@
               <el-icon><List /></el-icon>
               <span>{{ t('nav.requests') }}</span>
             </el-menu-item>
+            <div class="menu-section-divider" />
             <el-menu-item index="/settings">
               <el-icon><Setting /></el-icon>
               <span>{{ t('nav.settings') }}</span>
@@ -103,6 +106,8 @@
               <el-icon><Share /></el-icon>
               <span>{{ t('nav.scenarios') }}</span>
             </el-menu-item>
+            <div class="menu-section-divider" />
+            <div class="menu-section-label">{{ t('nav.instances') }}</div>
             <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
@@ -115,6 +120,7 @@
               <el-icon><List /></el-icon>
               <span>{{ t('nav.requests') }}</span>
             </el-menu-item>
+            <div class="menu-section-divider" />
             <el-menu-item index="/settings">
               <el-icon><Setting /></el-icon>
               <span>{{ t('nav.settings') }}</span>
@@ -301,6 +307,19 @@ html.dark body {
 .app-menu {
   border: none;
   background-color: transparent;
+}
+
+.menu-section-divider {
+  height: 1px;
+  background-color: var(--wh-sidebar-border);
+  margin: 8px 20px;
+}
+
+.menu-section-label {
+  padding: 4px 20px;
+  font-size: 12px;
+  color: var(--wh-text-tertiary);
+  font-weight: 600;
 }
 
 .app-main {
