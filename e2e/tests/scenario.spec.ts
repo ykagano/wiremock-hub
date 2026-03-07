@@ -113,7 +113,10 @@ test.describe('Scenario', () => {
     await expect(page.locator('.step-card')).toHaveCount(2, { timeout: 10000 });
 
     // Add third step
-    await page.getByRole('button', { name: /ステップ追加|Add Step/ }).first().click();
+    await page
+      .getByRole('button', { name: /ステップ追加|Add Step/ })
+      .first()
+      .click();
     addStepDialog = page.locator('.el-dialog').last();
     await expect(addStepDialog).toBeVisible();
     await addStepDialog.locator('.stub-select-list li', { hasText: testUrl3 }).click();
