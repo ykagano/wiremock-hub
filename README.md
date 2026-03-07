@@ -6,32 +6,50 @@
 
 Extends [WireMock](https://wiremock.org/) with a graphical user interface for centralized management of distributed WireMock environments.
 
+![WireMock Hub - Stub Mappings](docs/images/stub-mappings.png)
+
 ## Features
 
-### Distributed WireMock Support
+### Stub Management & Sync
 
-- **Bulk sync to multiple instances**: Deploy stubs to all WireMock instances with a single click
+- **Visual stub editor**: Create and edit WireMock mappings with a form-based UI (method, URL matching, headers, query params, body patterns, response, delay, priority)
+- **Bulk sync**: Deploy all stubs to multiple WireMock instances with a single click (Sync resets first; Append preserves existing mappings)
+- **Import / Export**: Import stubs from JSON files or export for sharing
+- **Duplicate**: Clone existing stubs or entire projects
+
+### Scenario Management
+
+- **Visual scenario editor**: Build stateful stub chains with drag-and-drop step reordering
+- **Inline state editing**: Edit state names with automatic propagation to adjacent steps
+- **Flow validation**: Visual warnings for missing "Started" state, unreachable states, and duplicates
+- **Scenario reset**: Reset all scenarios on an instance back to "Started" state
+
+### Request Log & Recording
+
+- **Request log viewer**: Browse all HTTP requests with tabs for matched / unmatched requests
+- **Filtering**: Filter by URL pattern, HTTP method, and status code range
+- **Request details**: Inspect full request/response headers, body, and timing
+- **Stub generation**: Convert a logged request into a new stub
+- **Recording**: Start/stop proxy recording on individual or all instances at once
+
+### Registered Stubs View
+
+- **Live inspection**: View stubs actually registered on each WireMock instance
+- **Hub tracking**: Distinguish Hub-created stubs from externally registered ones
+- **Direct management**: Delete individual or all mappings on an instance
+
+### Instance & Project Management
+
+- **Project-based organization**: Group stubs and instances by environment
 - **Health check**: Monitor connection status of each instance in real-time
-- **Project-based management**: Organize stubs by environment (dev/staging/production)
+- **Stub testing**: Send test requests against stubs to verify behavior
 
-### Request Recording & Analysis
+### Data Persistence & UI
 
-- **View request logs**: Browse all HTTP requests processed by WireMock instances
-- **Advanced filtering**: Filter by URL pattern, HTTP method, and status code range
-- **Request details**: Inspect full request/response headers, body, and timing information
-- **Stub generation**: Import requests as stubs with customizable matching rules
-
-### Data Persistence
-
-- **SQLite storage**: Simple file-based persistence, no external database required
-- **Team sharing**: Share the database file or mount it via Docker volumes
-- **Easy backup**: Just copy the SQLite file
-
-### Ease of Use
-
+- **SQLite storage**: File-based persistence, no external database required — share or back up by copying the file
 - **Multilingual UI**: Switch between English and Japanese
-- **Intuitive interface**: Modern UI powered by Element Plus
-- **No authentication required**: Simple setup for team-wide access
+- **Dark / Light / System theme**: Choose your preferred appearance
+- **Responsive design**: Works on desktop and mobile
 
 ## Architecture
 
@@ -171,31 +189,27 @@ DATABASE_URL="file:../../data/wiremock-hub.db"
 
 ### 1. Create a Project
 
-A project represents an environment (dev/staging/etc.).
-Set the load balancer URL as the WireMock URL.
+A project groups stubs and WireMock instances for a given environment (dev/staging/etc.).
 
 ### 2. Add Instances
 
-Register each WireMock server URL.
-Use health check to verify connection status.
+Register each WireMock server's admin API URL. Use health check to verify connectivity.
 
 ### 3. Create Stubs
 
-Create stub mappings in the Stub Mappings screen.
-Stubs are saved to the SQLite database.
+Create stub mappings via the visual editor. Stubs are saved to SQLite.
+For stateful APIs, use the Scenario editor to build state chains with drag-and-drop.
 
 ### 4. Sync
 
-Click "Sync All Instances" to deploy stubs to all WireMock instances at once.
-Sync performs a full reset before deploying to ensure consistency.
+- **Sync All**: Resets all instances and deploys stubs — ensures full consistency
+- **Append All**: Adds stubs on top of existing mappings without resetting
 
-### 5. View Requests
+### 5. Monitor
 
-Navigate to the Requests screen to view HTTP requests processed by WireMock instances.
-
-- Filter requests by URL pattern, HTTP method, or status code
-- Click on any request to view detailed information
-- Import requests as stubs for future testing scenarios
+- **Requests**: View request logs, filter by URL/method/status, and import unmatched requests as new stubs
+- **Registered Stubs**: Inspect what's actually registered on each instance
+- **Recording**: Start proxy recording to capture live traffic as stubs
 
 ## License
 
