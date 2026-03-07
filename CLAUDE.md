@@ -385,6 +385,11 @@ packages/
 - `DELETE /api/wiremock-instances/:id/mappings/:mappingId` - Delete individual mapping
 - `GET /api/wiremock-instances/:id/requests` - Get request logs
 - `POST /api/wiremock-instances/:id/reset` - Reset instance
+- `GET /api/wiremock-instances/:id/recording/status` - Get recording status
+- `POST /api/wiremock-instances/:id/recording/start` - Start recording (requires targetBaseUrl)
+- `POST /api/wiremock-instances/:id/recording/stop` - Stop recording
+- `POST /api/wiremock-instances/recording/start-all` - Start recording on all instances
+- `POST /api/wiremock-instances/recording/stop-all` - Stop recording on all instances
 
 ## WireMock Integration
 

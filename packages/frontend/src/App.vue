@@ -62,6 +62,10 @@
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
             </el-menu-item>
+            <el-menu-item index="/recording" :disabled="!currentProject">
+              <el-icon><VideoCameraFilled /></el-icon>
+              <span>{{ t('nav.recording') }}</span>
+            </el-menu-item>
             <el-menu-item index="/requests" :disabled="!currentProject">
               <el-icon><List /></el-icon>
               <span>{{ t('nav.requests') }}</span>
@@ -94,6 +98,10 @@
             <el-menu-item index="/registered-stubs" :disabled="!currentProject">
               <el-icon><Monitor /></el-icon>
               <span>{{ t('nav.registeredStubs') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/recording" :disabled="!currentProject">
+              <el-icon><VideoCameraFilled /></el-icon>
+              <span>{{ t('nav.recording') }}</span>
             </el-menu-item>
             <el-menu-item index="/requests" :disabled="!currentProject">
               <el-icon><List /></el-icon>

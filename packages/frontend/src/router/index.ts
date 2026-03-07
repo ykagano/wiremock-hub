@@ -49,6 +49,12 @@ const router = createRouter({
       meta: { requiresProject: true }
     },
     {
+      path: '/recording',
+      name: 'recording',
+      component: () => import('@/views/RecordingView.vue'),
+      meta: { requiresProject: true }
+    },
+    {
       path: '/requests/:instanceId/:requestId',
       name: 'request-detail',
       component: () => import('@/views/RequestDetailView.vue'),
