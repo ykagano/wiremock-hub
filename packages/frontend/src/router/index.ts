@@ -37,21 +37,27 @@ const router = createRouter({
       meta: { requiresProject: true }
     },
     {
+      path: '/scenarios',
+      name: 'scenarios',
+      component: () => import('@/views/ScenariosView.vue'),
+      meta: { requiresProject: true }
+    },
+    {
       path: '/requests',
       name: 'requests',
       component: () => import('@/views/RequestsView.vue'),
       meta: { requiresProject: true }
     },
     {
-      path: '/registered-stubs',
-      name: 'registered-stubs',
-      component: () => import('@/views/RegisteredStubsView.vue'),
-      meta: { requiresProject: true }
-    },
-    {
       path: '/recording',
       name: 'recording',
       component: () => import('@/views/RecordingView.vue'),
+      meta: { requiresProject: true }
+    },
+    {
+      path: '/registered-stubs',
+      name: 'registered-stubs',
+      component: () => import('@/views/RegisteredStubsView.vue'),
       meta: { requiresProject: true }
     },
     {

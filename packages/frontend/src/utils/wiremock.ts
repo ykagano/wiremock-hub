@@ -1,4 +1,10 @@
-import type { MappingRequest } from '@/types/wiremock';
+import type { Mapping, MappingRequest } from '@/types/wiremock';
+import type { Stub } from '@/services/api';
+
+/** Extract typed Mapping from Stub's mapping field */
+export function toMapping(stub: Stub): Mapping {
+  return stub.mapping as unknown as Mapping;
+}
 
 export function getMethodTagType(method?: string): string {
   const types: Record<string, string> = {
