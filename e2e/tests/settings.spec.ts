@@ -36,52 +36,43 @@ test.describe('Settings', () => {
     await expect(page.getByRole('heading', { name: /Settings/ })).toBeVisible();
   });
 
-  test('should switch theme between system, dark and light via header', async ({ page }) => {
+  test('should switch, sync, and persist theme', async ({ page }) => {
     const segmented = page.locator('.app-header .el-segmented');
     const activeItem = segmented.locator('.el-segmented__item.is-selected');
 
-    // Default should be System
+    // 1. Default should be System
     await expect(activeItem).toContainText(/システム|System/);
 
-    // Switch to Dark
+    // 2. Switch to Dark via header, verify dark class and CSS variable
     await segmented.getByText(/ダーク|Dark/).click();
     await page.waitForTimeout(500);
     expect(await page.locator('html').getAttribute('class')).toContain('dark');
     await expect(activeItem).toContainText(/ダーク|Dark/);
-
-    // Verify dark CSS variables
     const sidebarBgDark = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--wh-sidebar-bg').trim()
     );
     expect(sidebarBgDark).toBe('#1d1e1f');
 
-    // Switch to Light
+    // 3. Switch to Light via header, verify no dark class and CSS variable
     await segmented.getByText(/ライト|Light/).click();
     await page.waitForTimeout(500);
     expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');
     await expect(activeItem).toContainText(/ライト|Light/);
-
-    // Verify light CSS variables
     const sidebarBgLight = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--wh-sidebar-bg').trim()
     );
     expect(sidebarBgLight).toBe('#f5f7fa');
 
-    // Switch back to System
+    // 4. Switch back to System, verify active item
     await segmented.getByText(/システム|System/).click();
     await page.waitForTimeout(500);
     await expect(activeItem).toContainText(/システム|System/);
-  });
 
-  test('should sync theme between header toggle and settings page', async ({ page }) => {
-    const segmented = page.locator('.app-header .el-segmented');
-    const activeItem = segmented.locator('.el-segmented__item.is-selected');
-
-    // Set dark via header
+    // 5. Set Dark via header
     await segmented.getByText(/ダーク|Dark/).click();
     await page.waitForTimeout(500);
 
-    // Navigate to settings and verify radio reflects dark
+    // 6. Navigate to /settings, verify radio reflects dark
     await page.goto('/settings');
     await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible();
     const themeCard = page.locator('.el-card', { hasText: /テーマ|Theme/ });
@@ -89,38 +80,33 @@ test.describe('Settings', () => {
       themeCard.locator('label', { hasText: /ダーク|Dark/ }).locator('input[type="radio"]')
     ).toBeChecked();
 
-    // Switch to light via settings radio
+    // 7. Switch to Light via settings radio, verify header toggle updated and no dark class
     await themeCard.locator('label', { hasText: /ライト|Light/ }).click();
     await page.waitForTimeout(500);
-
-    // Verify header toggle updated
     await expect(activeItem).toContainText(/ライト|Light/);
     expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');
-  });
 
-  test('should persist theme across navigation and reload', async ({ page }) => {
-    const segmented = page.locator('.app-header .el-segmented');
-
-    // Switch to dark
+    // 8. Switch to Dark again via header
     await segmented.getByText(/ダーク|Dark/).click();
     await page.waitForTimeout(500);
+
+    // 9. Verify localStorage has 'dark'
     expect(await page.evaluate((key) => localStorage.getItem(key), THEME_KEY)).toBe('dark');
 
-    // Navigate to settings - theme persists
+    // 10. Navigate to /settings, verify dark class persists
     await page.goto('/settings');
     await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible();
     expect((await page.locator('html').getAttribute('class')) || '').toContain('dark');
 
-    // Navigate to projects - theme persists
+    // 11. Navigate to /projects, verify dark class persists
     await page.goto('/projects');
     await page.waitForTimeout(500);
     expect((await page.locator('html').getAttribute('class')) || '').toContain('dark');
 
-    // Reload - theme persists
+    // 12. Reload, verify dark class persists and header toggle shows Dark
     await page.reload();
     await page.waitForTimeout(500);
     expect((await page.locator('html').getAttribute('class')) || '').toContain('dark');
-    const activeItem = page.locator('.app-header .el-segmented .el-segmented__item.is-selected');
     await expect(activeItem).toContainText(/ダーク|Dark/);
   });
 });

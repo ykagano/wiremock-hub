@@ -1200,8 +1200,8 @@ test.describe('Stub Test Feature', () => {
     await page.goto('/');
   });
 
-  test('should display test button on stub list', async ({ page }) => {
-    const testProjectName = `Stub Test Button ${Date.now()}`;
+  test('should display test UI and show dialog preview', async ({ page }) => {
+    const testProjectName = `Test UI ${Date.now()}`;
 
     // Create project
     await page
@@ -1219,62 +1219,17 @@ test.describe('Stub Test Feature', () => {
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
     await page.waitForTimeout(1000);
 
-    // Navigate to stubs tab and create a stub
+    // Navigate to stubs tab
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
     await page.waitForTimeout(500);
 
-    await page
-      .getByRole('button', { name: /新規作成|Create New/ })
-      .first()
-      .click();
-    await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
-    const urlInput = page.getByPlaceholder('e.g. /api/users');
-    await expect(urlInput).toBeVisible();
-    await urlInput.fill('/api/test-button-test');
-
-    await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.locator('.el-table__row', { hasText: '/api/test-button-test' })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Verify test button (green CaretRight button) exists in the action column
-    const row = page.locator('.el-table__row', { hasText: '/api/test-button-test' });
-    const testButton = row.locator('.el-button--success');
-    await expect(testButton).toBeVisible();
-
-    // Clean up
-    await cleanupProject(page, testProjectName);
-  });
-
-  test('should open test dialog and show request preview', async ({ page }) => {
-    const testProjectName = `Test Dialog ${Date.now()}`;
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-    await page.waitForTimeout(1000);
-
-    // Navigate to stubs and create a stub
-    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
-    await page.waitForTimeout(500);
-
+    // Create a stub with POST method
     await page
       .getByRole('button', { name: /新規作成|Create New/ })
       .first()
       .click();
 
-    // Switch to Request tab (Basic Info is now the default)
+    // Switch to Request tab
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
 
     // Set method to POST
@@ -1283,25 +1238,32 @@ test.describe('Stub Test Feature', () => {
     await page.waitForTimeout(300);
     await page.locator('.el-select-dropdown__item:visible', { hasText: 'POST' }).click();
 
+    // Fill URL
     const urlInput = page.getByPlaceholder('e.g. /api/users');
-    await urlInput.fill('/api/dialog-test');
+    await urlInput.fill('/api/test-ui');
 
+    // Save
     await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.locator('.el-table__row', { hasText: '/api/dialog-test' })).toBeVisible({
+    await expect(page.locator('.el-table__row', { hasText: '/api/test-ui' })).toBeVisible({
       timeout: 10000
     });
 
-    // Click the test button
-    const row = page.locator('.el-table__row', { hasText: '/api/dialog-test' });
+    // ========== Verify test button in table ==========
+    const row = page.locator('.el-table__row', { hasText: '/api/test-ui' });
+    await expect(row.locator('.el-button--success')).toBeVisible();
+
+    // ========== Click test button, verify dialog ==========
     await row.locator('.el-button--success').click();
 
     // Verify dialog is visible
     await expect(page.locator('.el-dialog', { hasText: /スタブテスト|Stub Test/ })).toBeVisible();
 
-    // Verify request preview shows the method and URL
+    // Verify POST tag visible in dialog
     await expect(page.locator('.el-dialog').locator('.el-tag', { hasText: 'POST' })).toBeVisible();
+
+    // Verify URL input has /api/test-ui
     const urlField = page.locator('.el-dialog').locator('.el-input input').first();
-    await expect(urlField).toHaveValue('/api/dialog-test');
+    await expect(urlField).toHaveValue('/api/test-ui');
 
     // Verify send button is present
     await expect(
@@ -1310,6 +1272,27 @@ test.describe('Stub Test Feature', () => {
 
     // Close dialog
     await page.locator('.el-dialog__headerbtn').click();
+
+    // ========== Open stub in editor ==========
+    await row.click();
+
+    // ========== Verify test button in editor ==========
+    await expect(
+      page.locator('.header-actions').getByRole('button', { name: /テスト|Test/ })
+    ).toBeVisible();
+
+    // ========== Click test button in editor ==========
+    await page
+      .locator('.header-actions')
+      .getByRole('button', { name: /テスト|Test/ })
+      .click();
+    await expect(page.locator('.el-dialog', { hasText: /スタブテスト|Stub Test/ })).toBeVisible();
+
+    // Close dialog
+    await page.locator('.el-dialog__headerbtn').click();
+
+    // Go back
+    await page.getByRole('button', { name: /戻る|Back/ }).click();
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -1424,67 +1407,6 @@ test.describe('Stub Test Feature', () => {
 
     // Close dialog
     await page.locator('.el-dialog__headerbtn').click();
-
-    // Clean up
-    await cleanupProject(page, testProjectName);
-  });
-
-  test('should show test button on editor view', async ({ page }) => {
-    const testProjectName = `Editor Test ${Date.now()}`;
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-    await page.waitForTimeout(1000);
-
-    // Navigate to stubs and create a stub
-    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
-    await page.waitForTimeout(500);
-
-    await page
-      .getByRole('button', { name: /新規作成|Create New/ })
-      .first()
-      .click();
-    await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
-    const urlInput = page.getByPlaceholder('e.g. /api/users');
-    await urlInput.fill('/api/editor-test');
-
-    await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.locator('.el-table__row', { hasText: '/api/editor-test' })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Open the stub in editor
-    await page.locator('.el-table__row', { hasText: '/api/editor-test' }).click();
-
-    // Verify the test button is visible in the editor toolbar
-    await expect(
-      page.locator('.header-actions').getByRole('button', { name: /テスト|Test/ })
-    ).toBeVisible();
-
-    // Click the test button to verify dialog opens
-    await page
-      .locator('.header-actions')
-      .getByRole('button', { name: /テスト|Test/ })
-      .click();
-    await expect(page.locator('.el-dialog', { hasText: /スタブテスト|Stub Test/ })).toBeVisible();
-
-    // Close dialog
-    await page.locator('.el-dialog__headerbtn').click();
-
-    // Go back
-    await page.getByRole('button', { name: /戻る|Back/ }).click();
 
     // Clean up
     await cleanupProject(page, testProjectName);

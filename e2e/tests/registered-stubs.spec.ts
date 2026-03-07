@@ -118,11 +118,18 @@ test.describe('Registered Stubs', () => {
     // Table should still show the mapping after page size change
     await expect(page.locator('.el-table__row', { hasText: testUrl }).first()).toBeVisible();
 
+    // Click expand button on the target row
+    await targetRow.locator('.el-table__expand-icon').click();
+
+    // Verify expanded row shows JSON content
+    await expect(page.locator('.mapping-json').first()).toBeVisible();
+    await expect(page.locator('.mapping-json').first()).toContainText(testUrl);
+
     // Clean up
     await cleanupProject(page, testProjectName);
   });
 
-  test('should show empty state when no mappings', async ({ page, request }) => {
+  test('should show empty state and refresh mappings', async ({ page, request }) => {
     const testProjectName = `Empty Registered Stubs ${Date.now()}`;
 
     // Create project
@@ -161,7 +168,7 @@ test.describe('Registered Stubs', () => {
     // Delete all WireMock mappings to ensure clean state
     await request.delete('http://localhost:8082/__admin/mappings');
 
-    // Navigate to Registered Stubs page
+    // Navigate to Registered Stubs page via sidebar
     await page
       .locator('.el-aside')
       .getByText(/登録済みスタブ|Registered Stubs/)
@@ -177,101 +184,18 @@ test.describe('Registered Stubs', () => {
       })
     ).toBeVisible({ timeout: 10000 });
 
-    // Clean up
-    await cleanupProject(page, testProjectName);
-  });
+    // Click refresh button and verify API request is made
+    const responsePromise = page.waitForResponse(
+      (resp) => resp.url().includes('/api/wiremock-instances/') && resp.url().includes('/mappings')
+    );
+    await page.getByRole('button', { name: /更新|Refresh/ }).click();
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
 
-  test('should expand row to show mapping JSON', async ({ page }) => {
-    const ts = Date.now();
-    const testProjectName = `Expand Row Test ${ts}`;
-    const testUrl = `/api/expand-${ts}`;
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-
-    // Add instance
-    await page
-      .locator('.section-header')
-      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
-      .click();
-    await page
-      .locator('.el-dialog')
-      .getByLabel(/インスタンス名|Name/)
-      .fill('Expand Test Instance');
-    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-    await expect(page.locator('.el-card', { hasText: 'Expand Test Instance' })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Create a stub
-    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
-    await expect(page.getByRole('button', { name: /新規作成|Create New/ }).first()).toBeVisible({
-      timeout: 10000
-    });
-
-    await page
-      .getByRole('button', { name: /新規作成|Create New/ })
-      .first()
-      .click();
-    await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
-    const urlInput = page.getByPlaceholder('e.g. /api/users');
-    await expect(urlInput).toBeVisible();
-    await urlInput.fill(testUrl);
-
-    await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"result": "expand test"}');
-
-    await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.locator('.el-table__row', { hasText: testUrl })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Sync to instance
-    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click();
-    await page
-      .locator('.el-message-box')
-      .getByRole('button', { name: /はい|Yes/ })
-      .click();
-    await expect(page.getByText(/同期完了|synced|Sync completed/i).first()).toBeVisible({
-      timeout: 15000
-    });
-
-    // Navigate to Registered Stubs page
-    await page
-      .locator('.el-aside')
-      .getByText(/登録済みスタブ|Registered Stubs/)
-      .click();
+    // Page should still be functional (no errors)
     await expect(
       page.getByRole('heading', { name: /登録済みスタブ|Registered Stubs/ })
-    ).toBeVisible({ timeout: 10000 });
-
-    // Wait for the table to load (use unique URL to find the correct row)
-    const targetRow = page.locator('.el-table__row', { hasText: testUrl }).first();
-    await expect(targetRow).toBeVisible({ timeout: 10000 });
-
-    // Click expand button on the target row
-    await targetRow.locator('.el-table__expand-icon').click();
-
-    // Verify expanded row shows JSON content
-    await expect(page.locator('.mapping-json').first()).toBeVisible();
-    await expect(page.locator('.mapping-json').first()).toContainText(testUrl);
+    ).toBeVisible();
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -498,68 +422,6 @@ test.describe('Registered Stubs', () => {
         hasText: /マッピングが登録されていません|No mappings registered/
       })
     ).toBeVisible({ timeout: 10000 });
-
-    // Clean up
-    await cleanupProject(page, testProjectName);
-  });
-
-  test('should refresh mappings on button click', async ({ page }) => {
-    const testProjectName = `Refresh Mappings Test ${Date.now()}`;
-
-    // Create project
-    await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
-      .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-
-    // Go to project detail
-    const projectCard = page.locator('.el-card', { hasText: testProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-
-    // Add instance
-    await page
-      .locator('.section-header')
-      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
-      .click();
-    await page
-      .locator('.el-dialog')
-      .getByLabel(/インスタンス名|Name/)
-      .fill('Refresh Test Instance');
-    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
-    await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
-      .click();
-    await expect(page.locator('.el-card', { hasText: 'Refresh Test Instance' })).toBeVisible({
-      timeout: 10000
-    });
-
-    // Navigate to Registered Stubs page
-    await page
-      .locator('.el-aside')
-      .getByText(/登録済みスタブ|Registered Stubs/)
-      .click();
-    await expect(
-      page.getByRole('heading', { name: /登録済みスタブ|Registered Stubs/ })
-    ).toBeVisible({ timeout: 10000 });
-
-    // Click refresh button and verify API request is made
-    const responsePromise = page.waitForResponse(
-      (resp) => resp.url().includes('/api/wiremock-instances/') && resp.url().includes('/mappings')
-    );
-    await page.getByRole('button', { name: /更新|Refresh/ }).click();
-    const response = await responsePromise;
-    expect(response.status()).toBe(200);
-
-    // Page should still be functional (no errors)
-    await expect(
-      page.getByRole('heading', { name: /登録済みスタブ|Registered Stubs/ })
-    ).toBeVisible();
 
     // Clean up
     await cleanupProject(page, testProjectName);
