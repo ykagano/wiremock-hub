@@ -121,6 +121,8 @@
     "reset": "Delete All",
     "export": "Export",
     "import": "Import",
+    "importWiremock": "WireMock",
+    "importOpenApi": "OpenAPI",
     "save": "Save",
     "noMappings": "No stubs",
     "method": "Method",
@@ -147,8 +149,8 @@
     "requestMethod": "Method",
     "requestUrl": "URL",
     "requestUrlPattern": "URL Pattern",
-    "requestHeaders": "Headers",
-    "requestBody": "Body",
+    "requestHeaders": "Request Headers",
+    "requestBody": "Request Body",
     "queryParameters": "Query Parameters",
     "text": "Text",
     "bodyPatterns": "Body Patterns",
@@ -425,6 +427,8 @@
       "importResult": "Imported: {imported}, Skipped: {skipped}",
       "importFailed": "Failed to import stubs",
       "importFileTooLarge": "File is too large (max 10MB)",
+      "importOpenApiFailed": "Failed to import OpenAPI spec",
+      "invalidOpenApiSpec": "Invalid OpenAPI/Swagger specification",
       "testFailed": "Stub test failed"
     },
     "request": {

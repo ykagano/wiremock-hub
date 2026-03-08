@@ -121,6 +121,8 @@
     "reset": "すべて削除",
     "export": "エクスポート",
     "import": "インポート",
+    "importWiremock": "WireMock",
+    "importOpenApi": "OpenAPI",
     "save": "保存",
     "noMappings": "スタブがありません",
     "method": "メソッド",
@@ -147,8 +149,8 @@
     "requestMethod": "メソッド",
     "requestUrl": "URL",
     "requestUrlPattern": "URLパターン",
-    "requestHeaders": "ヘッダー",
-    "requestBody": "ボディ",
+    "requestHeaders": "リクエストヘッダー",
+    "requestBody": "リクエストボディ",
     "queryParameters": "クエリパラメータ",
     "text": "テキスト",
     "bodyPatterns": "ボディパターン",
@@ -425,6 +427,8 @@
       "importResult": "インポート: {imported}件, スキップ: {skipped}件",
       "importFailed": "スタブのインポートに失敗しました",
       "importFileTooLarge": "ファイルが大きすぎます（最大10MB）",
+      "importOpenApiFailed": "OpenAPI定義のインポートに失敗しました",
+      "invalidOpenApiSpec": "無効なOpenAPI/Swagger定義です",
       "testFailed": "スタブテストに失敗しました"
     },
     "request": {

@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { WIREMOCK_1_URL, WIREMOCK_2_URL, cleanupProject, clearLocalStorage } from './helpers';
+import {
+  WIREMOCK_1_URL,
+  WIREMOCK_2_URL,
+  cleanupProject,
+  clearLocalStorage,
+  fillMonacoEditor,
+  getMonacoEditorValue
+} from './helpers';
 
 // Helper: create a stub via UI with specified parameters
 async function createStubViaUI(
@@ -51,11 +58,10 @@ async function createStubViaUI(
     await statusInput.fill(String(opts.status));
   }
 
-  // Fill response body if provided
+  // Fill response body if provided (Monaco Editor)
   if (opts.responseBody) {
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await expect(responseTextarea).toBeVisible();
-    await responseTextarea.fill(opts.responseBody);
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, opts.responseBody, '[data-testid="response-body"]');
   }
 
   // Save
@@ -140,9 +146,12 @@ test.describe('Stub', () => {
 
     // Go to response tab and fill in response body
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await expect(responseTextarea).toBeVisible();
-    await responseTextarea.fill('{"message": "Synced from E2E test!"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"message": "Synced from E2E test!"}',
+      '[data-testid="response-body"]'
+    );
 
     // Save the stub
     await page.getByRole('button', { name: /保存|Save/ }).click();
@@ -256,8 +265,12 @@ test.describe('Stub', () => {
     await queryParamSection.getByPlaceholder('Value').fill('1');
 
     // Request Body
-    const requestBodyTextarea = page.getByPlaceholder('{"key": "value"}');
-    await requestBodyTextarea.fill('{"username": "testuser", "email": "test@example.com"}');
+    await page.waitForSelector('[data-testid="request-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"username": "testuser", "email": "test@example.com"}',
+      '[data-testid="request-body"]'
+    );
 
     // ========== Response Tab ==========
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
@@ -266,9 +279,12 @@ test.describe('Stub', () => {
     await page.locator('.el-input-number').first().locator('input').fill('201');
 
     // Response body
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await expect(responseTextarea).toBeVisible();
-    await responseTextarea.fill('{"id": 123, "message": "Created successfully"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"id": 123, "message": "Created successfully"}',
+      '[data-testid="response-body"]'
+    );
 
     // Response Headers - add header (label is "ヘッダー" on response tab too)
     // There's already a Content-Type header, so we add another one
@@ -318,22 +334,23 @@ test.describe('Stub', () => {
 
     // Verify JSON tab contains all saved values
     await page.getByRole('tab', { name: 'JSON' }).click();
-    const jsonTextarea = page.locator('.json-editor textarea').last();
-    await expect(jsonTextarea).toHaveValue(/\/api\/create-test/);
-    await expect(jsonTextarea).toHaveValue(/POST/);
-    await expect(jsonTextarea).toHaveValue(/X-Request-ID/);
-    await expect(jsonTextarea).toHaveValue(/test-request-123/);
-    await expect(jsonTextarea).toHaveValue(/page/);
-    await expect(jsonTextarea).toHaveValue(/testuser/);
-    await expect(jsonTextarea).toHaveValue(/201/);
-    await expect(jsonTextarea).toHaveValue(/Created successfully/);
-    await expect(jsonTextarea).toHaveValue(/X-Response-ID/);
-    await expect(jsonTextarea).toHaveValue(/resp-456/);
-    await expect(jsonTextarea).toHaveValue(/500/);
-    await expect(jsonTextarea).toHaveValue(/10/);
-    await expect(jsonTextarea).toHaveValue(/create-flow/);
-    await expect(jsonTextarea).toHaveValue(/Initial/);
-    await expect(jsonTextarea).toHaveValue(/Created/);
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+    const jsonContent = await getMonacoEditorValue(page, '.json-editor');
+    expect(jsonContent).toMatch(/\/api\/create-test/);
+    expect(jsonContent).toMatch(/POST/);
+    expect(jsonContent).toMatch(/X-Request-ID/);
+    expect(jsonContent).toMatch(/test-request-123/);
+    expect(jsonContent).toMatch(/page/);
+    expect(jsonContent).toMatch(/testuser/);
+    expect(jsonContent).toMatch(/201/);
+    expect(jsonContent).toMatch(/Created successfully/);
+    expect(jsonContent).toMatch(/X-Response-ID/);
+    expect(jsonContent).toMatch(/resp-456/);
+    expect(jsonContent).toMatch(/500/);
+    expect(jsonContent).toMatch(/10/);
+    expect(jsonContent).toMatch(/create-flow/);
+    expect(jsonContent).toMatch(/Initial/);
+    expect(jsonContent).toMatch(/Created/);
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -422,8 +439,12 @@ test.describe('Stub', () => {
     await queryParamSection.getByPlaceholder('Value').fill('50');
 
     // Add request body
-    const requestBodyTextarea = page.getByPlaceholder('{"key": "value"}');
-    await requestBodyTextarea.fill('{"action": "update", "data": {"id": 1}}');
+    await page.waitForSelector('[data-testid="request-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"action": "update", "data": {"id": 1}}',
+      '[data-testid="request-body"]'
+    );
 
     // ========== Edit Response Tab ==========
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
@@ -434,9 +455,12 @@ test.describe('Stub', () => {
     await statusInput.fill('404');
 
     // Change response body
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.clear();
-    await responseTextarea.fill('{"error": "Not Found", "code": 404}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"error": "Not Found", "code": 404}',
+      '[data-testid="response-body"]'
+    );
 
     // Add response header (label is "ヘッダー" on response tab too)
     // There's already a Content-Type header, so we add another one
@@ -487,23 +511,24 @@ test.describe('Stub', () => {
 
     // Verify JSON tab contains all edited values
     await page.getByRole('tab', { name: 'JSON' }).click();
-    const jsonTextarea = page.locator('.json-editor textarea').last();
-    await expect(jsonTextarea).toHaveValue(/\/api\/edited-stub/);
-    await expect(jsonTextarea).toHaveValue(/PUT/);
-    await expect(jsonTextarea).toHaveValue(/Authorization/);
-    await expect(jsonTextarea).toHaveValue(/Bearer token123/);
-    await expect(jsonTextarea).toHaveValue(/limit/);
-    await expect(jsonTextarea).toHaveValue(/50/);
-    await expect(jsonTextarea).toHaveValue(/update/);
-    await expect(jsonTextarea).toHaveValue(/404/);
-    await expect(jsonTextarea).toHaveValue(/Not Found/);
-    await expect(jsonTextarea).toHaveValue(/X-Error-Code/);
-    await expect(jsonTextarea).toHaveValue(/ERR-404/);
-    await expect(jsonTextarea).toHaveValue(/1000/);
-    await expect(jsonTextarea).toHaveValue(/"priority":\s*1/);
-    await expect(jsonTextarea).toHaveValue(/error-flow/);
-    await expect(jsonTextarea).toHaveValue(/Running/);
-    await expect(jsonTextarea).toHaveValue(/Error/);
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+    const jsonContent = await getMonacoEditorValue(page, '.json-editor');
+    expect(jsonContent).toMatch(/\/api\/edited-stub/);
+    expect(jsonContent).toMatch(/PUT/);
+    expect(jsonContent).toMatch(/Authorization/);
+    expect(jsonContent).toMatch(/Bearer token123/);
+    expect(jsonContent).toMatch(/limit/);
+    expect(jsonContent).toMatch(/50/);
+    expect(jsonContent).toMatch(/update/);
+    expect(jsonContent).toMatch(/404/);
+    expect(jsonContent).toMatch(/Not Found/);
+    expect(jsonContent).toMatch(/X-Error-Code/);
+    expect(jsonContent).toMatch(/ERR-404/);
+    expect(jsonContent).toMatch(/1000/);
+    expect(jsonContent).toMatch(/"priority":\s*1/);
+    expect(jsonContent).toMatch(/error-flow/);
+    expect(jsonContent).toMatch(/Running/);
+    expect(jsonContent).toMatch(/Error/);
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -541,8 +566,8 @@ test.describe('Stub', () => {
     const urlInput = page.getByPlaceholder('e.g. /api/users');
     await urlInput.fill('/api/json-edit-test');
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"message": "original"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"message": "original"}', '[data-testid="response-body"]');
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/json-edit-test' })).toBeVisible({
       timeout: 10000
@@ -553,21 +578,19 @@ test.describe('Stub', () => {
 
     // Switch to JSON tab
     await page.getByRole('tab', { name: 'JSON' }).click();
-    const jsonTextarea = page.locator('.json-editor textarea').last();
-    await expect(jsonTextarea).toBeVisible();
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
 
     // Get current JSON, modify response body and URL via JSON editor
-    const currentJson = await jsonTextarea.inputValue();
+    const currentJson = await getMonacoEditorValue(page, '.json-editor');
     const parsed = JSON.parse(currentJson);
     parsed.request.url = '/api/json-edited';
     parsed.response.body = '{"message": "edited-via-json"}';
     parsed.response.status = 201;
 
-    // Clear and type new JSON
-    await jsonTextarea.click();
-    await jsonTextarea.fill(JSON.stringify(parsed, null, 2));
+    // Set new JSON via Monaco Editor
+    await fillMonacoEditor(page, JSON.stringify(parsed, null, 2), '.json-editor');
 
-    // Click save (this triggers blur on textarea first)
+    // Click save
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/json-edited' })).toBeVisible({
       timeout: 10000
@@ -578,19 +601,21 @@ test.describe('Stub', () => {
 
     // Verify via JSON tab
     await page.getByRole('tab', { name: 'JSON' }).click();
-    const verifyTextarea = page.locator('.json-editor textarea').last();
-    await expect(verifyTextarea).toHaveValue(/\/api\/json-edited/);
-    await expect(verifyTextarea).toHaveValue(/edited-via-json/);
-    await expect(verifyTextarea).toHaveValue(/201/);
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+    const verifyJson = await getMonacoEditorValue(page, '.json-editor');
+    expect(verifyJson).toMatch(/\/api\/json-edited/);
+    expect(verifyJson).toMatch(/edited-via-json/);
+    expect(verifyJson).toMatch(/201/);
 
     // Also verify form fields were synced
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
     await expect(page.getByPlaceholder('e.g. /api/users')).toHaveValue('/api/json-edited');
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    await expect(page.getByPlaceholder('{"message": "success"}')).toHaveValue(
-      '{"message": "edited-via-json"}'
-    );
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await page.waitForTimeout(500);
+    const editorValue = await getMonacoEditorValue(page, '[data-testid="response-body"]');
+    expect(editorValue).toBe('{"message": "edited-via-json"}');
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -627,8 +652,8 @@ test.describe('Stub', () => {
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
     const urlInput = page.getByPlaceholder('e.g. /api/users');
     await urlInput.fill('/api/body-clear-test');
-    const requestBodyTextarea = page.getByPlaceholder('{"key": "value"}');
-    await requestBodyTextarea.fill('{"name": "to-be-deleted"}');
+    await page.waitForSelector('[data-testid="request-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"name": "to-be-deleted"}', '[data-testid="request-body"]');
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/body-clear-test' })).toBeVisible({
       timeout: 10000
@@ -637,13 +662,14 @@ test.describe('Stub', () => {
     // Verify body was saved by checking JSON
     await page.locator('.el-table__row', { hasText: '/api/body-clear-test' }).click();
     await page.getByRole('tab', { name: 'JSON' }).click();
-    const jsonTextarea = page.locator('.json-editor textarea').last();
-    await expect(jsonTextarea).toHaveValue(/to-be-deleted/);
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+    const jsonContent = await getMonacoEditorValue(page, '.json-editor');
+    expect(jsonContent).toMatch(/to-be-deleted/);
 
     // Go to Request tab and clear the body
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
-    const bodyTextarea = page.getByPlaceholder('{"key": "value"}');
-    await bodyTextarea.clear();
+    await page.waitForSelector('[data-testid="request-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '', '[data-testid="request-body"]');
 
     // Save
     await page.getByRole('button', { name: /保存|Save/ }).click();
@@ -654,9 +680,10 @@ test.describe('Stub', () => {
     // Reopen and verify body is gone
     await page.locator('.el-table__row', { hasText: '/api/body-clear-test' }).click();
     await page.getByRole('tab', { name: 'JSON' }).click();
-    const verifyTextarea = page.locator('.json-editor textarea').last();
-    await expect(verifyTextarea).not.toHaveValue(/to-be-deleted/);
-    await expect(verifyTextarea).not.toHaveValue(/bodyPatterns/);
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+    const verifyJson = await getMonacoEditorValue(page, '.json-editor');
+    expect(verifyJson).not.toMatch(/to-be-deleted/);
+    expect(verifyJson).not.toMatch(/bodyPatterns/);
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -715,9 +742,8 @@ test.describe('Stub', () => {
 
     // Go to response tab and fill in response body
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await expect(responseTextarea).toBeVisible();
-    await responseTextarea.fill('{"message": "Before reset"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"message": "Before reset"}', '[data-testid="response-body"]');
 
     // Save the stub
     await page.getByRole('button', { name: /保存|Save/ }).click();
@@ -874,191 +900,149 @@ test.describe('Stub', () => {
     await cleanupProject(page, testProjectName);
   });
 
-  test('should export and import stubs between projects', async ({ page }) => {
-    const sourceProjectName = `Export Source ${Date.now()}`;
-    const targetProjectName = `Import Target ${Date.now()}`;
+  test('should export and import stubs in unified WireMock-compatible format', async ({ page }) => {
+    const testProjectName = `Export Import ${Date.now()}`;
 
-    // Create source project
+    // Create project with 11 stubs
     await page
       .locator('.page-header')
       .getByRole('button', { name: /プロジェクト追加|Add Project/ })
       .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(sourceProjectName);
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
     await page
       .locator('.el-dialog')
       .getByRole('button', { name: /保存|Save/ })
       .click();
 
-    // Go to source project detail
-    let projectCard = page.locator('.el-card', { hasText: sourceProjectName });
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
     await page.waitForTimeout(1000);
-
-    // Navigate to stubs tab
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
     await page.waitForTimeout(500);
 
-    // Create 11 realistic API stubs covering various HTTP methods and status codes
     const stubs = [
       {
         name: 'Get Users',
-        description: 'Returns a list of all users with pagination',
+        description: 'Returns a list of all users',
         url: '/api/users',
-        responseBody:
-          '{"users": [{"id": 1, "name": "Alice Johnson", "email": "alice@example.com"}, {"id": 2, "name": "Bob Smith", "email": "bob@example.com"}], "total": 2, "page": 1}'
+        responseBody: '{"users": [{"id": 1, "name": "Alice"}], "total": 1}'
       },
       {
         name: 'Get User by ID',
-        description: 'Returns a single user by their ID',
+        description: 'Returns a single user',
         url: '/api/users/1',
-        responseBody:
-          '{"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "admin"}'
+        responseBody: '{"id": 1, "name": "Alice", "role": "admin"}'
       },
       {
         name: 'Create User',
-        description: 'Creates a new user account',
         method: 'POST',
         url: '/api/users',
         status: 201,
-        responseBody:
-          '{"id": 3, "name": "Charlie Davis", "email": "charlie@example.com", "createdAt": "2025-01-15T10:30:00Z"}'
+        responseBody: '{"id": 3, "name": "Charlie"}'
       },
       {
         name: 'Update User',
-        description: 'Updates an existing user profile',
         method: 'PUT',
         url: '/api/users/1',
-        responseBody:
-          '{"id": 1, "name": "Alice Smith", "email": "alice.smith@example.com", "updatedAt": "2025-01-15T11:00:00Z"}'
+        responseBody: '{"id": 1, "name": "Alice Smith"}'
       },
-      {
-        name: 'Delete User',
-        description: 'Deletes a user account',
-        method: 'DELETE',
-        url: '/api/users/1',
-        status: 204
-      },
+      { name: 'Delete User', method: 'DELETE', url: '/api/users/1', status: 204 },
       {
         name: 'User Not Found',
-        description: 'Returns 404 when user does not exist',
         url: '/api/users/999',
         status: 404,
-        responseBody: '{"error": "Not Found", "message": "User with ID 999 does not exist"}'
+        responseBody: '{"error": "Not Found"}'
       },
       {
         name: 'Get Products',
-        description: 'Returns a list of available products',
         url: '/api/products',
-        responseBody:
-          '{"products": [{"id": 1, "name": "Laptop Pro", "price": 1299.99}, {"id": 2, "name": "Wireless Mouse", "price": 49.99}], "total": 2}'
+        responseBody: '{"products": [{"id": 1, "name": "Laptop"}]}'
       },
       {
         name: 'Search Products',
-        description: 'Searches products by keyword',
         url: '/api/products/search',
-        responseBody:
-          '{"results": [{"id": 1, "name": "Laptop Pro", "price": 1299.99}], "query": "laptop", "count": 1}'
+        responseBody: '{"results": [], "query": "laptop"}'
       },
       {
         name: 'Create Order',
-        description: 'Places a new order for products',
         method: 'POST',
         url: '/api/orders',
         status: 201,
-        responseBody:
-          '{"orderId": "ORD-2025-001", "status": "confirmed", "items": 2, "total": 1349.98}'
+        responseBody: '{"orderId": "ORD-001"}'
       },
       {
         name: 'Login',
-        description: 'Authenticates user and returns access token',
         method: 'POST',
         url: '/api/auth/login',
-        responseBody:
-          '{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", "expiresIn": 3600, "tokenType": "Bearer"}'
+        responseBody: '{"token": "eyJhbG..."}'
       },
       {
         name: 'Health Check Error',
-        description: 'Returns service unavailable status',
         url: '/api/health',
         status: 503,
-        responseBody: '{"status": "unavailable", "message": "Service temporarily unavailable"}'
+        responseBody: '{"status": "unavailable"}'
       }
     ];
 
     for (const stub of stubs) {
       await createStubViaUI(page, stub);
     }
+    await expect(page.locator('.el-table__row')).toHaveCount(11, { timeout: 10000 });
 
-    // Verify all 11 stubs appear in the table
-    const rows = page.locator('.el-table__row');
-    await expect(rows).toHaveCount(11, { timeout: 10000 });
+    const { readFileSync } = await import('fs');
 
-    // ========== Export ==========
+    // ========== Export → Delete All → Import ==========
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: /エクスポート|Export/ }).click();
     const download = await downloadPromise;
 
-    // Verify download filename
-    const filename = download.suggestedFilename();
-    expect(filename).toMatch(/.*-stubs-.*\.json/);
-
-    // Verify exported JSON structure
     const downloadPath = await download.path();
-    const { readFileSync } = await import('fs');
-    const exportedJson = JSON.parse(readFileSync(downloadPath!, 'utf-8'));
-    expect(exportedJson.version).toBe('1.1');
-    expect(exportedJson.stubs).toHaveLength(11);
+    const exportJson = JSON.parse(readFileSync(downloadPath!, 'utf-8'));
+    expect(exportJson.mappings).toHaveLength(11);
+    expect(exportJson.meta.total).toBe(11);
 
-    // Verify name/description are stored inside mapping (not at stub level)
-    const getUsersStub = exportedJson.stubs.find((s: any) => s.mapping.name === 'Get Users');
-    expect(getUsersStub).toBeTruthy();
-    expect(getUsersStub).not.toHaveProperty('name');
-    expect(getUsersStub).not.toHaveProperty('description');
-    expect(getUsersStub.mapping.metadata.hub_description).toBe(
-      'Returns a list of all users with pagination'
-    );
+    // Verify unified format: name at mapping level, hub metadata in metadata
+    const getUsersMapping = exportJson.mappings.find((m: any) => m.name === 'Get Users');
+    expect(getUsersMapping).toBeTruthy();
+    expect(getUsersMapping.metadata.hub_description).toBe('Returns a list of all users');
+    expect(getUsersMapping.metadata.hub_isActive).toBe(true);
+    expect(getUsersMapping.request).toBeDefined();
+    expect(getUsersMapping.response).toBeDefined();
+    expect(getUsersMapping).not.toHaveProperty('id');
+    expect(getUsersMapping).not.toHaveProperty('uuid');
 
-    // ========== Import to another project ==========
-    await page.goto('/projects');
+    // Delete all stubs
+    await page.getByRole('button', { name: /すべて削除|Delete All/ }).click();
     await page
-      .locator('.page-header')
-      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .locator('.el-message-box')
+      .getByRole('button', { name: /はい|Yes|確認/ })
       .click();
-    await page.getByLabel(/プロジェクト名|Name/).fill(targetProjectName);
+    await expect(page.locator('.el-table__row')).toHaveCount(0, { timeout: 10000 });
+
+    // Import JSON
+    await page.getByRole('button', { name: /^インポート$|^Import$/ }).click();
+    const chooserPromise = page.waitForEvent('filechooser');
     await page
-      .locator('.el-dialog')
-      .getByRole('button', { name: /保存|Save/ })
+      .locator('.el-dropdown-menu__item:visible')
+      .filter({ hasText: 'WireMock' })
+      .first()
       .click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles(downloadPath!);
 
-    // Go to target project detail
-    projectCard = page.locator('.el-card', { hasText: targetProjectName });
-    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
-    await page.waitForTimeout(1000);
-
-    // Navigate to stubs tab
-    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
-    await page.waitForTimeout(500);
-
-    // Import the exported file
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: /インポート|Import/ }).click();
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles(downloadPath!);
-
-    // Verify all 11 imported stubs appear in the list
+    // Verify all 11 stubs restored by name
     for (const stub of stubs) {
       await expect(page.locator('.el-table__row', { hasText: stub.name })).toBeVisible({
         timeout: 10000
       });
     }
 
-    // Clean up both projects
-    await cleanupProject(page, targetProjectName);
-    await cleanupProject(page, sourceProjectName);
+    // Clean up
+    await cleanupProject(page, testProjectName);
   });
 
-  test('should import stubs from JSON file', async ({ page }) => {
-    const testProjectName = `Import Test ${Date.now()}`;
+  test('should import stubs from OpenAPI spec', async ({ page }) => {
+    const testProjectName = `OpenAPI Import ${Date.now()}`;
 
     // Create project
     await page
@@ -1071,78 +1055,119 @@ test.describe('Stub', () => {
       .getByRole('button', { name: /保存|Save/ })
       .click();
 
-    // Go to project detail
     const projectCard = page.locator('.el-card', { hasText: testProjectName });
     await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
     await page.waitForTimeout(1000);
-
-    // Navigate to stubs tab
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
     await page.waitForTimeout(500);
 
-    // Prepare import data (new format: name/description inside mapping)
-    const importData = {
-      version: '1.1',
-      projectName: 'Test Project',
-      exportedAt: new Date().toISOString(),
-      stubs: [
-        {
-          isActive: true,
-          mapping: {
-            name: 'Imported Stub 1',
-            metadata: { hub_description: 'First imported stub' },
-            request: {
-              method: 'GET',
-              urlPath: '/api/imported-1'
+    const openapiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'Pet Store API', version: '1.0.0' },
+      paths: {
+        '/api/pets': {
+          get: {
+            summary: 'List pets',
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: { id: { type: 'integer' }, name: { type: 'string' } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          post: {
+            summary: 'Create pet',
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: { name: { type: 'string' }, species: { type: 'string' } }
+                  }
+                }
+              }
             },
-            response: {
-              status: 200,
-              jsonBody: { message: 'Imported stub 1' },
-              headers: { 'Content-Type': 'application/json' }
+            responses: {
+              '201': {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: { id: { type: 'integer' }, name: { type: 'string' } }
+                    }
+                  }
+                }
+              }
             }
           }
         },
-        {
-          isActive: true,
-          mapping: {
-            name: 'Imported Stub 2',
-            metadata: { hub_description: 'Second imported stub' },
-            request: {
-              method: 'POST',
-              urlPath: '/api/imported-2'
-            },
-            response: {
-              status: 201,
-              jsonBody: { id: 123 },
-              headers: { 'Content-Type': 'application/json' }
+        '/api/pets/{petId}': {
+          get: {
+            summary: 'Get pet by ID',
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        species: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
-      ]
+      }
     };
 
-    // Set up filechooser listener BEFORE clicking the button
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: /インポート|Import/ }).click();
-    const fileChooser = await fileChooserPromise;
-
-    // Create a temporary file with import data
-    const buffer = Buffer.from(JSON.stringify(importData));
-    await fileChooser.setFiles({
-      name: 'test-import.json',
+    // Import OpenAPI spec
+    await page.getByRole('button', { name: /^インポート$|^Import$/ }).click();
+    const chooserPromise = page.waitForEvent('filechooser');
+    await page
+      .locator('.el-dropdown-menu__item:visible')
+      .filter({ hasText: /OpenAPI/ })
+      .first()
+      .click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles({
+      name: 'petstore.json',
       mimeType: 'application/json',
-      buffer: buffer
+      buffer: Buffer.from(JSON.stringify(openapiSpec))
     });
 
-    // Verify imported stubs appear in the list with name column
-    await expect(page.locator('.el-table__row', { hasText: 'Imported Stub 1' })).toBeVisible({
-      timeout: 10000
-    });
-    await expect(page.locator('.el-table__row', { hasText: 'Imported Stub 2' })).toBeVisible({
-      timeout: 10000
-    });
-    await expect(page.locator('.el-table__row', { hasText: '/api/imported-1' })).toBeVisible();
-    await expect(page.locator('.el-table__row', { hasText: '/api/imported-2' })).toBeVisible();
+    // OpenAPI spec has 3 operations: GET /api/pets, POST /api/pets, GET /api/pets/{petId}
+    await expect(page.locator('.el-table__row')).toHaveCount(3, { timeout: 10000 });
+    await expect(page.locator('.el-table__row', { hasText: '/api/pets' }).first()).toBeVisible();
+
+    // Verify POST stub has request body
+    await page.locator('.el-table__row', { hasText: 'POST' }).click();
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
+    await page.waitForSelector('[data-testid="request-body"] .monaco-editor', { timeout: 10000 });
+    const requestBody = await getMonacoEditorValue(page, '[data-testid="request-body"]');
+    expect(requestBody).toContain('name');
+    expect(requestBody).toContain('species');
+
+    // Verify response has generated sample
+    await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await page.waitForTimeout(500);
+    const responseBody = await getMonacoEditorValue(page, '[data-testid="response-body"]');
+    expect(responseBody).toContain('id');
+    expect(responseBody).toContain('name');
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -1171,9 +1196,14 @@ test.describe('Stub', () => {
     await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
     await page.waitForTimeout(500);
 
-    // Try to import invalid JSON
+    // Try to import invalid JSON via dropdown
+    await page.getByRole('button', { name: /^インポート$|^Import$/ }).click();
     const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: /インポート|Import/ }).click();
+    await page
+      .locator('.el-dropdown-menu__item:visible')
+      .filter({ hasText: 'WireMock' })
+      .first()
+      .click();
     const fileChooser = await fileChooserPromise;
 
     // Create invalid JSON file
@@ -1358,8 +1388,8 @@ test.describe('Stub Test Feature', () => {
     await urlInput.fill('/api/exec-test');
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"status": "ok"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"status": "ok"}', '[data-testid="response-body"]');
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/exec-test' })).toBeVisible({

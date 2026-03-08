@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { WIREMOCK_1_URL, WIREMOCK_2_URL, cleanupProject, clearLocalStorage } from './helpers';
+import {
+  WIREMOCK_1_URL,
+  WIREMOCK_2_URL,
+  cleanupProject,
+  clearLocalStorage,
+  fillMonacoEditor
+} from './helpers';
 
 test.describe('Registered Stubs', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -61,8 +67,12 @@ test.describe('Registered Stubs', () => {
     await urlInput.fill(testUrl);
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"message": "registered stubs test"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"message": "registered stubs test"}',
+      '[data-testid="response-body"]'
+    );
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: testUrl })).toBeVisible({
@@ -255,7 +265,8 @@ test.describe('Registered Stubs', () => {
     await urlInput.fill(testUrl);
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    await page.getByPlaceholder('{"message": "success"}').fill('{"message": "delete test"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"message": "delete test"}', '[data-testid="response-body"]');
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: testUrl })).toBeVisible({
@@ -359,7 +370,8 @@ test.describe('Registered Stubs', () => {
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
     await page.getByPlaceholder('e.g. /api/users').fill(testUrl1);
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    await page.getByPlaceholder('{"message": "success"}').fill('{"message": "stub 1"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"message": "stub 1"}', '[data-testid="response-body"]');
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: testUrl1 })).toBeVisible({
       timeout: 10000
@@ -373,7 +385,7 @@ test.describe('Registered Stubs', () => {
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
     await page.getByPlaceholder('e.g. /api/users').fill(testUrl2);
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    await page.getByPlaceholder('{"message": "success"}').fill('{"message": "stub 2"}');
+    await fillMonacoEditor(page, '{"message": "stub 2"}', '[data-testid="response-body"]');
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: testUrl2 })).toBeVisible({
       timeout: 10000

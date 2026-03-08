@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { WIREMOCK_1_URL, WIREMOCK_2_URL, cleanupProject, clearLocalStorage } from './helpers';
+import {
+  WIREMOCK_1_URL,
+  WIREMOCK_2_URL,
+  cleanupProject,
+  clearLocalStorage,
+  fillMonacoEditor
+} from './helpers';
 
 test.describe('WireMock Instance', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -171,8 +177,12 @@ test.describe('WireMock Instance', () => {
     await urlInput.fill('/api/individual-sync-test');
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"message": "Individual sync test"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"message": "Individual sync test"}',
+      '[data-testid="response-body"]'
+    );
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(
@@ -277,8 +287,8 @@ test.describe('WireMock Instance', () => {
     await urlInput.fill('/api/append-test-1');
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"message": "First stub"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"message": "First stub"}', '[data-testid="response-body"]');
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/append-test-1' })).toBeVisible({
@@ -320,8 +330,7 @@ test.describe('WireMock Instance', () => {
     await urlInput2.fill('/api/append-test-2');
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea2 = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea2.fill('{"message": "Second stub"}');
+    await fillMonacoEditor(page, '{"message": "Second stub"}', '[data-testid="response-body"]');
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/append-test-2' })).toBeVisible({
@@ -422,8 +431,8 @@ test.describe('WireMock Instance', () => {
     await urlInput.fill('/api/append-all-test');
 
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"message": "Append all test"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"message": "Append all test"}', '[data-testid="response-body"]');
 
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.locator('.el-table__row', { hasText: '/api/append-all-test' })).toBeVisible({

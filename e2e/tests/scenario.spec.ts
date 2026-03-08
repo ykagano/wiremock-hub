@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { WIREMOCK_1_URL, cleanupProject, clearLocalStorage } from './helpers';
+import { WIREMOCK_1_URL, cleanupProject, clearLocalStorage, fillMonacoEditor } from './helpers';
 
 // Helper: create a project and navigate to its detail page
 async function createProjectAndNavigate(page: import('@playwright/test').Page, name: string) {
@@ -32,7 +32,8 @@ async function createStub(
   await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
   await page.getByPlaceholder('e.g. /api/users').fill(url);
   await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-  await page.getByPlaceholder('{"message": "success"}').fill(responseBody);
+  await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+  await fillMonacoEditor(page, responseBody, '[data-testid="response-body"]');
   await page.getByRole('button', { name: /保存|Save/ }).click();
   await expect(page.locator('.el-table__row', { hasText: url })).toBeVisible({
     timeout: 10000

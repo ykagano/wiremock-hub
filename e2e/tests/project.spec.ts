@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { LOCALE_KEY, cleanupProject, clearLocalStorage } from './helpers';
+import { LOCALE_KEY, cleanupProject, clearLocalStorage, fillMonacoEditor } from './helpers';
 
 test.describe('Project', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -116,8 +116,8 @@ test.describe('Project', () => {
     const urlInput = page.getByPlaceholder('e.g. /api/users');
     await urlInput.fill('/api/duplicate-test');
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await responseTextarea.fill('{"result": "duplicated"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(page, '{"result": "duplicated"}', '[data-testid="response-body"]');
     await page.getByRole('button', { name: /保存|Save/ }).click();
     await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({
       timeout: 5000
