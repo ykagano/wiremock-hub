@@ -13,6 +13,10 @@ export { toMapping };
 export function orderByStateChain(stubs: Stub[]): Stub[] {
   if (stubs.length === 0) return [];
 
+  // No chain (no newScenarioState on any stub) → preserve input order
+  const hasChain = stubs.some((s) => !!toMapping(s).newScenarioState);
+  if (!hasChain) return [...stubs];
+
   const byRequired = new Map<string, Stub[]>();
   for (const stub of stubs) {
     const state = toMapping(stub).requiredScenarioState || 'Started';
@@ -140,6 +144,32 @@ export function useScenario() {
     if (fromIndex === toIndex) return;
 
     const steps = orderedSteps.value;
+    const hasChain = steps.some((s) => !!toMapping(s).newScenarioState);
+
+    if (!hasChain) {
+      // No chain: reorder stubs in the store without touching state fields.
+      // State names stay with their stubs (intuitive).
+      saving.value = true;
+      try {
+        const reorderedIds = steps.map((s) => s.id);
+        const [movedId] = reorderedIds.splice(fromIndex, 1);
+        reorderedIds.splice(toIndex, 0, movedId);
+
+        const scenarioIdSet = new Set(reorderedIds);
+        const nonScenario = stubs.value.filter((s) => !scenarioIdSet.has(s.id));
+        const reorderedScenario = reorderedIds
+          .map((id) => stubs.value.find((s) => s.id === id))
+          .filter((s): s is Stub => s !== undefined);
+        mappingStore.replaceStubs([...reorderedScenario, ...nonScenario]);
+
+        ElMessage.success(t('scenarios.messages.reordered'));
+      } finally {
+        saving.value = false;
+      }
+      return;
+    }
+
+    // --- With chain: reassign state fields via API ---
 
     // 1. Deep-copy all stub data upfront (escape Vue reactivity)
     const allStubs = steps.map((s) => ({
@@ -162,6 +192,7 @@ export function useScenario() {
     //    (bypass store to prevent intermediate reactivity / UI re-renders)
     saving.value = true;
     try {
+      const updatedResults = new Map<string, Stub>();
       for (let i = 0; i < allStubs.length; i++) {
         const { id, description, mapping } = allStubs[i];
         mapping.requiredScenarioState = chain[i].requiredScenarioState;
@@ -170,12 +201,23 @@ export function useScenario() {
         } else {
           delete mapping.newScenarioState;
         }
-        await stubApi.update(id, {
+        const updated = await stubApi.update(id, {
           description: description !== undefined ? description || null : undefined,
           mapping
         });
+        updatedResults.set(id, updated);
       }
-      await mappingStore.fetchMappings();
+
+      // Sync store: place reordered scenario stubs first so that
+      // orderByStateChain appends unvisited stubs in the intended order.
+      const reorderedIds = allStubs.map((s) => s.id);
+      const scenarioIdSet = new Set(reorderedIds);
+      const nonScenario = stubs.value.filter((s) => !scenarioIdSet.has(s.id));
+      const reorderedScenario = reorderedIds
+        .map((id) => updatedResults.get(id))
+        .filter((s): s is Stub => s !== undefined);
+      mappingStore.replaceStubs([...reorderedScenario, ...nonScenario]);
+
       ElMessage.success(t('scenarios.messages.reordered'));
     } catch (e: any) {
       ElMessage.error(e.message);

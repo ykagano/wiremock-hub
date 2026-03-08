@@ -156,6 +156,16 @@ export const useMappingStore = defineStore('mapping', () => {
     }
   }
 
+  /** Replace the stubs array in-place, keeping mappings in sync. */
+  function replaceStubs(newStubs: Stub[]) {
+    stubs.value = newStubs;
+    mappings.value = newStubs.map((s) => ({
+      ...(s.mapping as Mapping),
+      id: s.id,
+      name: s.name ?? (s.mapping as any)?.name ?? undefined
+    }));
+  }
+
   function clearMappings() {
     stubs.value = [];
     mappings.value = [];
@@ -303,6 +313,7 @@ export const useMappingStore = defineStore('mapping', () => {
     deleteMapping,
     syncToWiremock,
     syncAllToWiremock,
+    replaceStubs,
     clearMappings,
     getStubById,
     deleteAllStubs,

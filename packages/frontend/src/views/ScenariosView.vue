@@ -444,34 +444,7 @@ async function handleAddStep() {
     const stub = mappingStore.getStubById(addStepSelectedId.value);
     if (!stub) return;
 
-    const steps = orderedSteps.value;
-    let requiredState: string;
-
-    if (steps.length === 0) {
-      // First step in the scenario
-      requiredState = 'Started';
-    } else {
-      const lastStep = steps[steps.length - 1];
-      const lastMapping = getMapping(lastStep);
-
-      if (lastMapping.newScenarioState) {
-        // Last step already points to a next state — use it
-        requiredState = lastMapping.newScenarioState;
-      } else {
-        // Last step is terminal — create a new state link
-        const newStateName = generateStateName(steps);
-        requiredState = newStateName;
-
-        // Update the current last step to point to the new state
-        const updatedLastMapping = { ...lastMapping };
-        updatedLastMapping.newScenarioState = newStateName;
-        await mappingStore.updateMapping(
-          lastStep.id,
-          updatedLastMapping,
-          lastStep.description || undefined
-        );
-      }
-    }
+    const requiredState = await computeNextRequiredState(orderedSteps.value);
 
     const mapping = { ...getMapping(stub) };
     mapping.scenarioName = selectedScenario.value;
@@ -500,14 +473,47 @@ function generateStateName(steps: Stub[]): string {
   return `Step_${i}`;
 }
 
+/**
+ * Compute the requiredScenarioState for a new step appended to the chain.
+ * If the last step is terminal, updates its newScenarioState via API.
+ */
+async function computeNextRequiredState(steps: Stub[]): Promise<string> {
+  if (steps.length === 0) return 'Started';
+
+  const lastStep = steps[steps.length - 1];
+  const lastMapping = getMapping(lastStep);
+
+  if (lastMapping.newScenarioState) return lastMapping.newScenarioState;
+
+  // Last step is terminal — create a new state link
+  const newStateName = generateStateName(steps);
+  const updatedLastMapping = { ...lastMapping };
+  updatedLastMapping.newScenarioState = newStateName;
+  await mappingStore.updateMapping(
+    lastStep.id,
+    updatedLastMapping,
+    lastStep.description || undefined
+  );
+  return newStateName;
+}
+
 // --- Navigation ---
 
-function createNewStubForScenario() {
-  showAddStepDialog.value = false;
-  router.push({
-    path: '/mappings/new',
-    query: { scenarioName: selectedScenario.value || '' }
-  });
+async function createNewStubForScenario() {
+  try {
+    const requiredState = await computeNextRequiredState(orderedSteps.value);
+
+    showAddStepDialog.value = false;
+    router.push({
+      path: '/mappings/new',
+      query: {
+        scenarioName: selectedScenario.value || '',
+        requiredScenarioState: requiredState
+      }
+    });
+  } catch (e: any) {
+    ElMessage.error(e.message);
+  }
 }
 
 function navigateToEditor(stub: Stub) {
