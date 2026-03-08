@@ -1,13 +1,10 @@
 <template>
   <div class="json-editor">
-    <el-input
+    <MonacoEditor
       v-model="jsonText"
-      type="textarea"
-      :rows="rows"
-      :placeholder="placeholder"
-      @focus="isEditing = true"
-      @blur="handleBlur"
-      class="json-input"
+      language="json"
+      :height="editorHeight"
+      @update:modelValue="handleChange"
     />
     <div v-if="error" class="error-message">
       <el-icon><CircleClose /></el-icon>
@@ -17,8 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import MonacoEditor from '@/components/common/MonacoEditor.vue';
 
 const { t } = useI18n();
 
@@ -38,18 +36,30 @@ const emit = defineEmits<{
   'update:modelValue': [value: any];
 }>();
 
+const editorHeight = computed(() => `${props.rows * 22}px`);
+
 const jsonText = ref('');
 const error = ref('');
-const isEditing = ref(false);
+const isUpdatingFromParent = ref(false);
 
-// Sync from parent to jsonText, but skip while user is editing
+// Sync from parent to jsonText
 watch(
   () => props.modelValue,
   (value) => {
-    if (isEditing.value) return;
+    if (isUpdatingFromParent.value) return;
     if (value) {
       try {
-        jsonText.value = JSON.stringify(value, null, 2);
+        const newText = JSON.stringify(value, null, 2);
+        // Only update if the parsed values differ to avoid cursor jumps
+        if (jsonText.value.trim()) {
+          try {
+            const current = JSON.parse(jsonText.value);
+            if (JSON.stringify(current) === JSON.stringify(value)) return;
+          } catch {
+            // Current text is invalid JSON, update it
+          }
+        }
+        jsonText.value = newText;
         error.value = '';
       } catch (e) {
         console.error('Failed to stringify:', e);
@@ -61,16 +71,20 @@ watch(
   { immediate: true, deep: true }
 );
 
-function handleBlur() {
-  isEditing.value = false;
+function handleChange(value: string) {
+  jsonText.value = value;
   try {
-    if (jsonText.value.trim()) {
-      const parsed = JSON.parse(jsonText.value);
+    if (value.trim()) {
+      const parsed = JSON.parse(value);
+      error.value = '';
+      isUpdatingFromParent.value = true;
       emit('update:modelValue', parsed);
-      error.value = '';
+      isUpdatingFromParent.value = false;
     } else {
-      emit('update:modelValue', undefined);
       error.value = '';
+      isUpdatingFromParent.value = true;
+      emit('update:modelValue', undefined);
+      isUpdatingFromParent.value = false;
     }
   } catch (e: any) {
     error.value = t('messages.json.parseError', { message: e.message });
@@ -81,12 +95,6 @@ function handleBlur() {
 <style scoped>
 .json-editor {
   position: relative;
-}
-
-.json-input :deep(textarea) {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  line-height: 1.5;
 }
 
 .error-message {

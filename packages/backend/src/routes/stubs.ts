@@ -1,7 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
+import { parse as parseYaml } from 'yaml';
 import type { Mapping } from '@wiremock-hub/shared';
+import { detectFormat, buildMappingFromOperation } from '../utils/openapi-parser.js';
 
 /** Inject Hub metadata into a WireMock mapping (for sync only, not stored in DB) */
 export function injectHubMetadata(
@@ -44,6 +46,12 @@ const stubTestSchema = z.object({
   headers: z.record(z.string(), z.string()).optional(),
   body: z.string().optional(),
   queryParameters: z.record(z.string(), z.string()).optional()
+});
+
+const importOpenApiSchema = z.object({
+  projectId: z.string().uuid(),
+  content: z.string().max(5 * 1024 * 1024),
+  format: z.enum(['json', 'yaml']).optional()
 });
 
 export async function stubRoutes(fastify: FastifyInstance) {
@@ -584,7 +592,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // Export stubs for a project
+  // Export stubs for a project (unified WireMock-compatible format)
   fastify.get(
     '/export',
     async (
@@ -614,48 +622,56 @@ export async function stubRoutes(fastify: FastifyInstance) {
         orderBy: { createdAt: 'asc' }
       });
 
-      const exportData = {
-        version: '1.1',
-        projectName: project.name,
-        exportedAt: new Date().toISOString(),
-        stubs: stubs.map((stub: (typeof stubs)[number]) => {
-          const mapping = stub.mapping as Record<string, any>;
-          return {
-            isActive: stub.isActive,
-            mapping: {
-              ...mapping,
-              ...(stub.name ? { name: stub.name } : {}),
-              metadata: {
-                ...mapping?.metadata,
-                ...(stub.description ? { hub_description: stub.description } : {})
-              }
-            }
-          };
-        })
-      };
+      const mappings = stubs.map((stub: (typeof stubs)[number]) => {
+        const mapping = stub.mapping as Record<string, any>;
+        const rest = Object.fromEntries(
+          Object.entries(mapping).filter(([k]) => k !== 'id' && k !== 'uuid')
+        );
+        return {
+          ...rest,
+          ...(stub.name ? { name: stub.name } : {}),
+          metadata: {
+            ...mapping?.metadata,
+            ...(stub.description ? { hub_description: stub.description } : {}),
+            hub_isActive: stub.isActive
+          }
+        };
+      });
 
-      return reply.send(exportData);
+      return reply.send({
+        mappings,
+        meta: { total: mappings.length }
+      });
     }
   );
 
-  // Import stubs for a project
+  // Import stubs for a project (unified WireMock-compatible format)
+  // Accepts { mappings: [...] } format.
+  // Backward compatible: also accepts legacy { stubs: [...] } format.
   fastify.post('/import', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      // Accept both mappings[] and legacy stubs[] format
       const importSchema = z.object({
         projectId: z.string().uuid(),
-        data: z.object({
-          version: z.string().optional(),
-          projectName: z.string().optional(),
-          exportedAt: z.string().optional(),
-          stubs: z.array(
-            z.object({
-              name: z.string().nullable().optional(),
-              description: z.string().nullable().optional(),
-              isActive: z.boolean().optional().default(true),
-              mapping: z.object({}).passthrough()
-            })
-          )
-        })
+        data: z
+          .object({
+            mappings: z.array(z.object({}).passthrough()).optional(),
+            // Legacy Hub format fields
+            version: z.string().optional(),
+            projectName: z.string().optional(),
+            exportedAt: z.string().optional(),
+            stubs: z
+              .array(
+                z.object({
+                  name: z.string().nullable().optional(),
+                  description: z.string().nullable().optional(),
+                  isActive: z.boolean().optional().default(true),
+                  mapping: z.object({}).passthrough()
+                })
+              )
+              .optional()
+          })
+          .passthrough()
       });
 
       const body = importSchema.parse(request.body);
@@ -674,34 +690,176 @@ export async function stubRoutes(fastify: FastifyInstance) {
         errors: [] as string[]
       };
 
-      for (const stubData of body.data.stubs) {
-        try {
-          const mapping = stubData.mapping as any;
-          // Extract name/description from stub level or mapping (for backward compat)
-          const name = stubData.name ?? mapping?.name ?? null;
-          const description = stubData.description ?? mapping?.metadata?.hub_description ?? null;
+      if (body.data.mappings && Array.isArray(body.data.mappings)) {
+        // Unified mappings[] format (WireMock-compatible)
+        for (const rawMapping of body.data.mappings) {
+          try {
+            const mapping = rawMapping as Record<string, unknown>;
+            const name = (mapping.name as string) || null;
+            const metadata = mapping.metadata as Record<string, unknown> | undefined;
+            const description = (metadata?.hub_description as string) || null;
+            const isActive = metadata?.hub_isActive !== undefined ? !!metadata.hub_isActive : true;
 
-          // Clean mapping: remove name/hub_description to keep DB column as Single Source of Truth
-          const cleanMapping = { ...mapping };
-          delete cleanMapping.name;
-          if (cleanMapping.metadata) {
-            cleanMapping.metadata = { ...cleanMapping.metadata };
-            delete cleanMapping.metadata.hub_description;
-          }
-
-          await fastify.prisma.stub.create({
-            data: {
-              projectId: body.projectId,
-              name,
-              description,
-              isActive: stubData.isActive,
-              mapping: cleanMapping as any
+            // Strip id/uuid/name — they belong to the source, not this project
+            const cleanMapping = Object.fromEntries(
+              Object.entries(mapping).filter(([k]) => k !== 'id' && k !== 'uuid' && k !== 'name')
+            );
+            // Clean hub-specific metadata
+            if (cleanMapping.metadata) {
+              cleanMapping.metadata = { ...(cleanMapping.metadata as Record<string, unknown>) };
+              delete (cleanMapping.metadata as Record<string, unknown>).hub_description;
+              delete (cleanMapping.metadata as Record<string, unknown>).hub_isActive;
             }
-          });
-          results.imported++;
-        } catch (e: any) {
-          results.skipped++;
-          results.errors.push(e.message || 'Unknown error');
+
+            await fastify.prisma.stub.create({
+              data: {
+                projectId: body.projectId,
+                name,
+                description,
+                isActive,
+                mapping: cleanMapping as any
+              }
+            });
+            results.imported++;
+          } catch (e: any) {
+            results.skipped++;
+            results.errors.push(e.message || 'Unknown error');
+            fastify.log.warn(`Skipped mapping during import: ${e.message || 'Unknown error'}`);
+          }
+        }
+      } else if (body.data.stubs && Array.isArray(body.data.stubs)) {
+        // Legacy Hub stubs[] format (backward compatibility)
+        for (const stubData of body.data.stubs) {
+          try {
+            const mapping = stubData.mapping as any;
+            const name = stubData.name ?? mapping?.name ?? null;
+            const description = stubData.description ?? mapping?.metadata?.hub_description ?? null;
+
+            const cleanMapping = { ...mapping };
+            delete cleanMapping.name;
+            if (cleanMapping.metadata) {
+              cleanMapping.metadata = { ...cleanMapping.metadata };
+              delete cleanMapping.metadata.hub_description;
+            }
+
+            await fastify.prisma.stub.create({
+              data: {
+                projectId: body.projectId,
+                name,
+                description,
+                isActive: stubData.isActive,
+                mapping: cleanMapping as any
+              }
+            });
+            results.imported++;
+          } catch (e: any) {
+            results.skipped++;
+            results.errors.push(e.message || 'Unknown error');
+            fastify.log.warn(`Skipped stub during import: ${e.message || 'Unknown error'}`);
+          }
+        }
+      } else {
+        return reply.status(400).send({
+          success: false,
+          error: 'Invalid import data: expected "mappings" or "stubs" array'
+        });
+      }
+
+      return reply.send({
+        success: true,
+        data: results
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation error',
+          details: error.issues
+        });
+      }
+      throw error;
+    }
+  });
+
+  // Import stubs from OpenAPI spec
+  fastify.post('/import-openapi', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const body = importOpenApiSchema.parse(request.body);
+
+      const project = await checkProjectExists(body.projectId);
+      if (!project) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Project not found'
+        });
+      }
+
+      // Parse content
+      let spec: any;
+      const format = body.format || detectFormat(body.content);
+      try {
+        if (format === 'json') {
+          spec = JSON.parse(body.content);
+        } else {
+          spec = parseYaml(body.content);
+        }
+      } catch {
+        return reply.status(400).send({
+          success: false,
+          error: 'Failed to parse OpenAPI spec as ' + format
+        });
+      }
+
+      // Validate it looks like an OpenAPI/Swagger spec
+      if (!spec.openapi && !spec.swagger) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Not a valid OpenAPI/Swagger spec (missing openapi or swagger field)'
+        });
+      }
+
+      if (!spec.paths || typeof spec.paths !== 'object') {
+        return reply.status(400).send({
+          success: false,
+          error: 'No paths found in spec'
+        });
+      }
+
+      const results = {
+        imported: 0,
+        skipped: 0,
+        errors: [] as string[]
+      };
+
+      const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'];
+
+      for (const [path, pathItem] of Object.entries(spec.paths)) {
+        if (!pathItem || typeof pathItem !== 'object') continue;
+
+        for (const method of httpMethods) {
+          const operation = (pathItem as any)[method];
+          if (!operation) continue;
+
+          try {
+            const mapping = buildMappingFromOperation(spec, path, method.toUpperCase(), operation);
+            const name = `${method.toUpperCase()} ${path}`;
+
+            await fastify.prisma.stub.create({
+              data: {
+                projectId: body.projectId,
+                name,
+                description: operation.summary || operation.description || null,
+                mapping: mapping as any
+              }
+            });
+            results.imported++;
+          } catch (e: any) {
+            results.skipped++;
+            results.errors.push(`${method.toUpperCase()} ${path}: ${e.message || 'Unknown error'}`);
+            fastify.log.warn(
+              `Skipped OpenAPI operation during import: ${method.toUpperCase()} ${path} - ${e.message || 'Unknown error'}`
+            );
+          }
         }
       }
 

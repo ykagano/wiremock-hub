@@ -71,6 +71,37 @@ export async function deleteProjectViaApi(request: APIRequestContext, id: number
   await request.delete(`${API_BASE}/api/projects/${id}`);
 }
 
+// Fill a Monaco Editor with content via its exposed API
+// The MonacoEditor component exposes __monacoEditor on the container DOM element
+// parentSelector: optional CSS selector to scope the search (e.g. '.json-editor')
+export async function fillMonacoEditor(page: Page, content: string, parentSelector?: string) {
+  await page.evaluate(
+    ({ text, parent }) => {
+      const root = parent ? document.querySelector(parent) : document;
+      if (!root) return;
+      const container = root.querySelector('.monaco-editor-container');
+      if (container && (container as any).__monacoEditor) {
+        (container as any).__monacoEditor.setValue(text);
+      }
+    },
+    { text: content, parent: parentSelector }
+  );
+}
+
+// Get content from a Monaco Editor
+// parentSelector: optional CSS selector to scope the search (e.g. '.json-editor')
+export async function getMonacoEditorValue(page: Page, parentSelector?: string): Promise<string> {
+  return page.evaluate((parent) => {
+    const root = parent ? document.querySelector(parent) : document;
+    if (!root) return '';
+    const container = root.querySelector('.monaco-editor-container');
+    if (container && (container as any).__monacoEditor) {
+      return (container as any).__monacoEditor.getValue();
+    }
+    return '';
+  }, parentSelector);
+}
+
 // Delete a project by name for test cleanup (uses API via page.request for speed)
 export async function cleanupProject(page: Page, projectName: string) {
   if (SKIP_CLEANUP) {

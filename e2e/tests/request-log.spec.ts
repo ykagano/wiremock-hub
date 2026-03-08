@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { WIREMOCK_1_URL, WIREMOCK_2_URL, cleanupProject, clearLocalStorage } from './helpers';
+import {
+  WIREMOCK_1_URL,
+  WIREMOCK_2_URL,
+  cleanupProject,
+  clearLocalStorage,
+  fillMonacoEditor
+} from './helpers';
 
 test.describe('Request Log', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -126,9 +132,12 @@ test.describe('Request Log', () => {
 
     // Go to response tab and fill in response body
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
-    const responseTextarea = page.getByPlaceholder('{"message": "success"}');
-    await expect(responseTextarea).toBeVisible();
-    await responseTextarea.fill('{"message": "Request log test response"}');
+    await page.waitForSelector('[data-testid="response-body"] .monaco-editor', { timeout: 10000 });
+    await fillMonacoEditor(
+      page,
+      '{"message": "Request log test response"}',
+      '[data-testid="response-body"]'
+    );
 
     // Save the stub
     await page.getByRole('button', { name: /保存|Save/ }).click();
@@ -249,7 +258,7 @@ test.describe('Request Log', () => {
     // Click import button
     await page
       .locator('.el-dialog')
-      .getByRole('button', { name: /インポート|Import/ })
+      .getByRole('button', { name: /^インポート$|^Import$/ })
       .click();
 
     // Wait for success message

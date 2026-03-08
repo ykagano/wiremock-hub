@@ -69,7 +69,7 @@
             </el-form-item>
 
             <!-- URL -->
-            <el-form-item :label="t('editor.requestUrl')">
+            <el-form-item :label="t('editor.requestUrl')" required>
               <el-radio-group v-model="urlType" @change="handleUrlTypeChange">
                 <el-radio value="url">{{ t('labels.urlMatch.exact') }}</el-radio>
                 <el-radio value="urlPattern">{{ t('labels.urlMatch.regex') }}</el-radio>
@@ -94,15 +94,10 @@
             </el-form-item>
 
             <!-- Body -->
-            <el-form-item :label="t('editor.requestBody')">
+            <el-form-item :label="t('editor.requestBody')" data-testid="request-body">
               <el-tabs type="border-card">
                 <el-tab-pane :label="t('editor.text')">
-                  <el-input
-                    v-model="requestBodyText"
-                    type="textarea"
-                    :rows="10"
-                    placeholder='{"key": "value"}'
-                  />
+                  <MonacoEditor v-model="requestBodyText" language="json" height="300px" />
                 </el-tab-pane>
                 <el-tab-pane :label="t('editor.bodyPatterns')">
                   <BodyPatternsEditor v-model="formData.request.bodyPatterns" />
@@ -126,20 +121,14 @@
               <el-input-number v-model="formData.response.status" :min="100" :max="599" />
             </el-form-item>
 
-            <!-- Response body -->
-            <el-form-item :label="t('editor.responseBody')">
-              <el-input
-                v-model="formData.response.body"
-                type="textarea"
-                :rows="10"
-                placeholder='{"message": "success"}'
-                class="full-width-textarea"
-              />
-            </el-form-item>
-
             <!-- Response headers -->
             <el-form-item :label="t('editor.responseHeaders')">
               <KeyValueEditor v-model="formData.response.headers" />
+            </el-form-item>
+
+            <!-- Response body -->
+            <el-form-item :label="t('editor.responseBody')" data-testid="response-body">
+              <MonacoEditor v-model="responseBody" language="json" height="300px" />
             </el-form-item>
 
             <!-- Delay -->
@@ -232,6 +221,7 @@ import JsonEditor from '@/components/mapping/JsonEditor.vue';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
 import BodyPatternsEditor from '@/components/mapping/BodyPatternsEditor.vue';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
+import MonacoEditor from '@/components/common/MonacoEditor.vue';
 
 const { t } = useI18n();
 const { isMobile } = useResponsive();
@@ -246,8 +236,39 @@ const currentStubId = computed(() => (route.params.id as string) || '');
 const urlType = ref<'url' | 'urlPattern' | 'urlPath' | 'urlPathPattern'>('url');
 const urlValue = ref('');
 const requestBodyText = ref('');
+const requestBodyMatchType = ref<'equalTo' | 'equalToJson'>('equalTo');
 
 const isNew = computed(() => route.name === 'mapping-new');
+
+const responseBody = computed({
+  get: () => {
+    if (formData.response.body !== undefined) return formData.response.body;
+    if (formData.response.jsonBody !== undefined) {
+      return JSON.stringify(formData.response.jsonBody, null, 2);
+    }
+    return '';
+  },
+  set: (val: string) => {
+    if (!val) {
+      formData.response.body = undefined;
+      delete formData.response.jsonBody;
+      return;
+    }
+    // Try to parse as JSON and store as jsonBody if Content-Type is JSON
+    const contentType = formData.response.headers?.['Content-Type'] || '';
+    if (contentType.includes('json')) {
+      try {
+        formData.response.jsonBody = JSON.parse(val);
+        formData.response.body = undefined;
+        return;
+      } catch {
+        // Not valid JSON, fall through to body
+      }
+    }
+    formData.response.body = val;
+    delete formData.response.jsonBody;
+  }
+});
 
 const stubDescription = ref('');
 
@@ -309,10 +330,18 @@ function syncHelperRefsFromRequest(req: Mapping['request']) {
     urlValue.value = '';
   }
 
-  if (req.bodyPatterns && req.bodyPatterns[0]?.equalTo) {
-    requestBodyText.value = req.bodyPatterns[0].equalTo;
+  if (req.bodyPatterns && req.bodyPatterns[0]) {
+    const bp = req.bodyPatterns[0];
+    if (bp.equalToJson) {
+      requestBodyText.value = bp.equalToJson;
+      requestBodyMatchType.value = 'equalToJson';
+    } else {
+      requestBodyText.value = bp.equalTo || '';
+      requestBodyMatchType.value = 'equalTo';
+    }
   } else {
     requestBodyText.value = '';
+    requestBodyMatchType.value = 'equalTo';
   }
 }
 
@@ -363,9 +392,9 @@ async function handleSave() {
 
   saving.value = true;
   try {
-    // Sync request body text to bodyPatterns
+    // Sync request body text to bodyPatterns (preserve match type)
     if (requestBodyText.value) {
-      formData.request.bodyPatterns = [{ equalTo: requestBodyText.value }];
+      formData.request.bodyPatterns = [{ [requestBodyMatchType.value]: requestBodyText.value }];
     } else {
       delete formData.request.bodyPatterns;
     }
@@ -441,13 +470,13 @@ function openTestDialog() {
   margin-bottom: 0;
 }
 
-.full-width-textarea {
-  width: 100%;
+/* Prevent Monaco Editor from expanding beyond its parent flex/block chain */
+:deep(.el-card__body) {
+  overflow: hidden;
 }
 
-.full-width-textarea :deep(textarea) {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  line-height: 1.5;
+/* Make border-card tabs fill the full form-item width */
+:deep(.el-form-item__content > .el-tabs--border-card) {
+  width: 100%;
 }
 </style>

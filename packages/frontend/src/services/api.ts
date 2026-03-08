@@ -324,6 +324,21 @@ export const stubApi = {
       overrides || {}
     );
     return response.data.data!;
+  },
+
+  async importOpenApi(
+    projectId: string,
+    content: string,
+    format?: 'json' | 'yaml'
+  ): Promise<{ imported: number; skipped: number; errors: string[] }> {
+    const response = await apiClient.post<
+      ApiResponse<{ imported: number; skipped: number; errors: string[] }>
+    >('/stubs/import-openapi', {
+      projectId,
+      content,
+      ...(format ? { format } : {})
+    });
+    return response.data.data!;
   }
 };
 

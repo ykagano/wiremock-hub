@@ -216,7 +216,7 @@ export const useMappingStore = defineStore('mapping', () => {
       // Generate filename for download
       const projectName = projectStore.currentProject?.name || 'project';
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const filename = `${projectName.replace(/[^a-zA-Z0-9]/g, '-')}-stubs-${timestamp}.json`;
+      const filename = `${projectName.replace(/[^a-zA-Z0-9]/g, '-')}-mappings-${timestamp}.json`;
 
       // Download the file
       const url = window.URL.createObjectURL(blob);
@@ -274,6 +274,42 @@ export const useMappingStore = defineStore('mapping', () => {
     }
   }
 
+  // Import stubs from OpenAPI spec
+  async function importOpenApi(
+    content: string,
+    format?: 'json' | 'yaml'
+  ): Promise<{ imported: number; skipped: number } | null> {
+    const projectStore = useProjectStore();
+    if (!projectStore.currentProjectId) {
+      ElMessage.warning(t('messages.project.notSelected'));
+      return null;
+    }
+
+    loading.value = true;
+    try {
+      const result = await stubApi.importOpenApi(projectStore.currentProjectId, content, format);
+
+      if (result.skipped === 0) {
+        ElMessage.success(t('messages.stub.importedCount', { count: result.imported }));
+      } else {
+        ElMessage.warning(
+          t('messages.stub.importResult', { imported: result.imported, skipped: result.skipped })
+        );
+      }
+
+      // Refresh the stub list
+      await fetchMappings();
+
+      return result;
+    } catch (e: any) {
+      error.value = e.message || t('messages.stub.importOpenApiFailed');
+      ElMessage.error(error.value!);
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   // Test stub against all WireMock instances
   async function testStub(
     stubId: string,
@@ -319,6 +355,7 @@ export const useMappingStore = defineStore('mapping', () => {
     deleteAllStubs,
     exportStubs,
     importStubs,
+    importOpenApi,
     testStub,
     clearTestResult
   };

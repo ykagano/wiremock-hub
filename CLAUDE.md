@@ -373,6 +373,9 @@ packages/
 - `POST /api/stubs/:id/sync` - Sync to WireMock
 - `POST /api/stubs/:id/test` - Test stub against all WireMock instances
 - `POST /api/stubs/sync-all` - Sync all stubs to WireMock (reset then register)
+- `GET /api/stubs/export?projectId=` - Export stubs (WireMock-compatible JSON format)
+- `POST /api/stubs/import` - Import stubs (WireMock-compatible JSON format, also accepts legacy Hub JSON)
+- `POST /api/stubs/import-openapi` - Import stubs from OpenAPI/Swagger spec
 
 ### WireMock Instances
 

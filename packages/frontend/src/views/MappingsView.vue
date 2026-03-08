@@ -7,11 +7,24 @@
           <el-icon><Refresh /></el-icon>
           {{ t('common.refresh') }}
         </el-button>
-        <el-button @click="handleImport" :loading="loading">
-          <el-icon><Upload /></el-icon>
-          {{ t('mappings.import') }}
-        </el-button>
-        <el-button @click="handleExport" :loading="loading">
+        <el-dropdown @command="handleImportCommand" :disabled="loading">
+          <el-button :loading="loading">
+            <el-icon><Upload /></el-icon>
+            {{ t('mappings.import') }}
+            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="wiremock">{{
+                t('mappings.importWiremock')
+              }}</el-dropdown-item>
+              <el-dropdown-item command="openapi">{{
+                t('mappings.importOpenApi')
+              }}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-button @click="mappingStore.exportStubs()" :loading="loading">
           <el-icon><Download /></el-icon>
           {{ t('mappings.export') }}
         </el-button>
@@ -349,11 +362,15 @@ function confirmResetAll() {
     });
 }
 
-async function handleExport() {
-  await mappingStore.exportStubs();
+function handleImportCommand(command: string) {
+  if (command === 'wiremock') {
+    handleImportJson();
+  } else if (command === 'openapi') {
+    handleImportOpenApi();
+  }
 }
 
-function handleImport() {
+function handleImportJson() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json';
@@ -378,6 +395,35 @@ function handleImport() {
       } else {
         ElMessage.error(e.message || t('messages.stub.importFailed'));
       }
+    }
+  };
+  input.click();
+}
+
+function handleImportOpenApi() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,.yaml,.yml';
+  input.onchange = async (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    // Check file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      ElMessage.error(t('messages.stub.importFileTooLarge'));
+      return;
+    }
+
+    // Determine format from file extension
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const format: 'json' | 'yaml' = ext === 'json' ? 'json' : 'yaml';
+
+    try {
+      const content = await file.text();
+      await mappingStore.importOpenApi(content, format);
+    } catch (e: any) {
+      ElMessage.error(e.message || t('messages.stub.invalidOpenApiSpec'));
     }
   };
   input.click();
