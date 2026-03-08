@@ -322,7 +322,8 @@ onMounted(async () => {
   const queryScenarioName = route.query.scenarioName as string | undefined;
   if (isNew.value && queryScenarioName) {
     formData.scenarioName = queryScenarioName;
-    formData.requiredScenarioState = 'Started';
+    const queryRequiredState = route.query.requiredScenarioState as string | undefined;
+    formData.requiredScenarioState = queryRequiredState || 'Started';
   }
 
   if (!isNew.value) {
