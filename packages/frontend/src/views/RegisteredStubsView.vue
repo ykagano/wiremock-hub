@@ -47,85 +47,80 @@
     <el-empty v-else-if="!selectedInstanceId" :description="t('registeredStubs.selectInstance')" />
 
     <template v-else>
-      <el-table
-        :data="paginatedMappings"
-        v-loading="loading"
-        stripe
-        style="width: 100%"
-        row-key="id"
-      >
-        <el-table-column type="expand">
-          <template #default="{ row }">
-            <div style="padding: 12px 24px">
-              <pre class="mapping-json">{{ JSON.stringify(row, null, 2) }}</pre>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('registeredStubs.projectName')" min-width="160">
-          <template #default="{ row }">
-            <el-tag v-if="row.metadata?.hub_project_name" type="success" size="small">
-              {{ row.metadata.hub_project_name }}
-            </el-tag>
-            <el-tag v-else type="info" size="small">
-              {{ t('registeredStubs.external') }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('registeredStubs.name')" min-width="150">
-          <template #default="{ row }">
-            {{ row.name || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('registeredStubs.method')" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getMethodTagType(row.request?.method)" size="small">
-              {{ row.request?.method || 'ANY' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('registeredStubs.url')" min-width="250">
-          <template #default="{ row }">
-            {{ getUrl(row.request) }}
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('registeredStubs.status')" width="80">
-          <template #default="{ row }">
-            {{ row.response?.status || '—' }}
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!isMobile" :label="t('registeredStubs.priority')" width="80">
-          <template #default="{ row }">
-            {{ row.priority ?? '—' }}
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!isMobile" :label="t('registeredStubs.scenario')" width="150">
-          <template #default="{ row }">
-            {{ row.scenarioName || '—' }}
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('common.actions')" width="80" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" type="danger" @click.stop="confirmDeleteMapping(row)">
-              <el-icon><Delete /></el-icon>
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <el-skeleton v-if="loading && mappings.length === 0" :rows="5" animated />
 
-      <div v-if="mappings.length > 0" class="pagination">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="pageSizes"
-          :total="mappings.length"
-          layout="total, sizes, prev, pager, next, jumper"
-        />
-      </div>
+      <el-empty v-else-if="mappings.length === 0" :description="t('registeredStubs.noMappings')" />
 
-      <el-empty
-        v-if="!loading && mappings.length === 0"
-        :description="t('registeredStubs.noMappings')"
-      />
+      <template v-else>
+        <el-table :data="paginatedMappings" stripe style="width: 100%" row-key="id">
+          <el-table-column type="expand">
+            <template #default="{ row }">
+              <div style="padding: 12px 24px">
+                <pre class="mapping-json">{{ JSON.stringify(row, null, 2) }}</pre>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('registeredStubs.projectName')" min-width="160">
+            <template #default="{ row }">
+              <el-tag v-if="row.metadata?.hub_project_name" type="success" size="small">
+                {{ row.metadata.hub_project_name }}
+              </el-tag>
+              <el-tag v-else type="info" size="small">
+                {{ t('registeredStubs.external') }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('registeredStubs.name')" min-width="150">
+            <template #default="{ row }">
+              {{ row.name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('registeredStubs.method')" width="100">
+            <template #default="{ row }">
+              <el-tag :type="getMethodTagType(row.request?.method)" size="small">
+                {{ row.request?.method || 'ANY' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('registeredStubs.url')" min-width="250">
+            <template #default="{ row }">
+              {{ getUrl(row.request) }}
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('registeredStubs.status')" width="80">
+            <template #default="{ row }">
+              {{ row.response?.status || '—' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="!isMobile" :label="t('registeredStubs.priority')" width="80">
+            <template #default="{ row }">
+              {{ row.priority ?? '—' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="!isMobile" :label="t('registeredStubs.scenario')" width="150">
+            <template #default="{ row }">
+              {{ row.scenarioName || '—' }}
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('common.actions')" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" type="danger" @click.stop="confirmDeleteMapping(row)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <div class="pagination">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="pageSizes"
+            :total="mappings.length"
+            layout="total, sizes, prev, pager, next, jumper"
+          />
+        </div>
+      </template>
     </template>
   </div>
 </template>

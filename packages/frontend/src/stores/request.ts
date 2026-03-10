@@ -41,8 +41,10 @@ export const useRequestStore = defineStore('request', () => {
       const response = await wiremockInstanceApi.getRequests(currentInstanceId.value);
       requests.value = response?.requests || [];
     } catch (e: any) {
-      error.value = e.message || t('messages.request.fetchFailed');
-      ElMessage.error(error.value!);
+      console.error('Failed to fetch requests:', e);
+      requests.value = [];
+      error.value = t('messages.request.fetchFailed');
+      ElMessage.error(error.value);
     } finally {
       loading.value = false;
     }

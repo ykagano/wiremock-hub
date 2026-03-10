@@ -38,7 +38,11 @@
     <template v-else>
       <RequestFilter @filter-change="onFilterChange" />
 
-      <el-tabs v-model="activeTab">
+      <el-skeleton v-if="loading && requests.length === 0" :rows="5" animated />
+
+      <el-empty v-else-if="requests.length === 0" :description="t('requests.noRequests')" />
+
+      <el-tabs v-else v-model="activeTab">
         <el-tab-pane :label="`${t('requests.all')} (${filteredRequests.length})`" name="all">
           <RequestTable :requests="filteredRequests" @row-click="onRequestClick" />
         </el-tab-pane>

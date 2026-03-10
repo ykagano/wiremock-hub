@@ -88,10 +88,7 @@
     <el-skeleton v-if="loading && mappings.length === 0" :rows="5" animated />
 
     <!-- When there are no mappings -->
-    <el-empty
-      v-else-if="!loading && filteredMappings.length === 0"
-      :description="t('mappings.noMappings')"
-    >
+    <el-empty v-else-if="filteredMappings.length === 0" :description="t('mappings.noMappings')">
       <el-button type="primary" @click="createNewMapping">
         {{ t('mappings.add') }}
       </el-button>
