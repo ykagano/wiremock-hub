@@ -141,7 +141,7 @@ test.describe('Request Log', () => {
 
     // Save the stub
     await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.getByText(/保存|成功|success|スタブ/i).first()).toBeVisible({
+    await expect(page.getByText(/作成しました|created/i).first()).toBeVisible({
       timeout: 5000
     });
 
@@ -321,8 +321,7 @@ test.describe('Request Log', () => {
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
     await page.locator('.el-input-number').first().locator('input').fill('200');
     await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await expect(page.getByText(/作成しました|created/i).first()).toBeVisible({ timeout: 5000 });
 
     // Create 404 Not Found stub
     await page
@@ -334,8 +333,7 @@ test.describe('Request Log', () => {
     await page.getByRole('tab', { name: /レスポンス|Response/ }).click();
     await page.locator('.el-input-number').first().locator('input').fill('404');
     await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(page.getByText(/保存|成功|success/i).first()).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await expect(page.getByText(/作成しました|created/i).first()).toBeVisible({ timeout: 5000 });
 
     // Navigate back to project detail and sync all instances
     await page.getByRole('menuitem', { name: /^プロジェクト$|^Project$/ }).click();
