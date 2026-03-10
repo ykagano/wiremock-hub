@@ -260,7 +260,7 @@ watch(wiremockInstances, (instances) => {
 
 <style scoped>
 .recording-view {
-  max-width: 800px;
+  max-width: 100%;
 }
 
 .page-header {
