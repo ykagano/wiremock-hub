@@ -1,24 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getTestApp } from '../setup.js';
+import axios from 'axios';
+import { resetAndCreateProject, createInstance } from '../helpers.js';
 
 describe('WireMock Instances API', () => {
   let projectId: string;
 
   beforeEach(async () => {
-    const app = await getTestApp();
-
-    // Clean up all data before each test
-    await app.prisma.stub.deleteMany();
-    await app.prisma.wiremockInstance.deleteMany();
-    await app.prisma.project.deleteMany();
-
-    // Create a test project
-    const createResponse = await app.inject({
-      method: 'POST',
-      url: '/api/projects',
-      payload: { name: 'Instances Test Project' }
-    });
-    projectId = createResponse.json().data.id;
+    vi.restoreAllMocks();
+    projectId = await resetAndCreateProject('Instances Test Project');
   });
 
   describe('GET /api/wiremock-instances', () => {
@@ -452,16 +442,10 @@ describe('WireMock Instances API', () => {
     });
   });
 
-  // Note: The following endpoints require an actual WireMock server:
-  // - GET /api/wiremock-instances/:id/mappings
-  // - GET /api/wiremock-instances/:id/requests
-  // - GET /api/wiremock-instances/:id/requests/:requestId
-  // - POST /api/wiremock-instances/:id/requests/:requestId/import
-  // - DELETE /api/wiremock-instances/:id/requests
-  // - POST /api/wiremock-instances/:id/reset
-  //
-  // These are tested via E2E tests which run against actual Docker containers.
-  // Here we only test the 404 cases for instance not found.
+  // The following endpoints communicate with WireMock.
+  // Success cases are tested with axios mocks (vi.spyOn).
+  // 404 cases for instance not found are tested without mocks.
+  // Full integration is covered by E2E tests with Docker containers.
 
   describe('GET /api/wiremock-instances/:id/mappings (instance not found)', () => {
     it('should return 404 for non-existent instance', async () => {
@@ -926,6 +910,371 @@ describe('WireMock Instances API', () => {
       expect(result.data.success).toBe(0);
       expect(result.data.failed).toBe(1);
       expect(result.data.errors).toHaveLength(1);
+    });
+  });
+
+  // ========================================
+  // Success cases with axios mocks
+  // ========================================
+
+  describe('GET /api/wiremock-instances/:id (healthy)', () => {
+    it('should return isHealthy true when WireMock responds 200', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: { mappings: [] } });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.data.isHealthy).toBe(true);
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('GET /api/wiremock-instances/:id/mappings (success)', () => {
+    it('should return mappings from WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const mockMappings = {
+        mappings: [{ id: 'abc-123', request: { url: '/test' }, response: { status: 200 } }],
+        meta: { total: 1 }
+      };
+      vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: mockMappings });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}/mappings`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.mappings).toHaveLength(1);
+      expect(result.data.mappings[0].id).toBe('abc-123');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('GET /api/wiremock-instances/:id/requests (success)', () => {
+    it('should return request log from WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const mockRequests = {
+        requests: [{ id: 'req-1', request: { method: 'GET', url: '/test' } }],
+        meta: { total: 1 }
+      };
+      vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: mockRequests });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}/requests`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.requests).toHaveLength(1);
+
+      vi.restoreAllMocks();
+    });
+
+    it('should pass limit parameter to WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const getSpy = vi.spyOn(axios, 'get').mockResolvedValueOnce({
+        status: 200,
+        data: { requests: [], meta: { total: 0 } }
+      });
+
+      await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}/requests?limit=50`
+      });
+
+      expect(getSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/__admin/requests'),
+        expect.objectContaining({ params: { limit: 50 } })
+      );
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('GET /api/wiremock-instances/:id/requests/:requestId (success)', () => {
+    it('should return a single request from WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const mockRequest = {
+        id: 'req-1',
+        request: { method: 'GET', url: '/test', headers: {} },
+        response: { status: 200, body: 'OK' }
+      };
+      vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: mockRequest });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}/requests/req-1`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.id).toBe('req-1');
+
+      vi.restoreAllMocks();
+    });
+
+    it('should return 404 when WireMock returns 404 for request', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const axiosError = new Error('Request failed with status code 404') as any;
+      axiosError.isAxiosError = true;
+      axiosError.response = { status: 404 };
+      vi.spyOn(axios, 'get').mockRejectedValueOnce(axiosError);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}/requests/non-existent`
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json().error).toBe('Request not found');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('DELETE /api/wiremock-instances/:id/requests (success)', () => {
+    it('should clear request log on WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'delete').mockResolvedValueOnce({ status: 200, data: {} });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/api/wiremock-instances/${instanceId}/requests`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Request log cleared successfully');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('DELETE /api/wiremock-instances/:id/mappings/:mappingId (success)', () => {
+    it('should delete a mapping from WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'delete').mockResolvedValueOnce({ status: 200, data: {} });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/api/wiremock-instances/${instanceId}/mappings/mapping-123`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Mapping deleted successfully');
+
+      vi.restoreAllMocks();
+    });
+
+    it('should return 404 when WireMock returns 404 for mapping', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const axiosError = new Error('Request failed with status code 404') as any;
+      axiosError.isAxiosError = true;
+      axiosError.response = { status: 404 };
+      vi.spyOn(axios, 'delete').mockRejectedValueOnce(axiosError);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/api/wiremock-instances/${instanceId}/mappings/non-existent`
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json().error).toBe('Mapping not found on WireMock instance');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('POST /api/wiremock-instances/:id/reset (success)', () => {
+    it('should reset WireMock instance', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'delete').mockResolvedValueOnce({ status: 200, data: {} });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/wiremock-instances/${instanceId}/reset`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('WireMock instance reset successfully');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('POST /api/wiremock-instances/:id/scenarios/reset (success)', () => {
+    it('should reset scenarios on WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'post').mockResolvedValueOnce({ status: 200, data: {} });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/wiremock-instances/${instanceId}/scenarios/reset`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Scenarios reset successfully');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('GET /api/wiremock-instances/:id/recording/status (success)', () => {
+    it('should return recording status from WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'get').mockResolvedValueOnce({
+        status: 200,
+        data: { status: 'NeverStarted' }
+      });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/wiremock-instances/${instanceId}/recording/status`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.status).toBe('NeverStarted');
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('POST /api/wiremock-instances/:id/recording/start (success)', () => {
+    it('should start recording on WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'post').mockResolvedValueOnce({ status: 200, data: {} });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/wiremock-instances/${instanceId}/recording/start`,
+        payload: { targetBaseUrl: 'http://example.com' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('POST /api/wiremock-instances/:id/recording/stop (success)', () => {
+    it('should stop recording on WireMock', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      vi.spyOn(axios, 'post').mockResolvedValueOnce({
+        status: 200,
+        data: { mappings: [] }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/wiremock-instances/${instanceId}/recording/stop`
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('POST /api/wiremock-instances/recording/start-all (success)', () => {
+    it('should start recording on all active instances', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      await createInstance(projectId);
+
+      vi.spyOn(axios, 'post').mockResolvedValue({ status: 200, data: {} });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances/recording/start-all',
+        payload: { projectId, targetBaseUrl: 'http://example.com' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.success).toBe(2);
+      expect(result.data.failed).toBe(0);
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('POST /api/wiremock-instances/recording/stop-all (success)', () => {
+    it('should stop recording on all active instances', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+
+      vi.spyOn(axios, 'post').mockResolvedValue({
+        status: 200,
+        data: { mappings: [] }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/wiremock-instances/recording/stop-all',
+        payload: { projectId }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.success).toBe(1);
+      expect(result.data.failed).toBe(0);
+
+      vi.restoreAllMocks();
     });
   });
 });

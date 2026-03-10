@@ -1,10 +1,10 @@
 import { beforeAll, afterAll } from 'vitest';
-import { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/app.js';
 import { rm, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getTestApp, setTestApp } from './test-app.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,14 +14,8 @@ const TEST_DB_DIR = path.join(__dirname, '../data-test');
 const TEST_DB_PATH = path.join(TEST_DB_DIR, 'test.db');
 const TEST_DB_URL = `file:${TEST_DB_PATH}`;
 
-let app: FastifyInstance;
-
-export async function getTestApp(): Promise<FastifyInstance> {
-  if (!app) {
-    throw new Error('Test app not initialized. Make sure setup is complete.');
-  }
-  return app;
-}
+// Re-export getTestApp for backward compatibility
+export { getTestApp };
 
 beforeAll(async () => {
   // Clean up test database directory
@@ -43,15 +37,17 @@ beforeAll(async () => {
   });
 
   // Build app with test database
-  app = await buildApp({
+  const app = await buildApp({
     logger: false,
     databaseUrl: TEST_DB_URL
   });
 
   await app.ready();
+  setTestApp(app);
 });
 
 afterAll(async () => {
+  const app = await getTestApp().catch(() => null);
   if (app) {
     await app.close();
   }
