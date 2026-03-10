@@ -1,13 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getTestApp } from '../setup.js';
+import { resetAll } from '../helpers.js';
 
 describe('Projects API', () => {
   beforeEach(async () => {
-    const app = await getTestApp();
-    // Clean up all data before each test
-    await app.prisma.stub.deleteMany();
-    await app.prisma.wiremockInstance.deleteMany();
-    await app.prisma.project.deleteMany();
+    vi.restoreAllMocks();
+    await resetAll();
   });
 
   describe('GET /api/projects', () => {
