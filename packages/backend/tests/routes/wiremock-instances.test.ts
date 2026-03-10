@@ -943,9 +943,7 @@ describe('WireMock Instances API', () => {
       const instanceId = await createInstance(projectId);
 
       const mockMappings = {
-        mappings: [
-          { id: 'abc-123', request: { url: '/test' }, response: { status: 200 } }
-        ],
+        mappings: [{ id: 'abc-123', request: { url: '/test' }, response: { status: 200 } }],
         meta: { total: 1 }
       };
       vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: mockMappings });
@@ -971,9 +969,7 @@ describe('WireMock Instances API', () => {
       const instanceId = await createInstance(projectId);
 
       const mockRequests = {
-        requests: [
-          { id: 'req-1', request: { method: 'GET', url: '/test' } }
-        ],
+        requests: [{ id: 'req-1', request: { method: 'GET', url: '/test' } }],
         meta: { total: 1 }
       };
       vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: mockRequests });
