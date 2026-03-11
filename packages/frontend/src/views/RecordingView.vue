@@ -47,6 +47,7 @@
             <el-input
               v-model="targetBaseUrl"
               :placeholder="t('recording.targetBaseUrlPlaceholder')"
+              class="target-url-input"
             />
           </el-form-item>
           <el-form-item>
@@ -260,7 +261,7 @@ watch(wiremockInstances, (instances) => {
 
 <style scoped>
 .recording-view {
-  max-width: 800px;
+  max-width: 100%;
 }
 
 .page-header {
@@ -303,6 +304,10 @@ watch(wiremockInstances, (instances) => {
 .status-row :deep(.el-tag) {
   transition: none;
   animation: none;
+}
+
+.target-url-input {
+  max-width: 480px;
 }
 
 .recording-action-button {
