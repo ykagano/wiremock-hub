@@ -68,9 +68,19 @@ Replace all WireMock instances for a project with new ones discovered from Servi
       "name": "10.0.1.101:8080",
       "url": "http://10.0.1.101:8080"
     }
-  ]
+  ],
+  "syncStubs": true
 }
 ```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `instances` | array | Yes | - | List of WireMock instances to register |
+| `instances[].name` | string | Yes | - | Display name for the instance |
+| `instances[].url` | string | Yes | - | WireMock Admin API URL |
+| `syncStubs` | boolean | No | `false` | Automatically sync all active stubs to new instances after registration |
+
+When `syncStubs` is `true`, the API will reset each instance's mappings and register all active stubs from the project. This eliminates the need to manually trigger "Sync All Instances" from the UI after instance registration.
 
 **Response:**
 
@@ -87,7 +97,12 @@ Replace all WireMock instances for a project with new ones discovered from Servi
         "url": "http://10.0.1.100:8080",
         "projectId": "project-uuid"
       }
-    ]
+    ],
+    "syncResults": {
+      "success": 4,
+      "failed": 0,
+      "errors": []
+    }
   }
 }
 ```
@@ -127,8 +142,8 @@ INSTANCES_JSON=$(echo "$INSTANCES" | jq -r '[.Instances[] | {
   url: ("http://" + .Attributes.AWS_INSTANCE_IPV4 + ":" + "'"$WIREMOCK_PORT"'")
 }]')
 
-# Build request payload
-PAYLOAD=$(jq -n --argjson instances "$INSTANCES_JSON" '{instances: $instances}')
+# Build request payload (syncStubs: true to auto-sync stubs after registration)
+PAYLOAD=$(jq -n --argjson instances "$INSTANCES_JSON" '{instances: $instances, syncStubs: true}')
 
 echo "Discovered instances:"
 echo "$PAYLOAD" | jq .
@@ -198,9 +213,10 @@ def lambda_handler(event, context):
     # Register instances to WireMock Hub
     api_url = f'{wiremock_hub_url}/api/projects/{project_id}/instances/bulk-update'
 
+    # syncStubs=True to auto-sync stubs after registration
     response = requests.post(
         api_url,
-        json={'instances': instances},
+        json={'instances': instances, 'syncStubs': True},
         headers={'Content-Type': 'application/json'}
     )
 
@@ -330,7 +346,9 @@ Trigger the sync task when WireMock containers reach RUNNING state:
 
 ### Instances not syncing stubs
 
-After instances are registered, trigger a "Sync All Instances" from WireMock Hub UI to push stubs to the new instances.
+If `syncStubs` is set to `true` in the request, stubs are automatically synced after instance registration. Check the `syncResults` field in the response for any errors.
+
+If `syncStubs` is not used, trigger a "Sync All Instances" from WireMock Hub UI to push stubs to the new instances.
 
 ## Related Documentation
 

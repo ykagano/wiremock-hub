@@ -361,7 +361,7 @@ packages/
 - `GET /api/projects/:id` - Get project details
 - `PUT /api/projects/:id` - Update project
 - `DELETE /api/projects/:id` - Delete project
-- `POST /api/projects/:id/instances/bulk-update` - Bulk replace instances
+- `POST /api/projects/:id/instances/bulk-update` - Bulk replace instances (optional: `syncStubs` to auto-sync stubs)
 
 ### Stubs
 
