@@ -73,12 +73,12 @@ Replace all WireMock instances for a project with new ones discovered from Servi
 }
 ```
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `instances` | array | Yes | - | List of WireMock instances to register |
-| `instances[].name` | string | Yes | - | Display name for the instance |
-| `instances[].url` | string | Yes | - | WireMock Admin API URL |
-| `syncStubs` | boolean | No | `false` | Automatically sync all active stubs to new instances after registration |
+| Field              | Type    | Required | Default | Description                                                             |
+| ------------------ | ------- | -------- | ------- | ----------------------------------------------------------------------- |
+| `instances`        | array   | Yes      | -       | List of WireMock instances to register                                  |
+| `instances[].name` | string  | Yes      | -       | Display name for the instance                                           |
+| `instances[].url`  | string  | Yes      | -       | WireMock Admin API URL                                                  |
+| `syncStubs`        | boolean | No       | `false` | Automatically sync all active stubs to new instances after registration |
 
 When `syncStubs` is `true`, the API will reset each instance's mappings and register all active stubs from the project. This eliminates the need to manually trigger "Sync All Instances" from the UI after instance registration.
 

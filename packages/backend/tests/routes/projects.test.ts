@@ -713,12 +713,8 @@ describe('Projects API', () => {
         }
       });
 
-      const deleteSpy = vi
-        .spyOn(axios, 'delete')
-        .mockResolvedValue({ status: 200, data: {} });
-      const postSpy = vi
-        .spyOn(axios, 'post')
-        .mockResolvedValue({ status: 201, data: {} });
+      const deleteSpy = vi.spyOn(axios, 'delete').mockResolvedValue({ status: 200, data: {} });
+      const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({ status: 201, data: {} });
 
       const response = await app.inject({
         method: 'POST',
@@ -785,12 +781,8 @@ describe('Projects API', () => {
         payload: { isActive: false }
       });
 
-      const deleteSpy = vi
-        .spyOn(axios, 'delete')
-        .mockResolvedValue({ status: 200, data: {} });
-      const postSpy = vi
-        .spyOn(axios, 'post')
-        .mockResolvedValue({ status: 201, data: {} });
+      const deleteSpy = vi.spyOn(axios, 'delete').mockResolvedValue({ status: 200, data: {} });
+      const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({ status: 201, data: {} });
 
       const response = await app.inject({
         method: 'POST',
