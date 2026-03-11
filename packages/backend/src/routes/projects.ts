@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
+import { syncStubsToInstance } from '../utils/wiremock-sync.js';
 
 const createProjectSchema = z.object({
   name: z.string().min(1),
@@ -21,7 +22,8 @@ const bulkUpdateInstancesSchema = z.object({
       name: z.string().min(1),
       url: z.string().url()
     })
-  )
+  ),
+  syncStubs: z.boolean().optional().default(false)
 });
 
 export async function projectRoutes(fastify: FastifyInstance) {
@@ -288,11 +290,31 @@ export async function projectRoutes(fastify: FastifyInstance) {
           ...createOperations
         ]);
 
-        const result = {
+        const result: {
+          deleted: number;
+          created: number;
+          instances: typeof createdInstances;
+          syncResults?: { success: number; failed: number; errors: string[] };
+        } = {
           deleted: deleteResult.count,
           created: createdInstances.length,
           instances: createdInstances
         };
+
+        // Sync stubs to all new instances if requested
+        if (body.syncStubs && createdInstances.length > 0) {
+          const stubs = await fastify.prisma.stub.findMany({
+            where: { projectId: id, isActive: true }
+          });
+
+          const syncResults = { success: 0, failed: 0, errors: [] as string[] };
+
+          for (const instance of createdInstances) {
+            await syncStubsToInstance(instance.url, stubs, existing, syncResults);
+          }
+
+          result.syncResults = syncResults;
+        }
 
         return reply.send({
           success: true,

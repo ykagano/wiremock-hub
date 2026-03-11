@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import axios from 'axios';
 import { getTestApp } from '../setup.js';
 import { resetAll } from '../helpers.js';
 
@@ -645,6 +646,220 @@ describe('Projects API', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Validation error');
       expect(result.details).toBeDefined();
+    });
+
+    it('should not sync stubs by default', async () => {
+      const app = await getTestApp();
+
+      // Create a stub to ensure it exists but is NOT synced
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Test Stub',
+          mapping: {
+            request: { method: 'GET', url: '/test' },
+            response: { status: 200, body: 'ok' }
+          }
+        }
+      });
+
+      const deleteSpy = vi.spyOn(axios, 'delete');
+      const postSpy = vi.spyOn(axios, 'post');
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/instances/bulk-update`,
+        payload: {
+          instances: [{ name: '10.0.1.100:8080', url: 'http://10.0.1.100:8080' }]
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.syncResults).toBeUndefined();
+      expect(deleteSpy).not.toHaveBeenCalled();
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
+    it('should sync stubs to new instances when syncStubs is true', async () => {
+      const app = await getTestApp();
+
+      // Create stubs for the project
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Test Stub 1',
+          mapping: {
+            request: { method: 'GET', url: '/test1' },
+            response: { status: 200, body: 'ok1' }
+          }
+        }
+      });
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Test Stub 2',
+          mapping: {
+            request: { method: 'GET', url: '/test2' },
+            response: { status: 200, body: 'ok2' }
+          }
+        }
+      });
+
+      const deleteSpy = vi.spyOn(axios, 'delete').mockResolvedValue({ status: 200, data: {} });
+      const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({ status: 201, data: {} });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/instances/bulk-update`,
+        payload: {
+          instances: [
+            { name: '10.0.1.100:8080', url: 'http://10.0.1.100:8080' },
+            { name: '10.0.1.101:8080', url: 'http://10.0.1.101:8080' }
+          ],
+          syncStubs: true
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.created).toBe(2);
+      expect(result.data.syncResults).toBeDefined();
+      // 2 stubs x 2 instances = 4 successful syncs
+      expect(result.data.syncResults.success).toBe(4);
+      expect(result.data.syncResults.failed).toBe(0);
+      // 2 DELETE calls (one per instance for reset)
+      expect(deleteSpy).toHaveBeenCalledTimes(2);
+      // 4 POST calls (2 stubs x 2 instances)
+      expect(postSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('should skip inactive stubs during sync', async () => {
+      const app = await getTestApp();
+
+      // Create active stub
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Active Stub',
+          mapping: {
+            request: { method: 'GET', url: '/active' },
+            response: { status: 200, body: 'active' }
+          }
+        }
+      });
+
+      // Create inactive stub
+      const inactiveResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Inactive Stub',
+          mapping: {
+            request: { method: 'GET', url: '/inactive' },
+            response: { status: 200, body: 'inactive' }
+          }
+        }
+      });
+      const inactiveStubId = inactiveResponse.json().data.id;
+
+      // Deactivate the stub
+      await app.inject({
+        method: 'PUT',
+        url: `/api/stubs/${inactiveStubId}`,
+        payload: { isActive: false }
+      });
+
+      const deleteSpy = vi.spyOn(axios, 'delete').mockResolvedValue({ status: 200, data: {} });
+      const postSpy = vi.spyOn(axios, 'post').mockResolvedValue({ status: 201, data: {} });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/instances/bulk-update`,
+        payload: {
+          instances: [{ name: '10.0.1.100:8080', url: 'http://10.0.1.100:8080' }],
+          syncStubs: true
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.data.syncResults.success).toBe(1);
+      expect(result.data.syncResults.failed).toBe(0);
+      expect(deleteSpy).toHaveBeenCalledTimes(1);
+      // Only 1 POST (active stub only)
+      expect(postSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report sync errors when WireMock reset fails', async () => {
+      const app = await getTestApp();
+
+      // Create a stub
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Test Stub',
+          mapping: {
+            request: { method: 'GET', url: '/test' },
+            response: { status: 200, body: 'ok' }
+          }
+        }
+      });
+
+      vi.spyOn(axios, 'delete').mockRejectedValue(new Error('Connection refused'));
+      const postSpy = vi.spyOn(axios, 'post');
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/instances/bulk-update`,
+        payload: {
+          instances: [{ name: '10.0.1.100:8080', url: 'http://10.0.1.100:8080' }],
+          syncStubs: true
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      // Instance creation still succeeds
+      expect(result.data.created).toBe(1);
+      // Sync failed
+      expect(result.data.syncResults.failed).toBe(1);
+      expect(result.data.syncResults.errors).toHaveLength(1);
+      expect(result.data.syncResults.errors[0]).toContain('Failed to reset');
+      // No POST calls since reset failed
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not sync when syncStubs is true but no instances provided', async () => {
+      const app = await getTestApp();
+      const deleteSpy = vi.spyOn(axios, 'delete');
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/instances/bulk-update`,
+        payload: {
+          instances: [],
+          syncStubs: true
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const result = response.json();
+      expect(result.data.syncResults).toBeUndefined();
+      expect(deleteSpy).not.toHaveBeenCalled();
     });
   });
 });

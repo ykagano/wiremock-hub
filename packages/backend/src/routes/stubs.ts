@@ -4,24 +4,10 @@ import axios from 'axios';
 import { parse as parseYaml } from 'yaml';
 import type { Mapping } from '@wiremock-hub/shared';
 import { detectFormat, buildMappingFromOperation } from '../utils/openapi-parser.js';
+import { injectHubMetadata, syncStubsToInstance } from '../utils/wiremock-sync.js';
 
-/** Inject Hub metadata into a WireMock mapping (for sync only, not stored in DB) */
-export function injectHubMetadata(
-  mapping: Mapping,
-  project: { id: string; name: string },
-  stub?: { name?: string | null; description?: string | null }
-) {
-  return {
-    ...mapping,
-    ...(stub?.name ? { name: stub.name } : {}),
-    metadata: {
-      ...mapping.metadata,
-      hub_project_id: project.id,
-      hub_project_name: project.name,
-      ...(stub?.description ? { hub_description: stub.description } : {})
-    }
-  };
-}
+// Re-export for backward compatibility (used by tests)
+export { injectHubMetadata };
 
 const createStubSchema = z.object({
   projectId: z.string().uuid(),
@@ -912,21 +898,6 @@ export async function stubRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Reset WireMock mappings before sync if requested
-      if (body.resetBeforeSync) {
-        try {
-          await axios.delete(`${instance.url}/__admin/mappings`, {
-            timeout: 10000
-          });
-        } catch (error) {
-          return reply.status(502).send({
-            success: false,
-            error: 'Failed to reset WireMock mappings',
-            details: axios.isAxiosError(error) ? error.message : 'Unknown error'
-          });
-        }
-      }
-
       const stubs = await fastify.prisma.stub.findMany({
         where: {
           projectId: body.projectId,
@@ -934,35 +905,22 @@ export async function stubRoutes(fastify: FastifyInstance) {
         }
       });
 
-      const results = {
-        success: 0,
-        failed: 0,
-        errors: [] as string[]
-      };
+      const results = { success: 0, failed: 0, errors: [] as string[] };
+      const { resetFailed, resetError } = await syncStubsToInstance(
+        instance.url,
+        stubs,
+        project,
+        results,
+        { resetBeforeSync: body.resetBeforeSync }
+      );
 
-      // Sync stubs in chunks for better performance
-      const chunkSize = 10;
-      for (let i = 0; i < stubs.length; i += chunkSize) {
-        const chunk = stubs.slice(i, i + chunkSize);
-        const chunkResults = await Promise.allSettled(
-          chunk.map(async (stub: (typeof stubs)[number]) => {
-            const mapping = stub.mapping as unknown as Mapping;
-            const mappingWithMetadata = injectHubMetadata(mapping, project, stub);
-            const wiremockUrl = `${instance.url}/__admin/mappings`;
-            // Always POST since we reset mappings
-            await axios.post(wiremockUrl, mappingWithMetadata);
-            return stub.id;
-          })
-        );
-
-        for (const result of chunkResults) {
-          if (result.status === 'fulfilled') {
-            results.success++;
-          } else {
-            results.failed++;
-            results.errors.push(result.reason?.message || 'Unknown error');
-          }
-        }
+      // Return 502 if reset was requested but failed
+      if (body.resetBeforeSync && resetFailed) {
+        return reply.status(502).send({
+          success: false,
+          error: 'Failed to reset WireMock mappings',
+          details: resetError || 'Unknown error'
+        });
       }
 
       return reply.send({
