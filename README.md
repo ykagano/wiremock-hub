@@ -8,6 +8,12 @@ Extends [WireMock](https://wiremock.org/) with a graphical user interface for ce
 
 ![WireMock Hub - Stub Mappings](docs/images/stub-mappings.png)
 
+## Why WireMock Hub?
+
+- **No more hand-editing JSON** — Create and manage WireMock stubs through a visual editor instead of writing `mappings.json` by hand
+- **Switch stubs per project** — Organize stubs into projects and swap them on a single WireMock instance to match the test scenario you need
+- **Instant sync to all instances** — Push stub changes to every WireMock instance at once, so all environments stay in sync without redeploying or sharing files
+
 ## Features
 
 ### Stub Management & Sync
@@ -110,49 +116,14 @@ Then register your existing WireMock instances via the UI.
 ### Docker Compose Examples
 
 ```bash
+# All-in-One version (Hub + WireMock bundled)
+cd allinone && docker compose up -d
+
 # Hub only
 docker compose up -d
 
 # Hub + demo WireMock instances (for testing)
 docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
-```
-
-### Production Deployment
-
-**All-in-One (Recommended):**
-
-```yaml
-services:
-  wiremock-hub:
-    image: ghcr.io/yourusername/wiremock-hub:latest
-    ports:
-      - '3000:3000'
-    volumes:
-      - wiremock-hub-data:/data
-    environment:
-      - DATABASE_URL=file:/data/wiremock-hub.db
-    restart: unless-stopped
-
-volumes:
-  wiremock-hub-data:
-```
-
-**Standalone (Advanced):**
-
-```yaml
-services:
-  wiremock-hub:
-    image: ghcr.io/yourusername/wiremock-hub-standalone:latest
-    ports:
-      - '3000:3000'
-    volumes:
-      - wiremock-hub-data:/data
-    environment:
-      - DATABASE_URL=file:/data/wiremock-hub.db
-    restart: unless-stopped
-
-volumes:
-  wiremock-hub-data:
 ```
 
 ## Local Development
