@@ -11,7 +11,7 @@ test.describe('Recording', () => {
     const testProjectName = `Recording Init Test ${Date.now()}`;
 
     // Ensure WireMock recording is stopped
-    await page.request.post('http://localhost:8081/__admin/recordings/stop');
+    await page.request.post('http://localhost:8091/__admin/recordings/stop');
 
     // Create project
     await page
@@ -101,7 +101,7 @@ test.describe('Recording', () => {
     const testProjectName = `Recording Start Stop ${Date.now()}`;
 
     // Ensure WireMock recording is stopped before test
-    await request.post('http://localhost:8081/__admin/recordings/stop');
+    await request.post('http://localhost:8091/__admin/recordings/stop');
 
     // Create project
     await page
@@ -208,8 +208,8 @@ test.describe('Recording', () => {
     const testProjectName = `Recording All ${Date.now()}`;
 
     // Ensure WireMock recordings are stopped before test
-    await request.post('http://localhost:8081/__admin/recordings/stop');
-    await request.post('http://localhost:8082/__admin/recordings/stop');
+    await request.post('http://localhost:8091/__admin/recordings/stop');
+    await request.post('http://localhost:8092/__admin/recordings/stop');
 
     // Create project
     await page

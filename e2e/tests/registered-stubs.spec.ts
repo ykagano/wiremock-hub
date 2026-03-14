@@ -176,7 +176,7 @@ test.describe('Registered Stubs', () => {
     });
 
     // Delete all WireMock mappings to ensure clean state
-    await request.delete('http://localhost:8082/__admin/mappings');
+    await request.delete('http://localhost:8092/__admin/mappings');
 
     // Navigate to Registered Stubs page via sidebar
     await page

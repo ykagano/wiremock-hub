@@ -47,9 +47,9 @@ test.describe('Request Log', () => {
       .click();
     await page.waitForTimeout(1000);
 
-    // Make a request to WireMock to create some log entries (use localhost:8082 for wiremock-2)
+    // Make a request to WireMock to create some log entries (use localhost:8092 for wiremock-2)
     try {
-      await request.get('http://localhost:8082/some-test-endpoint');
+      await request.get('http://localhost:8092/some-test-endpoint');
     } catch {
       // Request might fail, continue anyway
     }
@@ -160,14 +160,14 @@ test.describe('Request Log', () => {
 
     // Make a matched request (stub exists)
     try {
-      await request.get('http://localhost:8081/api/request-log-test');
+      await request.get('http://localhost:8091/api/request-log-test');
     } catch {
       // Request might fail if wiremock is not accessible from host, continue anyway
     }
 
     // Make an unmatched request (no stub exists)
     try {
-      await request.post('http://localhost:8081/api/unmatched-test', {
+      await request.post('http://localhost:8091/api/unmatched-test', {
         data: { name: 'test', value: 123 },
         headers: { 'Content-Type': 'application/json' }
       });
@@ -346,29 +346,29 @@ test.describe('Request Log', () => {
     await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
 
-    // Make requests to WireMock (localhost:8082)
+    // Make requests to WireMock (localhost:8092)
     try {
-      await request.get('http://localhost:8082/api/filter-users');
+      await request.get('http://localhost:8092/api/filter-users');
     } catch {
       // ignore
     }
     try {
-      await request.post('http://localhost:8082/api/filter-users');
+      await request.post('http://localhost:8092/api/filter-users');
     } catch {
       // ignore
     }
     try {
-      await request.get('http://localhost:8082/api/filter-orders');
+      await request.get('http://localhost:8092/api/filter-orders');
     } catch {
       // ignore
     }
     try {
-      await request.get('http://localhost:8082/api/status-200');
+      await request.get('http://localhost:8092/api/status-200');
     } catch {
       // ignore
     }
     try {
-      await request.get('http://localhost:8082/api/status-404');
+      await request.get('http://localhost:8092/api/status-404');
     } catch {
       // ignore
     }
@@ -483,7 +483,7 @@ test.describe('Request Log', () => {
     const requestPromises = [];
     for (let i = 1; i <= 25; i++) {
       requestPromises.push(
-        request.get(`http://localhost:8082/api/pagination-test-${i}`).catch(() => {
+        request.get(`http://localhost:8092/api/pagination-test-${i}`).catch(() => {
           // Requests will return 404, ignore errors
         })
       );

@@ -764,8 +764,8 @@ test.describe('Stub', () => {
     await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
 
-    // Verify stub is accessible on WireMock (use localhost:8082 for wiremock-2)
-    const responseBeforeReset = await request.get('http://localhost:8082/api/reset-test');
+    // Verify stub is accessible on WireMock (use localhost:8092 for wiremock-2)
+    const responseBeforeReset = await request.get('http://localhost:8092/api/reset-test');
     expect(responseBeforeReset.status()).toBe(200);
     const bodyBeforeReset = await responseBeforeReset.json();
     expect(bodyBeforeReset.message).toBe('Before reset');
@@ -816,7 +816,7 @@ test.describe('Stub', () => {
     await expect(page.locator('code', { hasText: '/api/reset-test' })).not.toBeVisible();
 
     // Verify stub is STILL accessible on WireMock (Delete All only deletes wiremock-hub stubs, not WireMock mappings)
-    const responseAfterReset = await request.get('http://localhost:8082/api/reset-test');
+    const responseAfterReset = await request.get('http://localhost:8092/api/reset-test');
     // WireMock still has the mapping until user runs "Sync All Instances"
     expect(responseAfterReset.status()).toBe(200);
 
