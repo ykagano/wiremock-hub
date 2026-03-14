@@ -214,14 +214,14 @@ test.describe('WireMock Instance', () => {
     });
     await page.waitForTimeout(1000);
 
-    // Verify stub is accessible on Instance 1 (localhost:8081)
-    const response1 = await request.get('http://localhost:8081/api/individual-sync-test');
+    // Verify stub is accessible on Instance 1 (localhost:8091)
+    const response1 = await request.get('http://localhost:8091/api/individual-sync-test');
     expect(response1.status()).toBe(200);
     const body1 = await response1.json();
     expect(body1.message).toBe('Individual sync test');
 
-    // Verify stub is NOT synced to Instance 2 (localhost:8082)
-    const response2 = await request.get('http://localhost:8082/api/individual-sync-test');
+    // Verify stub is NOT synced to Instance 2 (localhost:8092)
+    const response2 = await request.get('http://localhost:8092/api/individual-sync-test');
     expect(response2.status()).not.toBe(200);
 
     // Sync Instance 2 - confirmation dialog should be skipped due to "Don't show again"
@@ -233,7 +233,7 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(1000);
 
     // Verify stub is now accessible on Instance 2
-    const response3 = await request.get('http://localhost:8082/api/individual-sync-test');
+    const response3 = await request.get('http://localhost:8092/api/individual-sync-test');
     expect(response3.status()).toBe(200);
 
     // Clean up
@@ -313,7 +313,7 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(1000);
 
     // Verify first stub is accessible
-    const response1 = await request.get('http://localhost:8081/api/append-test-1');
+    const response1 = await request.get('http://localhost:8091/api/append-test-1');
     expect(response1.status()).toBe(200);
 
     // Create second stub
@@ -361,9 +361,9 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(1000);
 
     // Verify both stubs are accessible (first was NOT reset, second was appended)
-    const responseAfter1 = await request.get('http://localhost:8081/api/append-test-1');
+    const responseAfter1 = await request.get('http://localhost:8091/api/append-test-1');
     expect(responseAfter1.status()).toBe(200);
-    const responseAfter2 = await request.get('http://localhost:8081/api/append-test-2');
+    const responseAfter2 = await request.get('http://localhost:8091/api/append-test-2');
     expect(responseAfter2.status()).toBe(200);
 
     // Clean up
@@ -459,9 +459,9 @@ test.describe('WireMock Instance', () => {
     await page.waitForTimeout(1000);
 
     // Verify stubs are accessible on both instances
-    const response1 = await request.get('http://localhost:8081/api/append-all-test');
+    const response1 = await request.get('http://localhost:8091/api/append-all-test');
     expect(response1.status()).toBe(200);
-    const response2 = await request.get('http://localhost:8082/api/append-all-test');
+    const response2 = await request.get('http://localhost:8092/api/append-all-test');
     expect(response2.status()).toBe(200);
 
     // Clean up

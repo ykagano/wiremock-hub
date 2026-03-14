@@ -3,17 +3,17 @@
 # Usage: docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 #
 # WireMock URLs:
-#   - From host machine: http://localhost:8081, http://localhost:8082
+#   - From host machine: http://localhost:8091, http://localhost:8092
 #   - From wiremock-hub container: http://wiremock-1:8080, http://wiremock-2:8080
 services:
   wiremock-1:
     image: wiremock/wiremock:latest
     ports:
-      - "8081:8080"
+      - "8091:8080"
     command: --verbose
 
   wiremock-2:
     image: wiremock/wiremock:latest
     ports:
-      - "8082:8080"
+      - "8092:8080"
     command: --verbose

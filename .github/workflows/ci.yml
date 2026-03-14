@@ -115,8 +115,8 @@ jobs:
           echo "WireMock Hub is ready!"
 
           echo "Waiting for WireMock instances..."
-          timeout 60 bash -c 'until curl -sf http://localhost:8081/__admin > /dev/null 2>&1; do sleep 2; done'
-          timeout 60 bash -c 'until curl -sf http://localhost:8082/__admin > /dev/null 2>&1; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:8091/__admin > /dev/null 2>&1; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:8092/__admin > /dev/null 2>&1; do sleep 2; done'
           echo "All WireMock instances are ready!"
 
       - name: Run E2E tests

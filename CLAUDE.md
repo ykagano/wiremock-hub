@@ -487,8 +487,8 @@ Use `test:e2e:keep-data` to keep data for debugging or verification.
 
 ### Demo Instances
 
-- WireMock 1: http://localhost:8081
-- WireMock 2: http://localhost:8082
+- WireMock 1: http://localhost:8091
+- WireMock 2: http://localhost:8092
 
 ## Backend Tests
 
