@@ -171,14 +171,14 @@
         :label-width="isMobile ? undefined : '120px'"
         :label-position="isMobile ? 'top' : 'right'"
       >
+        <el-form-item :label="t('instances.url')" prop="url">
+          <el-input v-model="instanceFormData.url" :placeholder="t('instances.placeholder.url')" />
+        </el-form-item>
         <el-form-item :label="t('instances.name')" prop="name">
           <el-input
             v-model="instanceFormData.name"
             :placeholder="t('instances.placeholder.name')"
           />
-        </el-form-item>
-        <el-form-item :label="t('instances.url')" prop="url">
-          <el-input v-model="instanceFormData.url" :placeholder="t('instances.placeholder.url')" />
         </el-form-item>
       </el-form>
 
@@ -276,7 +276,6 @@ const projectFormRef = ref<FormInstance>();
 const projectFormData = reactive({ name: '', description: '' });
 
 const instanceFormRules = computed<FormRules>(() => ({
-  name: [{ required: true, message: t('instances.validation.nameRequired'), trigger: 'blur' }],
   url: [
     { required: true, message: t('instances.validation.urlRequired'), trigger: 'blur' },
     { pattern: /^https?:\/\/.+/, message: t('instances.validation.urlInvalid'), trigger: 'blur' }
@@ -442,7 +441,7 @@ function handleAppendAll() {
 
 function editInstance(instance: WiremockInstance) {
   editingInstance.value = instance;
-  instanceFormData.name = instance.name;
+  instanceFormData.name = instance.name === instance.url ? '' : instance.name;
   instanceFormData.url = instance.url;
   showInstanceDialog.value = true;
 }
@@ -467,11 +466,15 @@ async function saveInstance() {
     await instanceFormRef.value.validate();
     savingInstance.value = true;
     if (editingInstance.value) {
-      const updated = await wiremockInstanceApi.update(editingInstance.value.id, instanceFormData);
+      const updated = await wiremockInstanceApi.update(editingInstance.value.id, {
+        ...instanceFormData,
+        name: instanceFormData.name || instanceFormData.url
+      });
       updateInstance(editingInstance.value.id, updated);
     } else {
       const created = await wiremockInstanceApi.create({
         ...instanceFormData,
+        name: instanceFormData.name || instanceFormData.url,
         projectId: project.value.id
       });
       instances.value.unshift(created);
