@@ -96,6 +96,7 @@ For ECS/Fargate, mount an EFS volume to `/data` (see task definition example abo
 | `DATABASE_URL`  | `file:/data/wiremock-hub.db` | Database connection URL  |
 | `PORT`          | `3001`                       | Hub API port (internal)  |
 | `WIREMOCK_PORT` | `8080`                       | WireMock port (internal) |
+| `WIREMOCK_OPTS` | `--global-response-templating` | Extra WireMock CLI options |
 
 ## Project Configuration
 

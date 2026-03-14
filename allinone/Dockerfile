@@ -142,6 +142,7 @@ ENV NODE_ENV=production
 ENV DATABASE_URL=file:/data/wiremock-hub.db
 ENV PORT=3001
 ENV WIREMOCK_PORT=8080
+ENV WIREMOCK_OPTS="--global-response-templating"
 
 # Expose only port 3000
 EXPOSE 3000
