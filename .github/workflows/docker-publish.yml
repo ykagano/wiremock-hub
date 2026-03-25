@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 0.2.0)'
+        required: true
+        type: string
 
 env:
   GHCR_REGISTRY: ghcr.io
@@ -11,10 +17,48 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.resolve.outputs.tag_name }}
+      version: ${{ steps.resolve.outputs.version }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag name
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Invalid version format '${VERSION}'. Expected semver (e.g. 0.2.0)"
+              exit 1
+            fi
+            TAG_NAME="v${VERSION}"
+            if git rev-parse "${TAG_NAME}" >/dev/null 2>&1; then
+              echo "::error::Tag ${TAG_NAME} already exists"
+              exit 1
+            fi
+            git tag "${TAG_NAME}"
+            git push origin "${TAG_NAME}"
+          else
+            TAG_NAME="${{ github.ref_name }}"
+            VERSION="${TAG_NAME#v}"
+          fi
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
   create-release:
     name: Create GitHub Release
+    needs: prepare
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
 
@@ -29,7 +73,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view ${{ github.ref_name }} >/dev/null 2>&1; then
+          if gh release view ${{ needs.prepare.outputs.tag_name }} >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -40,12 +84,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ github.ref_name }} \
+          gh release create ${{ needs.prepare.outputs.tag_name }} \
             --generate-notes \
-            --title "Release ${{ github.ref_name }}"
+            --title "Release ${{ needs.prepare.outputs.tag_name }}"
 
   build-allinone-platform:
-    needs: create-release
+    needs: [prepare, create-release]
     name: Build All-in-One (${{ matrix.platform }})
     runs-on: ubuntu-latest
     permissions:
@@ -75,10 +119,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Get version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
       - name: Set platform suffix
         id: platform
         run: |
@@ -94,15 +134,15 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ steps.platform.outputs.suffix }}
-            ${{ env.DOCKERHUB_IMAGE }}:${{ github.ref_name }}-${{ steps.platform.outputs.suffix }}
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.tag_name }}-${{ steps.platform.outputs.suffix }}
+            ${{ env.DOCKERHUB_IMAGE }}:${{ needs.prepare.outputs.tag_name }}-${{ steps.platform.outputs.suffix }}
           build-args: |
-            APP_VERSION=${{ steps.version.outputs.VERSION }}
+            APP_VERSION=${{ needs.prepare.outputs.version }}
           cache-from: type=gha,scope=allinone-${{ steps.platform.outputs.suffix }}
           cache-to: type=gha,mode=max,scope=allinone-${{ steps.platform.outputs.suffix }}
 
   create-allinone-manifest:
-    needs: build-allinone-platform
+    needs: [prepare, build-allinone-platform]
     name: Create All-in-One Manifest
     runs-on: ubuntu-latest
     permissions:
@@ -129,8 +169,7 @@ jobs:
       - name: Extract version tags
         id: tags
         run: |
-          TAG_NAME=${{ github.ref_name }}
-          VERSION=${TAG_NAME#v}
+          VERSION=${{ needs.prepare.outputs.version }}
           MAJOR=$(echo $VERSION | cut -d. -f1)
           MINOR=$(echo $VERSION | cut -d. -f1-2)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
@@ -143,8 +182,8 @@ jobs:
             -t ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.minor }} \
             -t ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.major }} \
             -t ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-linux-amd64 \
-            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-linux-arm64
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.tag_name }}-linux-amd64 \
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.tag_name }}-linux-arm64
 
       - name: Create and push multi-arch manifest for Docker Hub
         run: |
@@ -152,11 +191,11 @@ jobs:
             -t ${{ env.DOCKERHUB_IMAGE }}:${{ steps.tags.outputs.minor }} \
             -t ${{ env.DOCKERHUB_IMAGE }}:${{ steps.tags.outputs.major }} \
             -t ${{ env.DOCKERHUB_IMAGE }}:latest \
-            ${{ env.DOCKERHUB_IMAGE }}:${{ github.ref_name }}-linux-amd64 \
-            ${{ env.DOCKERHUB_IMAGE }}:${{ github.ref_name }}-linux-arm64
+            ${{ env.DOCKERHUB_IMAGE }}:${{ needs.prepare.outputs.tag_name }}-linux-amd64 \
+            ${{ env.DOCKERHUB_IMAGE }}:${{ needs.prepare.outputs.tag_name }}-linux-arm64
 
   build-standalone-platform:
-    needs: create-release
+    needs: [prepare, create-release]
     name: Build Standalone (${{ matrix.platform }})
     runs-on: ubuntu-latest
     permissions:
@@ -186,10 +225,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Get version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
       - name: Set platform suffix
         id: platform
         run: |
@@ -205,15 +240,15 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ github.ref_name }}-${{ steps.platform.outputs.suffix }}
-            ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ github.ref_name }}-${{ steps.platform.outputs.suffix }}
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ needs.prepare.outputs.tag_name }}-${{ steps.platform.outputs.suffix }}
+            ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ needs.prepare.outputs.tag_name }}-${{ steps.platform.outputs.suffix }}
           build-args: |
-            APP_VERSION=${{ steps.version.outputs.VERSION }}
+            APP_VERSION=${{ needs.prepare.outputs.version }}
           cache-from: type=gha,scope=standalone-${{ steps.platform.outputs.suffix }}
           cache-to: type=gha,mode=max,scope=standalone-${{ steps.platform.outputs.suffix }}
 
   create-standalone-manifest:
-    needs: build-standalone-platform
+    needs: [prepare, build-standalone-platform]
     name: Create Standalone Manifest
     runs-on: ubuntu-latest
     permissions:
@@ -240,8 +275,7 @@ jobs:
       - name: Extract version tags
         id: tags
         run: |
-          TAG_NAME=${{ github.ref_name }}
-          VERSION=${TAG_NAME#v}
+          VERSION=${{ needs.prepare.outputs.version }}
           MAJOR=$(echo $VERSION | cut -d. -f1)
           MINOR=$(echo $VERSION | cut -d. -f1-2)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
@@ -254,8 +288,8 @@ jobs:
             -t ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ steps.tags.outputs.minor }} \
             -t ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ steps.tags.outputs.major }} \
             -t ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:latest \
-            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ github.ref_name }}-linux-amd64 \
-            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ github.ref_name }}-linux-arm64
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ needs.prepare.outputs.tag_name }}-linux-amd64 \
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}-standalone:${{ needs.prepare.outputs.tag_name }}-linux-arm64
 
       - name: Create and push multi-arch manifest for Docker Hub
         run: |
@@ -263,5 +297,5 @@ jobs:
             -t ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ steps.tags.outputs.minor }} \
             -t ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ steps.tags.outputs.major }} \
             -t ${{ env.DOCKERHUB_IMAGE }}-standalone:latest \
-            ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ github.ref_name }}-linux-amd64 \
-            ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ github.ref_name }}-linux-arm64
+            ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ needs.prepare.outputs.tag_name }}-linux-amd64 \
+            ${{ env.DOCKERHUB_IMAGE }}-standalone:${{ needs.prepare.outputs.tag_name }}-linux-arm64
