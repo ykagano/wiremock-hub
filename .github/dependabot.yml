@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       # Frontend packages
       vue-ecosystem:
@@ -44,6 +46,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns:
@@ -54,9 +58,13 @@ updates:
     directory: "/allinone"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   # Docker (root)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
