@@ -34,7 +34,7 @@ __tests__
 *.test.ts
 *.spec.ts
 
-# Docker
+# Docker files
 Dockerfile
 docker-compose*.yml
 .dockerignore
