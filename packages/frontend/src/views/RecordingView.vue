@@ -165,6 +165,10 @@ async function fetchRecordingStatus() {
   try {
     const data = await wiremockInstanceApi.getRecordingStatus(selectedInstanceId.value);
     recordingStatus.value = data.status;
+    if (data.status === 'Recording') {
+      const saved = localStorage.getItem(`recording-url-${selectedInstanceId.value}`);
+      if (saved) targetBaseUrl.value = saved;
+    }
   } catch (error) {
     console.error('Failed to fetch recording status:', error);
     ElMessage.error(t('recording.statusFetchFailed'));
@@ -177,6 +181,7 @@ async function handleStartRecording() {
   startLoading.value = true;
   try {
     await wiremockInstanceApi.startRecording(selectedInstanceId.value, targetBaseUrl.value);
+    localStorage.setItem(`recording-url-${selectedInstanceId.value}`, targetBaseUrl.value);
     ElMessage.success(t('recording.startSuccess'));
     await fetchRecordingStatus();
   } catch (error) {
@@ -193,6 +198,7 @@ async function handleStopRecording() {
   stopLoading.value = true;
   try {
     await wiremockInstanceApi.stopRecording(selectedInstanceId.value);
+    localStorage.removeItem(`recording-url-${selectedInstanceId.value}`);
     ElMessage.success(t('recording.stopSuccess'));
     await fetchRecordingStatus();
   } catch (error) {
@@ -212,6 +218,9 @@ async function handleStartRecordingAll() {
       projectStore.currentProjectId,
       targetBaseUrl.value
     );
+    for (const instance of wiremockInstances.value) {
+      localStorage.setItem(`recording-url-${instance.id}`, targetBaseUrl.value);
+    }
     ElMessage.success(
       t('recording.startAllSuccess', { success: result.success, failed: result.failed })
     );
@@ -230,6 +239,9 @@ async function handleStopRecordingAll() {
   stopAllLoading.value = true;
   try {
     const result = await wiremockInstanceApi.stopRecordingAll(projectStore.currentProjectId);
+    for (const instance of wiremockInstances.value) {
+      localStorage.removeItem(`recording-url-${instance.id}`);
+    }
     ElMessage.success(
       t('recording.stopAllSuccess', { success: result.success, failed: result.failed })
     );
