@@ -182,7 +182,10 @@ async function handleStartRecording() {
   startLoading.value = true;
   try {
     await wiremockInstanceApi.startRecording(selectedInstanceId.value, targetBaseUrl.value);
-    localStorage.setItem(`${RECORDING_URL_KEY_PREFIX}${selectedInstanceId.value}`, targetBaseUrl.value);
+    localStorage.setItem(
+      `${RECORDING_URL_KEY_PREFIX}${selectedInstanceId.value}`,
+      targetBaseUrl.value
+    );
     ElMessage.success(t('recording.startSuccess'));
     await fetchRecordingStatus();
   } catch (error) {
