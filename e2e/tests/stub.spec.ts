@@ -1511,9 +1511,9 @@ test.describe('Stub Test Feature', () => {
 
     // Save
     await page.getByRole('button', { name: /保存|Save/ }).click();
-    await expect(
-      page.locator('.el-table__row', { hasText: '/api/template-test' })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.el-table__row', { hasText: '/api/template-test' })).toBeVisible({
+      timeout: 10000
+    });
 
     // Sync all instances
     await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click();
