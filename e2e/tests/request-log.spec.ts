@@ -217,6 +217,11 @@ test.describe('Request Log', () => {
     await expect(page.getByText(/リクエスト|Request/).first()).toBeVisible();
     await expect(page.getByText('/api/request-log-test')).toBeVisible({ timeout: 10000 });
 
+    // Verify response body is displayed correctly in the detail view
+    await expect(page.locator('.body-content', { hasText: 'Request log test response' })).toBeVisible(
+      { timeout: 5000 }
+    );
+
     // Verify matched stub info is displayed
     await expect(page.getByText(/マッチしたスタブ|Matched Stub/)).toBeVisible();
 

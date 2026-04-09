@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
+import { gunzipSync } from 'node:zlib';
 
 const createInstanceSchema = z.object({
   projectId: z.string().uuid(),
@@ -297,9 +298,17 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
           params: { limit: requestLimit }
         });
 
+        // Decode base64/gzip bodies in request log entries
+        const data = response.data;
+        if (data.requests && Array.isArray(data.requests)) {
+          for (const entry of data.requests) {
+            decodeRequestLogBodies(entry);
+          }
+        }
+
         return reply.send({
           success: true,
-          data: response.data
+          data
         });
       } catch (error) {
         return reply.status(502).send({
@@ -336,6 +345,9 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
         const response = await axios.get(`${instance.url}/__admin/requests/${requestId}`, {
           timeout: 10000
         });
+
+        // Decode base64/gzip body in request log entry
+        decodeRequestLogBodies(response.data);
 
         return reply.send({
           success: true,
@@ -854,6 +866,7 @@ interface WireMockLoggedRequest {
     status: number;
     headers?: Record<string, string>;
     body?: string;
+    bodyAsBase64?: string;
   };
   responseDefinition?: {
     status: number;
@@ -932,8 +945,19 @@ function generateMapping(
     }
   }
 
-  // Response body
-  const sourceBody = wiremockRequest.response?.body || wiremockRequest.responseDefinition?.body;
+  // Response body (prefer bodyAsBase64 for proxied/recorded responses)
+  let sourceBody: string | undefined;
+  const base64Body = wiremockRequest.response?.bodyAsBase64;
+  if (base64Body) {
+    try {
+      sourceBody = decodeBase64Body(base64Body);
+    } catch {
+      // Fall through
+    }
+  }
+  if (!sourceBody) {
+    sourceBody = wiremockRequest.response?.body || wiremockRequest.responseDefinition?.body;
+  }
   if (sourceBody) {
     try {
       responseMapping.jsonBody = JSON.parse(sourceBody);
@@ -948,4 +972,40 @@ function generateMapping(
   }
 
   return mapping;
+}
+
+/**
+ * Decode a base64-encoded body, decompressing gzip if needed.
+ * WireMock stores proxied/recorded response bodies as base64 in `bodyAsBase64`.
+ * When the upstream returns gzip-compressed data, the base64 contains raw gzip bytes.
+ */
+function decodeBase64Body(base64: string): string {
+  const buf = Buffer.from(base64, 'base64');
+  // Gzip magic number: 0x1f 0x8b
+  if (buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b) {
+    return gunzipSync(buf).toString('utf-8');
+  }
+  return buf.toString('utf-8');
+}
+
+/**
+ * Process a WireMock request log entry, decoding base64/gzip bodies into readable text.
+ */
+function decodeRequestLogBodies(entry: Record<string, unknown>): void {
+  const response = entry.response as Record<string, unknown> | undefined;
+  if (response?.bodyAsBase64) {
+    try {
+      response.body = decodeBase64Body(response.bodyAsBase64 as string);
+    } catch {
+      // Keep original body
+    }
+  }
+  const req = entry.request as Record<string, unknown> | undefined;
+  if (req?.bodyAsBase64) {
+    try {
+      req.body = decodeBase64Body(req.bodyAsBase64 as string);
+    } catch {
+      // Keep original body
+    }
+  }
 }
