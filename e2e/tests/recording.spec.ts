@@ -335,6 +335,126 @@ test.describe('Recording', () => {
     await cleanupProject(page, testProjectName);
   });
 
+  test('should display proxied response body correctly in request log', async ({
+    page,
+    request
+  }) => {
+    const testProjectName = `Recording Body Test ${Date.now()}`;
+
+    // Ensure WireMock recordings are stopped
+    await request.post('http://localhost:8091/__admin/recordings/stop');
+    await request.post('http://localhost:8092/__admin/recordings/stop');
+
+    // Register a stub directly on WireMock-2 (the proxy target)
+    await request.post('http://localhost:8092/__admin/mappings', {
+      data: {
+        request: { method: 'GET', urlPath: '/api/recording-body-test' },
+        response: {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          jsonBody: { message: 'proxied response body test', status: 'ok' }
+        }
+      }
+    });
+
+    // Create project with WireMock-1 instance
+    await page
+      .locator('.page-header')
+      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .click();
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
+
+    await page
+      .locator('.section-header')
+      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
+      .click();
+    await page
+      .locator('.el-dialog')
+      .getByLabel(/インスタンス名|Name/)
+      .fill('Recording Body Instance');
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+    await expect(page.locator('.el-card', { hasText: 'Recording Body Instance' })).toBeVisible({
+      timeout: 10000
+    });
+
+    // Navigate to Recording page and start recording
+    await page
+      .locator('.el-aside')
+      .getByText(/レコーディング|Recording/)
+      .click();
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
+    await expect(
+      page.locator('.el-tag', { hasText: /未開始|Never Started|停止|Stopped/ })
+    ).toBeVisible({ timeout: 10000 });
+
+    // Enter target URL and start recording
+    const targetUrlInput = page.getByPlaceholder(/https:\/\/api\.example\.com/);
+    await targetUrlInput.fill('http://wiremock-2:8080');
+    const startButton = page
+      .getByRole('button', { name: /レコーディング開始|Start Recording/ })
+      .first();
+    await startButton.click();
+    await expect(
+      page.getByText(/レコーディングを開始しました|Recording started/i).first()
+    ).toBeVisible({ timeout: 10000 });
+
+    // Make a proxied request through WireMock-1 → WireMock-2
+    await request.get('http://localhost:8091/api/recording-body-test');
+
+    // Stop recording
+    const stopButton = page
+      .getByRole('button', { name: /レコーディング停止|Stop Recording/ })
+      .first();
+    await stopButton.click();
+    await expect(
+      page.getByText(/レコーディングを停止しました|Recording stopped/i).first()
+    ).toBeVisible({ timeout: 10000 });
+
+    // Navigate to request log page
+    await page
+      .locator('.el-aside')
+      .getByText(/リクエストログ|Request Log/)
+      .click();
+    await page.waitForTimeout(1000);
+
+    // Verify the proxied request appears in the log
+    await expect(page.locator('code', { hasText: '/api/recording-body-test' }).first()).toBeVisible(
+      { timeout: 10000 }
+    );
+
+    // Click detail to view the request
+    const requestRow = page
+      .locator('.el-table__row:visible', { hasText: '/api/recording-body-test' })
+      .first();
+    await requestRow.getByRole('button', { name: /詳細|Detail/ }).click();
+
+    // Verify we're on the detail page
+    await expect(page.getByRole('button', { name: /戻る|Back/ })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('/api/recording-body-test')).toBeVisible({ timeout: 10000 });
+
+    // Verify response body is displayed correctly (not garbled)
+    await expect(
+      page.locator('.body-content', { hasText: 'proxied response body test' })
+    ).toBeVisible({ timeout: 5000 });
+
+    // Clean up: delete stub on WireMock-2 and project
+    await request.post('http://localhost:8092/__admin/mappings/reset');
+    await cleanupProject(page, testProjectName);
+  });
+
   test('should show no instances message', async ({ page }) => {
     const testProjectName = `Recording No Instances ${Date.now()}`;
 
