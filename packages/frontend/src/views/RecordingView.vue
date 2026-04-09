@@ -62,15 +62,20 @@
             </el-button>
           </el-form-item>
         </el-form>
-        <el-button
-          v-else
-          type="danger"
-          class="recording-action-button"
-          :loading="stopLoading"
-          @click="handleStopRecording"
-        >
-          {{ t('recording.stopRecording') }}
-        </el-button>
+        <template v-else>
+          <div v-if="targetBaseUrl" class="target-url-display">
+            <span class="target-url-label">{{ t('recording.targetBaseUrl') }}:</span>
+            <span class="target-url-value">{{ targetBaseUrl }}</span>
+          </div>
+          <el-button
+            type="danger"
+            class="recording-action-button"
+            :loading="stopLoading"
+            @click="handleStopRecording"
+          >
+            {{ t('recording.stopRecording') }}
+          </el-button>
+        </template>
       </div>
 
       <!-- All instances buttons -->
@@ -117,6 +122,7 @@ const projectStore = useProjectStore();
 const { wiremockInstances } = storeToRefs(projectStore);
 
 const selectedInstanceId = ref<string | null>(null);
+const RECORDING_URL_KEY_PREFIX = 'recording-url-';
 const recordingStatus = ref<string>('NeverStarted');
 const targetBaseUrl = ref('');
 const startLoading = ref(false);
@@ -160,6 +166,10 @@ async function fetchRecordingStatus() {
   try {
     const data = await wiremockInstanceApi.getRecordingStatus(selectedInstanceId.value);
     recordingStatus.value = data.status;
+    if (data.status === 'Recording') {
+      const saved = localStorage.getItem(`${RECORDING_URL_KEY_PREFIX}${selectedInstanceId.value}`);
+      if (saved) targetBaseUrl.value = saved;
+    }
   } catch (error) {
     console.error('Failed to fetch recording status:', error);
     ElMessage.error(t('recording.statusFetchFailed'));
@@ -172,6 +182,10 @@ async function handleStartRecording() {
   startLoading.value = true;
   try {
     await wiremockInstanceApi.startRecording(selectedInstanceId.value, targetBaseUrl.value);
+    localStorage.setItem(
+      `${RECORDING_URL_KEY_PREFIX}${selectedInstanceId.value}`,
+      targetBaseUrl.value
+    );
     ElMessage.success(t('recording.startSuccess'));
     await fetchRecordingStatus();
   } catch (error) {
@@ -188,6 +202,7 @@ async function handleStopRecording() {
   stopLoading.value = true;
   try {
     await wiremockInstanceApi.stopRecording(selectedInstanceId.value);
+    localStorage.removeItem(`${RECORDING_URL_KEY_PREFIX}${selectedInstanceId.value}`);
     ElMessage.success(t('recording.stopSuccess'));
     await fetchRecordingStatus();
   } catch (error) {
@@ -207,6 +222,9 @@ async function handleStartRecordingAll() {
       projectStore.currentProjectId,
       targetBaseUrl.value
     );
+    for (const instance of wiremockInstances.value) {
+      localStorage.setItem(`${RECORDING_URL_KEY_PREFIX}${instance.id}`, targetBaseUrl.value);
+    }
     ElMessage.success(
       t('recording.startAllSuccess', { success: result.success, failed: result.failed })
     );
@@ -225,6 +243,9 @@ async function handleStopRecordingAll() {
   stopAllLoading.value = true;
   try {
     const result = await wiremockInstanceApi.stopRecordingAll(projectStore.currentProjectId);
+    for (const instance of wiremockInstances.value) {
+      localStorage.removeItem(`${RECORDING_URL_KEY_PREFIX}${instance.id}`);
+    }
     ElMessage.success(
       t('recording.stopAllSuccess', { success: result.success, failed: result.failed })
     );
@@ -312,5 +333,22 @@ watch(wiremockInstances, (instances) => {
 
 .recording-action-button {
   min-width: 280px;
+}
+
+.target-url-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.target-url-label {
+  font-weight: 600;
+  color: var(--wh-text-secondary);
+}
+
+.target-url-value {
+  color: var(--wh-text-primary);
 }
 </style>
