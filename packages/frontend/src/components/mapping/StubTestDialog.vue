@@ -310,6 +310,41 @@ function getSummaryType(summary: { total: number; passed: number; failed: number
   return 'warning';
 }
 
+function containsTemplate(value: string): boolean {
+  return /\{\{.*?\}\}/.test(value);
+}
+
+function deepCompare(expected: unknown, actual: unknown): boolean {
+  // If expected is a string containing template variables, skip comparison
+  if (typeof expected === 'string' && containsTemplate(expected)) {
+    return true;
+  }
+
+  // Both must be the same type
+  if (typeof expected !== typeof actual) return false;
+
+  // Primitives: exact match
+  if (expected === null || actual === null) return expected === actual;
+  if (typeof expected !== 'object') return expected === actual;
+
+  // Arrays
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual) || expected.length !== actual.length) return false;
+    return expected.every((item, i) => deepCompare(item, actual[i]));
+  }
+
+  // Objects
+  if (Array.isArray(actual)) return false;
+  const expectedObj = expected as Record<string, unknown>;
+  const actualObj = actual as Record<string, unknown>;
+  const expectedKeys = Object.keys(expectedObj);
+  const actualKeys = Object.keys(actualObj);
+  if (expectedKeys.length !== actualKeys.length) return false;
+  return expectedKeys.every(
+    (key) => key in actualObj && deepCompare(expectedObj[key], actualObj[key])
+  );
+}
+
 function isBodyMatched(expected?: string, actual?: string): boolean | null {
   if (expected === undefined || expected === null) return null;
   if (actual === undefined || actual === null) return false;
@@ -317,8 +352,10 @@ function isBodyMatched(expected?: string, actual?: string): boolean | null {
   try {
     const expectedObj = JSON.parse(expected);
     const actualObj = JSON.parse(actual);
-    return JSON.stringify(expectedObj) === JSON.stringify(actualObj);
+    return deepCompare(expectedObj, actualObj);
   } catch {
+    // Non-JSON: if expected contains template, treat as match
+    if (containsTemplate(expected)) return true;
     return expected === actual;
   }
 }
