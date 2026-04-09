@@ -384,18 +384,18 @@ test.describe('Recording', () => {
       .locator('.el-dialog')
       .getByRole('button', { name: /保存|Save/ })
       .click();
-    await expect(
-      page.locator('.el-card', { hasText: 'Recording Body Instance' })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.el-card', { hasText: 'Recording Body Instance' })).toBeVisible({
+      timeout: 10000
+    });
 
     // Navigate to Recording page and start recording
     await page
       .locator('.el-aside')
       .getByText(/レコーディング|Recording/)
       .click();
-    await expect(
-      page.getByRole('heading', { name: /レコーディング|Recording/ })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /レコーディング|Recording/ })).toBeVisible({
+      timeout: 10000
+    });
     await expect(
       page.locator('.el-tag', { hasText: /未開始|Never Started|停止|Stopped/ })
     ).toBeVisible({ timeout: 10000 });
@@ -431,9 +431,9 @@ test.describe('Recording', () => {
     await page.waitForTimeout(1000);
 
     // Verify the proxied request appears in the log
-    await expect(
-      page.locator('code', { hasText: '/api/recording-body-test' }).first()
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('code', { hasText: '/api/recording-body-test' }).first()).toBeVisible(
+      { timeout: 10000 }
+    );
 
     // Click detail to view the request
     const requestRow = page
