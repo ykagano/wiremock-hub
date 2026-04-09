@@ -249,26 +249,27 @@ Monorepo structure (pnpm workspace):
 
 ## Lint & Format
 
-ESLint + Prettier でコードの品質とスタイルを統一しています。
+Code quality and style are enforced using ESLint + Prettier.
 
 ```bash
-# Lint チェック
+# Lint check
 pnpm run lint
 
-# Lint 自動修正
+# Lint auto-fix
 pnpm run lint:fix
 
-# フォーマットチェック（CIで使用）
+# Format check (used in CI)
 pnpm run format:check
 
-# フォーマット自動修正
+# Format auto-fix
 pnpm run format
 ```
 
-- 設定ファイル: `eslint.config.mjs`, `.prettierrc.json`
-- コードスタイル: 2スペース、シングルクォート、セミコロンあり、トレイリングカンマなし、100文字幅
-- CIで `pnpm run lint` と `pnpm run format:check` が自動実行されます
-- `git blame` の精度を保つため、初回セットアップ時に以下を実行してください:
+- Config files: `eslint.config.mjs`, `.prettierrc.json`
+- Code style: 2 spaces, single quotes, semicolons, no trailing commas, 100 char width
+- **Always run `pnpm run lint` and `pnpm run format:check` before committing** (also enforced in CI)
+- If there are formatting errors, run `pnpm run format` to auto-fix
+- To preserve `git blame` accuracy, run the following during initial setup:
   ```bash
   git config blame.ignoreRevsFile .git-blame-ignore-revs
   ```
