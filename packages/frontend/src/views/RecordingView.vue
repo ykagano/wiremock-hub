@@ -62,15 +62,20 @@
             </el-button>
           </el-form-item>
         </el-form>
-        <el-button
-          v-else
-          type="danger"
-          class="recording-action-button"
-          :loading="stopLoading"
-          @click="handleStopRecording"
-        >
-          {{ t('recording.stopRecording') }}
-        </el-button>
+        <template v-else>
+          <div v-if="targetBaseUrl" class="target-url-display">
+            <span class="target-url-label">{{ t('recording.targetBaseUrl') }}:</span>
+            <span class="target-url-value">{{ targetBaseUrl }}</span>
+          </div>
+          <el-button
+            type="danger"
+            class="recording-action-button"
+            :loading="stopLoading"
+            @click="handleStopRecording"
+          >
+            {{ t('recording.stopRecording') }}
+          </el-button>
+        </template>
       </div>
 
       <!-- All instances buttons -->
@@ -312,5 +317,22 @@ watch(wiremockInstances, (instances) => {
 
 .recording-action-button {
   min-width: 280px;
+}
+
+.target-url-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.target-url-label {
+  font-weight: 600;
+  color: var(--wh-text-secondary);
+}
+
+.target-url-value {
+  color: var(--wh-text-primary);
 }
 </style>
