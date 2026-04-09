@@ -1442,6 +1442,132 @@ test.describe('Stub Test Feature', () => {
     await cleanupProject(page, testProjectName);
   });
 
+  test('should show body match for stubs with response template variables', async ({ page }) => {
+    const testProjectName = `Template Body Match ${Date.now()}`;
+
+    // Create project
+    await page
+      .locator('.page-header')
+      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .click();
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
+
+    // Add WireMock instance
+    await page
+      .locator('.section-header')
+      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
+      .click();
+    await page
+      .locator('.el-dialog')
+      .getByLabel(/インスタンス名|Name/)
+      .fill('Instance 1');
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Navigate to stubs and create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
+    await page.waitForTimeout(500);
+
+    await page
+      .getByRole('button', { name: /新規作成|Create New/ })
+      .first()
+      .click();
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
+    const urlInput = page.getByPlaceholder('e.g. /api/users');
+    await urlInput.fill('/api/template-test');
+
+    await page.getByRole('button', { name: /保存|Save/ }).click();
+    await expect(page.locator('.el-table__row', { hasText: '/api/template-test' })).toBeVisible({
+      timeout: 10000
+    });
+
+    // Open stub editor
+    await page.locator('.el-table__row', { hasText: '/api/template-test' }).click();
+
+    // Switch to JSON tab and set mapping with response template variables
+    await page.getByRole('tab', { name: 'JSON' }).click();
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+
+    const currentJson = await getMonacoEditorValue(page, '.json-editor');
+    const parsed = JSON.parse(currentJson);
+    parsed.response.status = 200;
+    parsed.response.body =
+      '{"path": "{{request.path}}", "method": "{{request.method}}", "code": 200}';
+    parsed.response.transformers = ['response-template'];
+    delete parsed.response.jsonBody;
+
+    await fillMonacoEditor(page, JSON.stringify(parsed, null, 2), '.json-editor');
+
+    // Save
+    await page.getByRole('button', { name: /保存|Save/ }).click();
+    await expect(page.locator('.el-table__row', { hasText: '/api/template-test' })).toBeVisible({
+      timeout: 10000
+    });
+
+    // Sync all instances
+    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click();
+    await page
+      .locator('.el-message-box')
+      .getByRole('button', { name: /はい|Yes/ })
+      .click();
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+
+    // Click the test button
+    const row = page.locator('.el-table__row', { hasText: '/api/template-test' });
+    await row.locator('.el-button--success').click();
+
+    // Wait for dialog
+    await expect(page.locator('.el-dialog', { hasText: /スタブテスト|Stub Test/ })).toBeVisible();
+
+    // Click send test
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /テスト送信|Send Test/ })
+      .click();
+
+    // Wait for results
+    await expect(
+      page.locator('.el-dialog').locator('.el-alert', { hasText: /インスタンス|instances/ })
+    ).toBeVisible({ timeout: 15000 });
+
+    // Verify status is Pass
+    await expect(
+      page
+        .locator('.el-dialog')
+        .locator('.el-tag', { hasText: /合格|Pass/ })
+        .first()
+    ).toBeVisible({ timeout: 5000 });
+
+    // Verify body column shows Match (not Mismatch)
+    await expect(
+      page
+        .locator('.el-dialog')
+        .locator('.el-tag', { hasText: /一致|Match/ })
+        .first()
+    ).toBeVisible({ timeout: 5000 });
+    await expect(
+      page.locator('.el-dialog').locator('.el-tag', { hasText: /不一致|Mismatch/ })
+    ).toHaveCount(0);
+
+    // Close dialog
+    await page.locator('.el-dialog__headerbtn').click();
+
+    // Clean up
+    await cleanupProject(page, testProjectName);
+  });
+
   test('should show error for no instances', async ({ page }) => {
     const testProjectName = `No Instance Test ${Date.now()}`;
 
