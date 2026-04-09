@@ -623,9 +623,13 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const response = await axios.post(`${instance.url}/__admin/recordings/stop`, {}, {
-          timeout: 10000
-        });
+        const response = await axios.post(
+          `${instance.url}/__admin/recordings/stop`,
+          {},
+          {
+            timeout: 10000
+          }
+        );
 
         return reply.send({
           success: true,
@@ -717,9 +721,13 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
 
       const results = await Promise.allSettled(
         instances.map(async (instance) => {
-          await axios.post(`${instance.url}/__admin/recordings/stop`, {}, {
-            timeout: 10000
-          });
+          await axios.post(
+            `${instance.url}/__admin/recordings/stop`,
+            {},
+            {
+              timeout: 10000
+            }
+          );
           return instance.name;
         })
       );
@@ -810,9 +818,13 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        await axios.post(`${instance.url}/__admin/scenarios/reset`, {}, {
-          timeout: 10000
-        });
+        await axios.post(
+          `${instance.url}/__admin/scenarios/reset`,
+          {},
+          {
+            timeout: 10000
+          }
+        );
 
         return reply.send({
           success: true,
