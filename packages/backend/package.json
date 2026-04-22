@@ -20,19 +20,19 @@
     "@prisma/adapter-better-sqlite3": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "@wiremock-hub/shared": "workspace:*",
-    "axios": "^1.14.0",
-    "better-sqlite3": "^12.8.0",
-    "dotenv": "^17.4.0",
+    "axios": "^1.15.0",
+    "better-sqlite3": "^12.9.0",
+    "dotenv": "^17.4.2",
     "fastify": "^5.8.4",
     "yaml": "^2.8.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^24.12.0",
+    "@types/node": "^24.12.2",
     "prisma": "^7.7.0",
     "tsx": "^4.19.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.4"
   }
 }
