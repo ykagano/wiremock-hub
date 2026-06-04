@@ -1,0 +1,123 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  actions: read # gh pr checks traverses statusCheckRollup -> checkSuite.workflowRun
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide eligibility
+        id: eligibility
+        env:
+          ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+        run: |
+          set -eu
+          # Auto-merge policy:
+          #   - github-actions: patch only
+          #   - npm / docker:   patch and minor
+          #   - anything else (including any major update): not eligible
+          # Match both the config-style and dependabot-internal ecosystem names so the
+          # decision is robust regardless of which form fetch-metadata returns.
+          eligible=false
+          case "$ECOSYSTEM" in
+            github-actions | github_actions)
+              if [ "$UPDATE_TYPE" = "version-update:semver-patch" ]; then
+                eligible=true
+              fi
+              ;;
+            npm | npm_and_yarn | docker)
+              case "$UPDATE_TYPE" in
+                version-update:semver-patch | version-update:semver-minor)
+                  eligible=true
+                  ;;
+              esac
+              ;;
+          esac
+
+          echo "ecosystem=$ECOSYSTEM update-type=$UPDATE_TYPE eligible=$eligible"
+          if [ "$eligible" != "true" ]; then
+            # No notification is sent: fail the job so the PR is surfaced for manual review.
+            echo "::error::Not eligible for auto-merge (ecosystem=$ECOSYSTEM, update-type=$UPDATE_TYPE). Manual review required."
+            exit 1
+          fi
+
+      - name: Wait for all checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          SELF_WORKFLOW: Dependabot auto-merge
+        run: |
+          set -eu
+          # Give other workflows a moment to register their checks (avoid a zero-checks race).
+          sleep 30
+          # `gh pr checks --json` reads the GraphQL statusCheckRollup, which aggregates checks
+          # registered on either the head SHA or the merge commit SHA. Exclude this workflow by
+          # name to avoid waiting on ourselves (self-deadlock).
+          while :; do
+            # `gh pr checks` exits 8 while pending and 1 when a check has failed. Both are normal
+            # "keep polling" states here, so disable set -e around it and decide from the JSON.
+            set +e
+            json=$(gh pr checks "$PR_URL" --json name,bucket,workflow)
+            gh_exit=$?
+            set -e
+            if [ -z "$json" ]; then
+              echo "::error::gh pr checks returned no output (exit $gh_exit)"
+              exit 1
+            fi
+            others=$(echo "$json" | jq --arg self "$SELF_WORKFLOW" '[.[] | select(.workflow != $self)]')
+            total=$(echo "$others" | jq 'length')
+            if [ "$total" -eq 0 ]; then
+              echo "::error::No other checks found for PR ${PR_URL}. Aborting."
+              exit 1
+            fi
+            failed=$(echo "$others" | jq '[.[] | select(.bucket == "fail" or .bucket == "cancel")] | length')
+            if [ "$failed" -gt 0 ]; then
+              echo "$others" | jq -r '.[] | select(.bucket == "fail" or .bucket == "cancel") | "\(.workflow) / \(.name): \(.bucket)"'
+              echo "::error::One or more checks failed"
+              exit 1
+            fi
+            incomplete=$(echo "$others" | jq '[.[] | select(.bucket == "pending")] | length')
+            echo "checks: total=${total} incomplete=${incomplete}"
+            if [ "$incomplete" -eq 0 ]; then
+              echo "All other checks completed successfully"
+              break
+            fi
+            sleep 20
+          done
+
+      - name: Approve PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        # main is protected by a ruleset requiring one approving review. Approve with the
+        # built-in token (Actions PR approval is enabled for this repo) so the merge below
+        # satisfies the rule. Approving only after checks pass keeps the approval from being
+        # dismissed on a later push (dismiss_stale_reviews_on_push is enabled).
+        run: gh pr review "$PR_URL" --approve
+
+      - name: Merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --merge
