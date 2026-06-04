@@ -61,6 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
 
     steps:
       - name: Checkout
@@ -81,12 +82,16 @@ jobs:
 
       - name: Create Release
         if: steps.check-release.outputs.exists == 'false'
+        uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v7.3.1
+        with:
+          config-name: release-drafter.yml
+          tag: ${{ needs.prepare.outputs.tag_name }}
+          name: Release ${{ needs.prepare.outputs.tag_name }}
+          version: ${{ needs.prepare.outputs.version }}
+          commitish: ${{ needs.prepare.outputs.tag_name }}
+          publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create ${{ needs.prepare.outputs.tag_name }} \
-            --generate-notes \
-            --title "Release ${{ needs.prepare.outputs.tag_name }}"
 
   build-allinone-platform:
     needs: [prepare, create-release]
