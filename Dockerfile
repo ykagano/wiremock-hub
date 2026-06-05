@@ -1,5 +1,5 @@
 # Build stage
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 # App version from CI/CD (git tag)
 ARG APP_VERSION=0.1.0
@@ -38,7 +38,7 @@ ENV VITE_APP_VERSION=${APP_VERSION}
 RUN pnpm run build
 
 # Production stage
-FROM node:24-alpine AS production
+FROM node:26-alpine AS production
 
 WORKDIR /app
 
