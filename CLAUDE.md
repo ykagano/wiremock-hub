@@ -371,6 +371,7 @@ packages/
 - `PUT /api/stubs/:id` - Update stub
 - `DELETE /api/stubs/:id` - Delete stub
 - `DELETE /api/stubs?projectId=` - Delete all stubs in project (bulk delete)
+- `POST /api/stubs/bulk-delete` - Delete selected stubs by IDs (`{ projectId, ids }`)
 - `POST /api/stubs/:id/sync` - Sync to WireMock
 - `POST /api/stubs/:id/test` - Test stub against all WireMock instances
 - `POST /api/stubs/sync-all` - Sync all stubs to WireMock (reset then register)

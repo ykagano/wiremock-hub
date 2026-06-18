@@ -132,7 +132,11 @@
     "name": "Name",
     "scenario": "Scenario",
     "confirmReset": "Delete all stubs in this project? This action cannot be undone.",
-    "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion."
+    "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion.",
+    "selectedCount": "{count} selected",
+    "deleteSelected": "Delete Selected",
+    "clearSelection": "Clear Selection",
+    "confirmBulkDelete": "Delete {count} selected stub(s)? This action cannot be undone."
   },
   "editor": {
     "title": "Stub Editor",
@@ -415,6 +419,7 @@
       "updateFailed": "Failed to update stub",
       "deleted": "Stub deleted",
       "deleteFailed": "Failed to delete stub",
+      "bulkDeleted": "Deleted {count} stub(s)",
       "synced": "Synced to WireMock",
       "syncFailed": "Failed to sync to WireMock",
       "syncedCount": "Synced {count} stub(s) to WireMock",

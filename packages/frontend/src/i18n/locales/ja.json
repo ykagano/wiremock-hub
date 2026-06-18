@@ -132,7 +132,11 @@
     "name": "名前",
     "scenario": "シナリオ",
     "confirmReset": "プロジェクト内のすべてのスタブを削除しますか？この操作は取り消せません。",
-    "confirmResetNote": "WireMock側のスタブも削除する場合は、削除後に「全インスタンスに同期」を実行してください。"
+    "confirmResetNote": "WireMock側のスタブも削除する場合は、削除後に「全インスタンスに同期」を実行してください。",
+    "selectedCount": "{count}件選択中",
+    "deleteSelected": "選択を削除",
+    "clearSelection": "選択解除",
+    "confirmBulkDelete": "選択した{count}件のスタブを削除しますか？この操作は取り消せません。"
   },
   "editor": {
     "title": "スタブエディタ",
@@ -415,6 +419,7 @@
       "updateFailed": "スタブの更新に失敗しました",
       "deleted": "スタブを削除しました",
       "deleteFailed": "スタブの削除に失敗しました",
+      "bulkDeleted": "{count}件のスタブを削除しました",
       "synced": "WireMockに同期しました",
       "syncFailed": "WireMockへの同期に失敗しました",
       "syncedCount": "{count}件のスタブをWireMockに同期しました",

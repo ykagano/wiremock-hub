@@ -900,6 +900,80 @@ test.describe('Stub', () => {
     await cleanupProject(page, testProjectName);
   });
 
+  test('should bulk delete selected stubs', async ({ page }) => {
+    const testProjectName = `Stub Bulk Delete Test ${Date.now()}`;
+
+    // Create project
+    await page
+      .locator('.page-header')
+      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .click();
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
+    await page.waitForTimeout(1000);
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
+    await page.waitForTimeout(500);
+
+    // Create three stubs
+    for (const path of ['/api/bulk-1', '/api/bulk-2', '/api/bulk-3']) {
+      await page
+        .getByRole('button', { name: /新規作成|Create New/ })
+        .first()
+        .click();
+      await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
+      await page.getByPlaceholder('e.g. /api/users').fill(path);
+      await page.getByRole('button', { name: /保存|Save/ }).click();
+      await expect(page.locator('.el-table__row', { hasText: path })).toBeVisible({
+        timeout: 10000
+      });
+    }
+
+    await expect(page.locator('.el-table__row')).toHaveCount(3);
+
+    // Select the first two rows via their checkboxes (selection column)
+    const row1 = page.locator('.el-table__row', { hasText: '/api/bulk-1' });
+    const row2 = page.locator('.el-table__row', { hasText: '/api/bulk-2' });
+    await row1.locator('.el-checkbox__inner').click();
+    await row2.locator('.el-checkbox__inner').click();
+
+    // The header switches to the selection action bar
+    const selectionHeader = page.locator('.selection-header');
+    await expect(selectionHeader).toBeVisible();
+    await expect(selectionHeader).toContainText(/2件選択中|2 selected/);
+
+    // Click "Delete Selected"
+    await selectionHeader.getByRole('button', { name: /選択を削除|Delete Selected/ }).click();
+
+    // Confirm deletion
+    await page
+      .locator('.el-message-box')
+      .getByRole('button', { name: /はい|Yes|確認/ })
+      .click();
+    await expect(page.locator('.el-message-box')).not.toBeVisible();
+    await page.waitForTimeout(500);
+
+    // The two selected stubs are gone, the third remains
+    await expect(page.locator('.el-table__row', { hasText: '/api/bulk-1' })).not.toBeVisible();
+    await expect(page.locator('.el-table__row', { hasText: '/api/bulk-2' })).not.toBeVisible();
+    await expect(page.locator('.el-table__row', { hasText: '/api/bulk-3' })).toBeVisible();
+    await expect(page.locator('.el-table__row')).toHaveCount(1);
+
+    // The selection bar disappears once the selection is cleared
+    await expect(page.locator('.selection-header')).not.toBeVisible();
+
+    // Clean up
+    await cleanupProject(page, testProjectName);
+  });
+
   test('should export and import stubs in unified WireMock-compatible format', async ({ page }) => {
     const testProjectName = `Export Import ${Date.now()}`;
 

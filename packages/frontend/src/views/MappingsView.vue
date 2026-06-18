@@ -1,6 +1,24 @@
 <template>
   <div class="mapping-list">
-    <div class="page-header">
+    <!-- Selection action bar (shown when one or more rows are selected) -->
+    <div v-if="hasSelection" class="page-header selection-header">
+      <div class="selection-info">
+        <el-icon><Select /></el-icon>
+        <span>{{ t('mappings.selectedCount', { count: selectedCount }) }}</span>
+      </div>
+      <div class="header-actions">
+        <el-button type="danger" @click="confirmBulkDelete" :loading="loading">
+          <el-icon><Delete /></el-icon>
+          {{ t('mappings.deleteSelected') }}
+        </el-button>
+        <el-button @click="clearSelection">
+          <el-icon><Close /></el-icon>
+          {{ t('mappings.clearSelection') }}
+        </el-button>
+      </div>
+    </div>
+
+    <div v-else class="page-header">
       <h2>{{ t('mappings.title') }}</h2>
       <div class="header-actions">
         <el-button @click="fetchMappings" :loading="loading">
@@ -97,12 +115,17 @@
     <!-- Mapping list table -->
     <el-table
       v-else
+      ref="tableRef"
       :data="paginatedMappings"
+      row-key="id"
       stripe
       style="width: 100%"
       @row-click="handleRowClick"
+      @selection-change="handleSelectionChange"
       class="mapping-table"
     >
+      <el-table-column type="selection" width="48" :reserve-selection="true" />
+
       <el-table-column type="expand">
         <template #default="{ row }">
           <div class="expand-content">
@@ -207,7 +230,7 @@ import { useSyncAllInstances } from '@/composables/useSyncAllInstances';
 import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox, ElTable } from 'element-plus';
 import type { Mapping, MappingRequest } from '@/types/wiremock';
 import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock';
 
@@ -225,6 +248,47 @@ const currentPage = ref(1);
 const { pageSize, pageSizes } = usePageSize();
 const testDialogVisible = ref(false);
 const testTargetStubId = ref('');
+
+// Row selection (for bulk delete)
+const tableRef = ref<InstanceType<typeof ElTable> | null>(null);
+const selectedRows = ref<Mapping[]>([]);
+const selectedCount = computed(() => selectedRows.value.length);
+const hasSelection = computed(() => selectedCount.value > 0);
+
+function handleSelectionChange(rows: Mapping[]) {
+  selectedRows.value = rows;
+}
+
+function clearSelection() {
+  tableRef.value?.clearSelection();
+  selectedRows.value = [];
+}
+
+function confirmBulkDelete() {
+  const ids = selectedRows.value.map((r) => r.id).filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return;
+
+  ElMessageBox.confirm(
+    t('mappings.confirmBulkDelete', { count: ids.length }),
+    t('common.confirm'),
+    {
+      confirmButtonText: t('common.yes'),
+      cancelButtonText: t('common.no'),
+      type: 'warning'
+    }
+  )
+    .then(async () => {
+      try {
+        await mappingStore.deleteMappings(ids);
+        clearSelection();
+      } catch (error) {
+        console.error('Failed to bulk delete mappings:', error);
+      }
+    })
+    .catch(() => {
+      // Cancelled
+    });
+}
 
 // Filtering
 const filteredMappings = computed(() => {
@@ -283,7 +347,9 @@ function editMapping(mapping: Mapping) {
   router.push(`/mappings/${mapping.id || mapping.uuid}`);
 }
 
-function handleRowClick(row: Mapping) {
+function handleRowClick(row: Mapping, column?: { type?: string }) {
+  // Don't navigate when the click targets the selection checkbox or expand cell
+  if (column?.type === 'selection' || column?.type === 'expand') return;
   editMapping(row);
 }
 
@@ -466,6 +532,22 @@ onMounted(() => {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
+}
+
+.selection-header {
+  padding: 10px 16px;
+  background-color: var(--el-color-primary-light-9);
+  border: 1px solid var(--el-color-primary-light-7);
+  border-radius: 6px;
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-color-primary);
 }
 
 .header-actions {

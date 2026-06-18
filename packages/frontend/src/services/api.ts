@@ -278,6 +278,17 @@ export const stubApi = {
     return response.data.data;
   },
 
+  async bulkDelete(projectId: string, ids: string[]): Promise<{ deletedCount: number }> {
+    const response = await apiClient.post<ApiResponse<{ deletedCount: number }>>(
+      '/stubs/bulk-delete',
+      { projectId, ids }
+    );
+    if (!response.data.data) {
+      throw new Error('Failed to delete stubs: unexpected response');
+    }
+    return response.data.data;
+  },
+
   async sync(id: string, instanceId: string): Promise<void> {
     await apiClient.post(`/stubs/${id}/sync`, { instanceId });
   },
