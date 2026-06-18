@@ -77,10 +77,6 @@
               <span>{{ t('nav.requests') }}</span>
             </el-menu-item>
             <div class="menu-section-divider" />
-            <el-menu-item index="/mcp">
-              <el-icon><Connection /></el-icon>
-              <span>{{ t('mcp.menuTitle') }}</span>
-            </el-menu-item>
             <el-menu-item index="/settings">
               <el-icon><Setting /></el-icon>
               <span>{{ t('nav.settings') }}</span>
@@ -125,10 +121,6 @@
               <span>{{ t('nav.requests') }}</span>
             </el-menu-item>
             <div class="menu-section-divider" />
-            <el-menu-item index="/mcp">
-              <el-icon><Connection /></el-icon>
-              <span>{{ t('mcp.menuTitle') }}</span>
-            </el-menu-item>
             <el-menu-item index="/settings">
               <el-icon><Setting /></el-icon>
               <span>{{ t('nav.settings') }}</span>

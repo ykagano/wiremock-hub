@@ -204,7 +204,7 @@ ways depending on how you run the Hub:
 | Standalone / local dev | `http://<host>:3000/api/mcp`     |
 | All-in-One (via nginx) | `http://<host>:3000/hub/api/mcp` |
 
-(The in-app **MCP** page shows the exact URL for your current deployment, with copy buttons.)
+(The Hub's **Settings** page shows ready-to-copy client config examples with the URL filled in for your deployment.)
 
 ### Connecting a client
 

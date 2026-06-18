@@ -364,31 +364,10 @@
     "version": "Version"
   },
   "mcp": {
-    "menuTitle": "MCP Server",
-    "title": "MCP Server",
-    "intro": "Connect an AI client (such as Claude Code or Claude Desktop) to this Hub's MCP server to view, edit, sync, and test stubs directly from AI.",
-    "endpointTitle": "Endpoint URL",
-    "endpointDesc": "Point your AI client to the following MCP endpoint. The URL is derived from how you access this page.",
-    "accessDirect": "Direct (standalone / dev)",
-    "accessAllInOne": "All-in-One (nginx)",
     "copied": "Copied to clipboard",
-    "configTitle": "Example Client Configuration",
+    "configTitle": "MCP Client Configuration",
     "configClaudeCode": "Claude Code (CLI)",
-    "configClaudeDesktop": "Claude Desktop / generic JSON",
-    "noAuthTitle": "No authentication",
-    "noAuthDesc": "The MCP endpoint has no authentication, matching this Hub's policy. Only expose it on trusted networks.",
-    "toolsTitle": "Available Tools",
-    "toolsDesc": "The AI client can use the following 33 tools. Tools marked as destructive can delete or reset data.",
-    "destructive": "Destructive",
-    "groups": {
-      "projects": "Projects",
-      "stubs": "Stubs",
-      "sync": "Sync",
-      "importExport": "Import / Export",
-      "instances": "Instances",
-      "instanceOps": "Instance Operations",
-      "recording": "Recording"
-    }
+    "configClaudeDesktop": "Claude Desktop / generic JSON"
   },
   "common": {
     "save": "Save",

@@ -51,24 +51,20 @@ const EXCLUDED_TOOLS = [
 ];
 
 test.describe('MCP', () => {
-  test('info page shows the endpoint, config examples, and tool list', async ({ page }) => {
-    await page.goto('/mcp');
+  test('settings page shows the MCP client config examples', async ({ page }) => {
+    await page.goto('/settings');
 
-    // Heading
-    await expect(page.getByRole('heading', { name: /MCP Server|MCP サーバー/ })).toBeVisible();
+    // Settings heading
+    await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible();
 
-    // The live endpoint URL is rendered and points at /api/mcp
-    await expect(page.locator('code.mcp-url')).toContainText('/api/mcp');
+    // MCP config section title
+    await expect(page.getByText(/MCP Client Configuration|MCP クライアント設定の例/)).toBeVisible();
 
     // Claude Code CLI example is shown with the live URL
     await expect(page.getByText('claude mcp add --transport http wiremock-hub')).toBeVisible();
 
-    // No-authentication warning is shown
-    await expect(page.getByText(/No authentication|認証なし/)).toBeVisible();
-
-    // Tools are inside a collapse; expand the Projects group and verify a tool appears
-    await page.locator('.el-collapse-item__header', { hasText: /Projects|プロジェクト/ }).click();
-    await expect(page.getByText('list_projects', { exact: true })).toBeVisible();
+    // JSON config snippet is shown
+    await expect(page.getByText('"mcpServers"')).toBeVisible();
   });
 
   test('endpoint responds to tools/list with exactly the expected tools', async ({ request }) => {
