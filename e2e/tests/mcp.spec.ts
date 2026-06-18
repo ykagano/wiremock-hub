@@ -51,22 +51,6 @@ const EXCLUDED_TOOLS = [
 ];
 
 test.describe('MCP', () => {
-  test('settings page shows the MCP client config examples', async ({ page }) => {
-    await page.goto('/settings');
-
-    // Settings heading
-    await expect(page.getByRole('heading', { name: /設定|Settings/ })).toBeVisible();
-
-    // MCP config section title
-    await expect(page.getByText(/MCP Client Configuration|MCP クライアント設定の例/)).toBeVisible();
-
-    // Claude Code CLI example is shown with the live URL
-    await expect(page.getByText('claude mcp add --transport http wiremock-hub')).toBeVisible();
-
-    // JSON config snippet is shown
-    await expect(page.getByText('"mcpServers"')).toBeVisible();
-  });
-
   test('endpoint responds to tools/list with exactly the expected tools', async ({ request }) => {
     const res = await request.post(MCP_ENDPOINT, {
       headers: {

@@ -363,12 +363,6 @@
     "about": "このアプリについて",
     "version": "バージョン"
   },
-  "mcp": {
-    "copied": "クリップボードにコピーしました",
-    "configTitle": "MCP クライアント設定の例",
-    "configClaudeCode": "Claude Code（CLI）",
-    "configClaudeDesktop": "Claude Desktop / 汎用 JSON"
-  },
   "common": {
     "save": "保存",
     "cancel": "キャンセル",

@@ -363,12 +363,6 @@
     "about": "About",
     "version": "Version"
   },
-  "mcp": {
-    "copied": "Copied to clipboard",
-    "configTitle": "MCP Client Configuration",
-    "configClaudeCode": "Claude Code (CLI)",
-    "configClaudeDesktop": "Claude Desktop / generic JSON"
-  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
