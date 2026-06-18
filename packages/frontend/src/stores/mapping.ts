@@ -115,6 +115,32 @@ export const useMappingStore = defineStore('mapping', () => {
     }
   }
 
+  // Bulk delete stubs by IDs
+  async function deleteMappings(ids: string[]): Promise<boolean> {
+    const projectStore = useProjectStore();
+    if (!projectStore.currentProjectId) {
+      ElMessage.warning(t('messages.project.notSelected'));
+      return false;
+    }
+    if (ids.length === 0) return false;
+
+    loading.value = true;
+    try {
+      const result = await stubApi.bulkDelete(projectStore.currentProjectId, ids);
+      const idSet = new Set(ids);
+      stubs.value = stubs.value.filter((s) => !idSet.has(s.id));
+      mappings.value = mappings.value.filter((m) => !m.id || !idSet.has(m.id));
+      ElMessage.success(t('messages.stub.bulkDeleted', { count: result.deletedCount }));
+      return true;
+    } catch (e: any) {
+      error.value = e.message || t('messages.stub.deleteFailed');
+      ElMessage.error(error.value!);
+      throw e;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   // Sync to WireMock
   async function syncToWiremock(stubId: string, instanceId: string): Promise<boolean> {
     loading.value = true;
@@ -347,6 +373,7 @@ export const useMappingStore = defineStore('mapping', () => {
     createMapping,
     updateMapping,
     deleteMapping,
+    deleteMappings,
     syncToWiremock,
     syncAllToWiremock,
     replaceStubs,

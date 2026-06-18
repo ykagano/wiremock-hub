@@ -40,6 +40,11 @@ const importOpenApiSchema = z.object({
   format: z.enum(['json', 'yaml']).optional()
 });
 
+const bulkDeleteSchema = z.object({
+  projectId: z.string().uuid(),
+  ids: z.array(z.string().uuid()).min(1)
+});
+
 export async function stubRoutes(fastify: FastifyInstance) {
   // Helper to check project exists
   async function checkProjectExists(projectId: string) {
@@ -230,6 +235,38 @@ export async function stubRoutes(fastify: FastifyInstance) {
       });
     }
   );
+
+  // Bulk delete stubs by IDs
+  fastify.post('/bulk-delete', async (request: FastifyRequest, reply: FastifyReply) => {
+    const parsed = bulkDeleteSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        success: false,
+        error: parsed.error.issues[0]?.message || 'Invalid request body'
+      });
+    }
+
+    const { projectId, ids } = parsed.data;
+
+    const project = await checkProjectExists(projectId);
+    if (!project) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Project not found'
+      });
+    }
+
+    const result = await fastify.prisma.stub.deleteMany({
+      where: { projectId, id: { in: ids } }
+    });
+
+    return reply.send({
+      success: true,
+      data: {
+        deletedCount: result.count
+      }
+    });
+  });
 
   // Delete stub
   fastify.delete(
