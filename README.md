@@ -50,12 +50,6 @@ Extends [WireMock](https://wiremock.org/) with a graphical user interface for ce
 - **Health check**: Monitor connection status of each instance in real-time
 - **Stub testing**: Send test requests against stubs to verify behavior
 
-### AI Integration (MCP)
-
-- **Built-in MCP server**: Connect an AI client (Claude Code, Claude Desktop, etc.) and let it edit stubs, sync them, manage scenarios, and drive recording directly
-- **Comprehensive tools**: 33 tools covering project/stub CRUD, sync & append, import/export, instance inspection & control, and recording
-- **One endpoint, two access patterns**: reachable directly (`/api/mcp`) and through the All-in-One nginx proxy (`/hub/api/mcp`)
-
 ### Data Persistence & UI
 
 - **SQLite storage**: File-based persistence, no external database required — share or back up by copying the file
@@ -227,7 +221,7 @@ Claude Desktop / generic JSON config:
 
 ### What the AI can do
 
-33 tools grouped by area:
+Grouped by area:
 
 - **Projects**: list / get / create / update / duplicate
 - **Stubs**: list / get / create / update / delete / test
@@ -235,10 +229,6 @@ Claude Desktop / generic JSON config:
 - **Import / Export**: export stubs, import stubs, import from OpenAPI
 - **Instances**: list / get (with health) / create / update; mappings & request-log inspection; clear request log; reset scenarios; create stub from a logged request
 - **Recording**: status, start/stop, start-all/stop-all
-
-Destructive tools (`sync_all_stubs`, `delete_stub`, `delete_instance_mapping`, `clear_instance_requests`)
-carry a `destructiveHint` so MCP clients can prompt before running them. The most far-reaching
-operation, a full instance reset, is intentionally **not** exposed over MCP.
 
 > **No authentication.** Like the rest of the Hub, the MCP endpoint is unauthenticated — only expose
 > it on trusted networks.
