@@ -974,6 +974,59 @@ test.describe('Stub', () => {
     await cleanupProject(page, testProjectName);
   });
 
+  test('should clear selection when the search filter changes', async ({ page }) => {
+    const testProjectName = `Stub Selection Filter Test ${Date.now()}`;
+
+    // Create project
+    await page
+      .locator('.page-header')
+      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .click();
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
+    await page.waitForTimeout(1000);
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
+    await page.waitForTimeout(500);
+
+    // Create two stubs
+    for (const path of ['/api/filter-1', '/api/filter-2']) {
+      await page
+        .getByRole('button', { name: /新規作成|Create New/ })
+        .first()
+        .click();
+      await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
+      await page.getByPlaceholder('e.g. /api/users').fill(path);
+      await page.getByRole('button', { name: /保存|Save/ }).click();
+      await expect(page.locator('.el-table__row', { hasText: path })).toBeVisible({
+        timeout: 10000
+      });
+    }
+
+    // Select a row -> selection bar appears
+    await page
+      .locator('.el-table__row', { hasText: '/api/filter-1' })
+      .locator('.el-checkbox__inner')
+      .click();
+    await expect(page.locator('.selection-header')).toBeVisible();
+
+    // Changing the search filter clears the selection (so hidden rows are never deleted)
+    await page.getByPlaceholder(/検索|Search/).fill('filter-2');
+    await expect(page.locator('.selection-header')).not.toBeVisible();
+    await expect(page.locator('.el-table__row', { hasText: '/api/filter-1' })).not.toBeVisible();
+
+    // Clean up
+    await cleanupProject(page, testProjectName);
+  });
+
   test('should export and import stubs in unified WireMock-compatible format', async ({ page }) => {
     const testProjectName = `Export Import ${Date.now()}`;
 

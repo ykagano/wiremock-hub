@@ -220,7 +220,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue';
+import { ref, computed, onMounted, watch, h } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
@@ -289,6 +289,13 @@ function confirmBulkDelete() {
       // Cancelled
     });
 }
+
+// Reset the selection whenever the filter/search context changes, so that
+// "Delete Selected" never targets rows hidden by the current filter.
+// Pagination is intentionally excluded to preserve cross-page selection.
+watch([searchQuery, filterMethod], () => {
+  if (hasSelection.value) clearSelection();
+});
 
 // Filtering
 const filteredMappings = computed(() => {
