@@ -408,8 +408,8 @@ so all validation/logic is reused and no route is modified.
 
 - **Endpoint**: served by the backend at `POST /api/mcp`. Reachable directly at
   `http://<host>:3000/api/mcp`, and through the All-in-One nginx proxy at
-  `http://<host>:3000/hub/api/mcp` (a dedicated `location /hub/api/mcp` is defined in
-  `allinone/nginx.conf`).
+  `http://<host>:3000/hub/api/mcp` (the existing `/hub/` location forwards it to the backend's
+  `/api/mcp`; no dedicated nginx block is needed).
 - **Transport**: Streamable HTTP, stateless, `enableJsonResponse: true` (plain JSON, no SSE).
 - **Tools (33)**: projects (list/get/create/update/duplicate), stubs (list/get/create/update/delete/test),
   sync (`sync_all_stubs`/`append_all_stubs`/`sync_stub`), import/export, instance read + create/update,

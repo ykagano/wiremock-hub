@@ -20,8 +20,8 @@ Only **port 3000** is exposed externally.
 | `/__admin/*`   | WireMock (8080)     | Admin API             |
 | `/` (others)   | WireMock (8080)     | Mock Responses        |
 
-The MCP endpoint has its own nginx `location` (`proxy_buffering off`, extended timeout) so AI
-clients can connect over Streamable HTTP. See [MCP Server](#mcp-server) below.
+The MCP endpoint is served by the Hub backend and reached through the existing `/hub/` proxy rule
+(no separate nginx block needed). See [MCP Server](#mcp-server) below.
 
 ## Quick Start
 
@@ -100,9 +100,10 @@ Connect a client, e.g. Claude Code:
 claude mcp add --transport http wiremock-hub http://localhost:3000/hub/api/mcp
 ```
 
-nginx routes `/hub/api/mcp` to the Hub backend (`http://localhost:3001/api/mcp`) via a dedicated
-`location` block with buffering disabled. The endpoint is unauthenticated — expose it only on
-trusted networks. See the root `README.md` (“MCP Server”) for the full tool list.
+nginx forwards `/hub/api/mcp` to the Hub backend (`http://localhost:3001/api/mcp`) through the
+existing `/hub/` proxy rule (its trailing-slash `proxy_pass` strips the `/hub` prefix). The
+endpoint is unauthenticated — expose it only on trusted networks. See the root `README.md`
+(“MCP Server”) for the full tool list.
 
 ## Data Persistence
 
