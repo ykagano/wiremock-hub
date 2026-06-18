@@ -50,6 +50,12 @@ Extends [WireMock](https://wiremock.org/) with a graphical user interface for ce
 - **Health check**: Monitor connection status of each instance in real-time
 - **Stub testing**: Send test requests against stubs to verify behavior
 
+### AI Integration (MCP)
+
+- **Built-in MCP server**: Connect an AI client (Claude Code, Claude Desktop, etc.) and let it edit stubs, sync them, manage scenarios, and drive recording directly
+- **Comprehensive tools**: 33 tools covering project/stub CRUD, sync & append, import/export, instance inspection & control, and recording
+- **One endpoint, two access patterns**: reachable directly (`/api/mcp`) and through the All-in-One nginx proxy (`/hub/api/mcp`)
+
 ### Data Persistence & UI
 
 - **SQLite storage**: File-based persistence, no external database required — share or back up by copying the file
@@ -181,6 +187,63 @@ For stateful APIs, use the Scenario editor to build state chains with drag-and-d
 - **Requests**: View request logs, filter by URL/method/status, and import unmatched requests as new stubs
 - **Registered Stubs**: Inspect what's actually registered on each instance
 - **Recording**: Start proxy recording to capture live traffic as stubs
+
+## MCP Server (AI Integration)
+
+WireMock Hub embeds a [Model Context Protocol](https://modelcontextprotocol.io/) server so AI
+clients can manage your mocks directly — creating and editing stubs, syncing/appending them to
+instances, importing OpenAPI specs, inspecting request logs, and controlling recording.
+
+### Endpoint
+
+The MCP server is served by the backend over Streamable HTTP. The same endpoint is reachable two
+ways depending on how you run the Hub:
+
+| Deployment             | MCP endpoint URL                 |
+| ---------------------- | -------------------------------- |
+| Standalone / local dev | `http://<host>:3000/api/mcp`     |
+| All-in-One (via nginx) | `http://<host>:3000/hub/api/mcp` |
+
+(The in-app **MCP** page shows the exact URL for your current deployment, with copy buttons.)
+
+### Connecting a client
+
+Claude Code (CLI):
+
+```bash
+claude mcp add --transport http wiremock-hub http://localhost:3000/hub/api/mcp
+```
+
+Claude Desktop / generic JSON config:
+
+```json
+{
+  "mcpServers": {
+    "wiremock-hub": {
+      "type": "http",
+      "url": "http://localhost:3000/hub/api/mcp"
+    }
+  }
+}
+```
+
+### What the AI can do
+
+33 tools grouped by area:
+
+- **Projects**: list / get / create / update / duplicate
+- **Stubs**: list / get / create / update / delete / test
+- **Sync**: `sync_all_stubs` (reset then register), `append_all_stubs` (register without reset), `sync_stub`
+- **Import / Export**: export stubs, import stubs, import from OpenAPI
+- **Instances**: list / get (with health) / create / update; mappings & request-log inspection; clear request log; reset scenarios; create stub from a logged request
+- **Recording**: status, start/stop, start-all/stop-all
+
+Destructive tools (`sync_all_stubs`, `delete_stub`, `delete_instance_mapping`, `clear_instance_requests`)
+carry a `destructiveHint` so MCP clients can prompt before running them. The most far-reaching
+operation, a full instance reset, is intentionally **not** exposed over MCP.
+
+> **No authentication.** Like the rest of the Hub, the MCP endpoint is unauthenticated — only expose
+> it on trusted networks.
 
 ## License
 

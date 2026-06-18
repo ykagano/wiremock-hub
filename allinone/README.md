@@ -13,11 +13,15 @@ Optimized for single-port environments like ECS/Fargate.
 
 Only **port 3000** is exposed externally.
 
-| Path         | Target              | Description    |
-| ------------ | ------------------- | -------------- |
-| `/hub/`      | WireMock Hub (3001) | UI & API       |
-| `/__admin/*` | WireMock (8080)     | Admin API      |
-| `/` (others) | WireMock (8080)     | Mock Responses |
+| Path           | Target              | Description           |
+| -------------- | ------------------- | --------------------- |
+| `/hub/`        | WireMock Hub (3001) | UI & API              |
+| `/hub/api/mcp` | WireMock Hub (3001) | MCP endpoint (for AI) |
+| `/__admin/*`   | WireMock (8080)     | Admin API             |
+| `/` (others)   | WireMock (8080)     | Mock Responses        |
+
+The MCP endpoint has its own nginx `location` (`proxy_buffering off`, extended timeout) so AI
+clients can connect over Streamable HTTP. See [MCP Server](#mcp-server) below.
 
 ## Quick Start
 
@@ -80,6 +84,25 @@ Access URLs:
   ]
 }
 ```
+
+## MCP Server
+
+The bundled Hub exposes an MCP (Model Context Protocol) server for AI clients. In the All-in-One
+container it is reached through nginx at:
+
+```
+http://<host>:3000/hub/api/mcp
+```
+
+Connect a client, e.g. Claude Code:
+
+```bash
+claude mcp add --transport http wiremock-hub http://localhost:3000/hub/api/mcp
+```
+
+nginx routes `/hub/api/mcp` to the Hub backend (`http://localhost:3001/api/mcp`) via a dedicated
+`location` block with buffering disabled. The endpoint is unauthenticated — expose it only on
+trusted networks. See the root `README.md` (“MCP Server”) for the full tool list.
 
 ## Data Persistence
 

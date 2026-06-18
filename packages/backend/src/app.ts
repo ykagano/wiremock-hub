@@ -8,6 +8,7 @@ import { projectRoutes } from './routes/projects.js';
 import { stubRoutes } from './routes/stubs.js';
 import { wiremockInstanceRoutes } from './routes/wiremock-instances.js';
 import { healthRoutes } from './routes/health.js';
+import { mcpRoutes } from './routes/mcp.js';
 import { getDatabaseUrl, migrateDatabase } from './utils/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -47,6 +48,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await fastify.register(stubRoutes, { prefix: '/api/stubs' });
   await fastify.register(wiremockInstanceRoutes, { prefix: '/api/wiremock-instances' });
   await fastify.register(healthRoutes, { prefix: '/api/health' });
+  await fastify.register(mcpRoutes, { prefix: '/api/mcp' });
 
   // Add hook for graceful shutdown
   fastify.addHook('onClose', async () => {

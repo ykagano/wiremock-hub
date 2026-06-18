@@ -363,6 +363,33 @@
     "about": "このアプリについて",
     "version": "バージョン"
   },
+  "mcp": {
+    "menuTitle": "MCP サーバー",
+    "title": "MCP サーバー",
+    "intro": "AI クライアント（Claude Code や Claude Desktop など）をこの Hub の MCP サーバーに接続すると、AI から直接スタブの参照・編集・同期・テストを行えます。",
+    "endpointTitle": "エンドポイント URL",
+    "endpointDesc": "AI クライアントに以下の MCP エンドポイントを指定してください。URL はこのページへのアクセス方法から自動的に算出されます。",
+    "accessDirect": "直接アクセス（standalone / dev）",
+    "accessAllInOne": "All-in-One（nginx 経由）",
+    "copied": "クリップボードにコピーしました",
+    "configTitle": "クライアント設定の例",
+    "configClaudeCode": "Claude Code（CLI）",
+    "configClaudeDesktop": "Claude Desktop / 汎用 JSON",
+    "noAuthTitle": "認証なし",
+    "noAuthDesc": "MCP エンドポイントには Hub の方針に合わせて認証がありません。信頼できるネットワークでのみ公開してください。",
+    "toolsTitle": "利用可能なツール",
+    "toolsDesc": "AI クライアントは以下の 33 個のツールを利用できます。破壊的とマークされたツールはデータの削除やリセットを行います。",
+    "destructive": "破壊的",
+    "groups": {
+      "projects": "プロジェクト",
+      "stubs": "スタブ",
+      "sync": "同期",
+      "importExport": "インポート / エクスポート",
+      "instances": "インスタンス",
+      "instanceOps": "インスタンス操作",
+      "recording": "レコーディング"
+    }
+  },
   "common": {
     "save": "保存",
     "cancel": "キャンセル",

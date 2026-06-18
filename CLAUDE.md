@@ -396,6 +396,32 @@ packages/
 - `POST /api/wiremock-instances/recording/start-all` - Start recording on all instances
 - `POST /api/wiremock-instances/recording/stop-all` - Stop recording on all instances
 
+### MCP (Model Context Protocol)
+
+- `POST /api/mcp` - MCP server endpoint (Streamable HTTP, stateless, JSON responses)
+
+## MCP Server
+
+WireMock Hub embeds an MCP server so AI clients can manage stubs/instances directly. It is a thin
+layer over the existing REST API: each tool calls the corresponding route via `fastify.inject()`,
+so all validation/logic is reused and no route is modified.
+
+- **Endpoint**: served by the backend at `POST /api/mcp`. Reachable directly at
+  `http://<host>:3000/api/mcp`, and through the All-in-One nginx proxy at
+  `http://<host>:3000/hub/api/mcp` (a dedicated `location /hub/api/mcp` is defined in
+  `allinone/nginx.conf`).
+- **Transport**: Streamable HTTP, stateless, `enableJsonResponse: true` (plain JSON, no SSE).
+- **Tools (33)**: projects (list/get/create/update/duplicate), stubs (list/get/create/update/delete/test),
+  sync (`sync_all_stubs`/`append_all_stubs`/`sync_stub`), import/export, instance read + create/update,
+  instance inspection & control (mappings, requests with `limit`, clear requests, reset scenarios,
+  create stub from request), and recording.
+- **Excluded by design**: `delete_project`, `delete_instance`, `reset_instance`, bulk instance update,
+  delete-all-stubs.
+- **Annotations**: `destructiveHint` on `sync_all_stubs`, `delete_stub`, `delete_instance_mapping`,
+  `clear_instance_requests`; `readOnlyHint` on the read tools.
+- **Auth**: none (consistent with the rest of the Hub).
+- **Code**: route in `packages/backend/src/routes/mcp.ts`; server/tools in `packages/backend/src/mcp/`.
+
 ## WireMock Integration
 
 ### Starting WireMock Server

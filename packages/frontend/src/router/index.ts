@@ -67,6 +67,11 @@ const router = createRouter({
       meta: { requiresProject: true }
     },
     {
+      path: '/mcp',
+      name: 'mcp',
+      component: () => import('@/views/McpView.vue')
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue')
