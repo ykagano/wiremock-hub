@@ -118,8 +118,8 @@ importers:
         specifier: ^1.11.21
         version: 1.11.21
       element-plus:
-        specifier: ^2.14.1
-        version: 2.14.1(vue@3.5.37(typescript@5.9.3))
+        specifier: ^2.14.2
+        version: 2.14.2(vue@3.5.37(typescript@5.9.3))
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
@@ -1537,8 +1537,8 @@ packages:
   electron-to-chromium@1.5.368:
     resolution: {integrity: sha512-7RckJJK4uESJF9PxvfMWd3TGqIiieUTG4HxnKaKuIpGbcr+r2ZEB3g2gAhCP3Fqm42vJSzLfgab9eva/C4/XVw==}
 
-  element-plus@2.14.1:
-    resolution: {integrity: sha512-UFnm1+BckNi+azkKJ7L32q1uXs9ekr99Z9pWTQPeDR05jqEWUwQq51ro4kZMVrANbjknX3Z7ukCZwTi2T6Tr9A==}
+  element-plus@2.14.2:
+    resolution: {integrity: sha512-eNH9uP3wQoNqieEIHXiNvIVv+zO5sZDU0CAZq5b0zqSN06DD0/V9xIq1R/qm3rw5k3nBTM1JvpxhCfRbaFLzDQ==}
     peerDependencies:
       vue: ^3.3.7
 
@@ -2927,8 +2927,8 @@ packages:
       jsdom:
         optional: true
 
-  vue-component-type-helpers@3.3.4:
-    resolution: {integrity: sha512-joip1uZTaQR0nD23N400gIdJ7xY+WiiiMA/BCKz842gvGBknqDQAzklUvDEhqFvvrhQY8S2ZANBMu4X70VMFGw==}
+  vue-component-type-helpers@3.3.6:
+    resolution: {integrity: sha512-FkljacAwJ9BUoSUdpFe3VDy0sGigNlTH9+2zcXUWmZOjN8swiCkl3t48wOJun0OsUd2cEIda1l04tsxMiKIIrQ==}
 
   vue-eslint-parser@10.4.1:
     resolution: {integrity: sha512-Gk6gRDj0n/fkRa3C3l0bBheoBckUq/Rs0F/TvMWIS6nzzx67amAViMe9CkNgsP2tXyQONvGiHQESHwFtZ3aYDA==}
@@ -4464,7 +4464,7 @@ snapshots:
 
   electron-to-chromium@1.5.368: {}
 
-  element-plus@2.14.1(vue@3.5.37(typescript@5.9.3)):
+  element-plus@2.14.2(vue@3.5.37(typescript@5.9.3)):
     dependencies:
       '@ctrl/tinycolor': 4.2.0
       '@element-plus/icons-vue': 2.3.2(vue@3.5.37(typescript@5.9.3))
@@ -4481,7 +4481,7 @@ snapshots:
       memoize-one: 6.0.0
       normalize-wheel-es: 1.2.0
       vue: 3.5.37(typescript@5.9.3)
-      vue-component-type-helpers: 3.3.4
+      vue-component-type-helpers: 3.3.6
 
   empathic@2.0.0: {}
 
@@ -5826,7 +5826,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vue-component-type-helpers@3.3.4: {}
+  vue-component-type-helpers@3.3.6: {}
 
   vue-eslint-parser@10.4.1(eslint@10.4.1(jiti@2.6.1)):
     dependencies:
