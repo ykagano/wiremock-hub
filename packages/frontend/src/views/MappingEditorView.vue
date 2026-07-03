@@ -248,24 +248,6 @@ const requestBodyText = ref('');
 const requestBodyMatchType = ref<'equalTo' | 'equalToJson'>('equalTo');
 const requestBodyTab = ref('text');
 
-// Patterns the text helper cannot represent (matchesJsonPath, contains, matches, ...)
-// are managed via the Body Patterns / JSON editors; the Text tab is disabled for them
-const hasNonExactBodyPattern = computed(() =>
-  (formData.request?.bodyPatterns ?? []).some(
-    (p) => p.equalTo === undefined && p.equalToJson === undefined
-  )
-);
-
-watch(
-  hasNonExactBodyPattern,
-  (disabled) => {
-    if (disabled && requestBodyTab.value === 'text') {
-      requestBodyTab.value = 'patterns';
-    }
-  },
-  { immediate: true }
-);
-
 const isNew = computed(() => route.name === 'mapping-new');
 
 const responseBody = computed({
@@ -313,6 +295,25 @@ const formData = reactive<Mapping>({
   priority: 5,
   persistent: true
 });
+
+// Patterns the text helper cannot represent (matchesJsonPath, contains, matches, ...)
+// are managed via the Body Patterns / JSON editors; the Text tab is disabled for them.
+// NOTE: must be declared after formData — the immediate watch evaluates the computed during setup.
+const hasNonExactBodyPattern = computed(() =>
+  (formData.request?.bodyPatterns ?? []).some(
+    (p) => p.equalTo === undefined && p.equalToJson === undefined
+  )
+);
+
+watch(
+  hasNonExactBodyPattern,
+  (disabled) => {
+    if (disabled && requestBodyTab.value === 'text') {
+      requestBodyTab.value = 'patterns';
+    }
+  },
+  { immediate: true }
+);
 
 // Handle URL type change
 watch(urlValue, (newValue) => {
