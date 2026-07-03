@@ -71,13 +71,67 @@ function describe(matcher: string, value: unknown): string {
   return `${matcher}: ${typeof value === 'string' ? value : JSON.stringify(value)}`;
 }
 
+const MATCHER_KEYS = [
+  'equalTo',
+  'equalToJson',
+  'equalToXml',
+  'contains',
+  'matches',
+  'doesNotMatch',
+  'matchesJsonPath',
+  'matchesXPath',
+  'binaryEqualTo'
+] as const;
+
+function describePattern(pattern: BodyPattern): string {
+  for (const key of MATCHER_KEYS) {
+    if (pattern[key] !== undefined) return describe(key, pattern[key]);
+  }
+  return JSON.stringify(pattern);
+}
+
+// Cheap satisfaction checks used to suppress noisy hints.
+// Returning false means "not verifiably satisfied", not "violated".
+function isSatisfiedBy(pattern: BodyPattern, body: string): boolean {
+  if (pattern.contains !== undefined) {
+    return body.includes(pattern.contains);
+  }
+  if (pattern.matches !== undefined || pattern.doesNotMatch !== undefined) {
+    // WireMock matches the regex against the whole body
+    const source = pattern.matches ?? pattern.doesNotMatch;
+    try {
+      const matched = new RegExp(`^(?:${source})$`).test(body);
+      return pattern.matches !== undefined ? matched : !matched;
+    } catch {
+      return false;
+    }
+  }
+  if (pattern.matchesJsonPath !== undefined && typeof pattern.matchesJsonPath === 'string') {
+    const segments = parseSimpleJsonPath(pattern.matchesJsonPath);
+    if (!segments) return false;
+    try {
+      let node: unknown = JSON.parse(body);
+      for (const segment of segments) {
+        if (typeof node !== 'object' || node === null) return false;
+        node = (node as Record<PathSegment, unknown>)[segment];
+      }
+      return node !== undefined;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 /**
  * Generate a sample request body that satisfies the given WireMock body patterns.
  *
- * Exact-value matchers (equalToJson / equalTo / equalToXml) are used as-is.
- * Simple matchesJsonPath expressions are combined into a minimal JSON document
- * (patterns are AND-ed by WireMock). A body containing every `contains` value
- * satisfies those patterns. Anything else is reported back as a hint.
+ * An exact-value matcher (equalToJson / equalTo / equalToXml) fully determines
+ * the body — no other body could satisfy it — so its value is used as-is.
+ * Otherwise simple matchesJsonPath expressions are combined into a minimal JSON
+ * document (patterns are AND-ed by WireMock), and a body containing every
+ * `contains` value satisfies those patterns. Any remaining pattern the chosen
+ * body does not verifiably satisfy is reported back as a hint.
  */
 export function generateSampleBody(patterns?: BodyPattern[]): SampleBodyResult {
   if (!patterns || patterns.length === 0) {
@@ -85,20 +139,26 @@ export function generateSampleBody(patterns?: BodyPattern[]): SampleBodyResult {
   }
 
   // An exact-value matcher fully determines the body
-  for (const pattern of patterns) {
-    if (pattern.equalToJson !== undefined) {
+  const exactIndex = patterns.findIndex(
+    (p) => p.equalToJson !== undefined || p.equalTo !== undefined || p.equalToXml !== undefined
+  );
+  if (exactIndex >= 0) {
+    const exact = patterns[exactIndex];
+    let body: string;
+    if (exact.equalToJson !== undefined) {
       const raw =
-        typeof pattern.equalToJson === 'string'
-          ? pattern.equalToJson
-          : JSON.stringify(pattern.equalToJson);
-      return { body: prettyJson(raw), hints: [] };
+        typeof exact.equalToJson === 'string'
+          ? exact.equalToJson
+          : JSON.stringify(exact.equalToJson);
+      body = prettyJson(raw);
+    } else {
+      body = (exact.equalTo ?? exact.equalToXml) as string;
     }
-    if (pattern.equalTo !== undefined) {
-      return { body: pattern.equalTo, hints: [] };
-    }
-    if (pattern.equalToXml !== undefined) {
-      return { body: pattern.equalToXml, hints: [] };
-    }
+    // Remaining AND-ed patterns the exact body does not verifiably satisfy
+    const hints = patterns
+      .filter((p, i) => i !== exactIndex && !isSatisfiedBy(p, body))
+      .map(describePattern);
+    return { body, hints };
   }
 
   const hints: string[] = [];
@@ -140,9 +200,12 @@ export function generateSampleBody(patterns?: BodyPattern[]): SampleBodyResult {
       }
     }
     if (built) {
-      // A JSON body cannot also embed arbitrary contains values; surface them as hints
-      hints.push(...containsValues.map((v) => describe('contains', v)));
-      return { body: JSON.stringify(root, null, 2), hints };
+      const body = JSON.stringify(root, null, 2);
+      // A JSON body cannot embed arbitrary contains values; hint the unsatisfied ones
+      hints.push(
+        ...containsValues.filter((v) => !body.includes(v)).map((v) => describe('contains', v))
+      );
+      return { body, hints };
     }
   }
 

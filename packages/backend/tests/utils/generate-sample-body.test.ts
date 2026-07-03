@@ -102,19 +102,52 @@ describe('generateSampleBody', () => {
     expect(result.hints).toEqual(['doesNotMatch: .*error.*', 'matchesXPath: /order/id']);
   });
 
-  it('should prefer exact matchers over other patterns', () => {
+  it('should prefer exact matchers and hint unsatisfied remaining patterns', () => {
     const result = generateSampleBody([
       { matchesJsonPath: '$.other' },
       { equalToJson: '{"key":"value"}' }
     ]);
     expect(JSON.parse(result.body!)).toEqual({ key: 'value' });
+    // $.other is not present in the exact body, so the constraint is surfaced
+    expect(result.hints).toEqual(['matchesJsonPath: $.other']);
+  });
+
+  it('should not hint remaining patterns the exact body satisfies', () => {
+    const result = generateSampleBody([
+      { equalToJson: '{"key":"value"}' },
+      { matchesJsonPath: '$.key' },
+      { contains: 'value' }
+    ]);
+    expect(JSON.parse(result.body!)).toEqual({ key: 'value' });
     expect(result.hints).toEqual([]);
   });
 
-  it('should generate JSON from paths and surface contains as a hint when combined', () => {
+  it('should verify regex matchers against the exact body', () => {
+    const satisfied = generateSampleBody([{ equalTo: 'order-123' }, { matches: 'order-\\d+' }]);
+    expect(satisfied.body).toBe('order-123');
+    expect(satisfied.hints).toEqual([]);
+
+    const unsatisfied = generateSampleBody([{ equalTo: 'hello' }, { matches: 'order-\\d+' }]);
+    expect(unsatisfied.body).toBe('hello');
+    expect(unsatisfied.hints).toEqual(['matches: order-\\d+']);
+  });
+
+  it('should hint a conflicting second exact matcher', () => {
+    const result = generateSampleBody([{ equalToJson: '{"a":1}' }, { equalToJson: '{"b":2}' }]);
+    expect(JSON.parse(result.body!)).toEqual({ a: 1 });
+    expect(result.hints).toEqual(['equalToJson: {"b":2}']);
+  });
+
+  it('should generate JSON from paths and surface unsatisfied contains as a hint', () => {
     const result = generateSampleBody([{ matchesJsonPath: '$.name' }, { contains: 'foo' }]);
     expect(JSON.parse(result.body!)).toEqual({ name: 'value' });
     expect(result.hints).toEqual(['contains: foo']);
+  });
+
+  it('should not hint contains values the generated JSON already includes', () => {
+    const result = generateSampleBody([{ matchesJsonPath: '$.name' }, { contains: 'name' }]);
+    expect(JSON.parse(result.body!)).toEqual({ name: 'value' });
+    expect(result.hints).toEqual([]);
   });
 
   it('should report conflicting paths as hints', () => {
