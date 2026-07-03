@@ -38,7 +38,8 @@ export interface MappingResponse {
   body?: string;
   jsonBody?: unknown;
   bodyFileName?: string;
-  headers?: Record<string, string>;
+  // Multi-value response headers (e.g. Set-Cookie) are represented as string arrays
+  headers?: Record<string, string | string[]>;
   additionalProxyRequestHeaders?: Record<string, string>;
   fixedDelayMilliseconds?: number;
   delayDistribution?: unknown;
@@ -136,8 +137,8 @@ export interface StubTestInstanceResult {
   actualStatus: number;
   expectedBody?: string;
   actualBody?: string;
-  expectedHeaders?: Record<string, string>;
-  actualHeaders?: Record<string, string>;
+  expectedHeaders?: Record<string, string | string[]>;
+  actualHeaders?: Record<string, string | string[]>;
   error?: string;
   responseTimeMs?: number;
 }

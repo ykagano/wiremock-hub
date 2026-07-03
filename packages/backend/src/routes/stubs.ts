@@ -439,7 +439,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
                 actualBody:
                   typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
                 expectedHeaders,
-                actualHeaders: response.headers as Record<string, string>,
+                actualHeaders: response.headers as Record<string, string | string[]>,
                 responseTimeMs
               };
             } catch (err: any) {
