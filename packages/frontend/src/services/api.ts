@@ -1,5 +1,10 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import type { StubTestRequest, StubTestResponse, MappingsResponse } from '@/types/wiremock';
+import type {
+  StubTestRequest,
+  StubTestResponse,
+  MappingsResponse,
+  RequestsResponse
+} from '@/types/wiremock';
 
 // Use relative path for API calls to work with nginx proxy in all-in-one mode
 // In development: proxied by Vite to localhost:3000
@@ -155,10 +160,13 @@ export const wiremockInstanceApi = {
     return response.data.data!;
   },
 
-  async getRequests(id: string, limit?: number): Promise<any> {
-    const response = await apiClient.get<ApiResponse<any>>(`/wiremock-instances/${id}/requests`, {
-      params: limit ? { limit } : undefined
-    });
+  async getRequests(id: string, limit?: number): Promise<RequestsResponse | undefined> {
+    const response = await apiClient.get<ApiResponse<RequestsResponse>>(
+      `/wiremock-instances/${id}/requests`,
+      {
+        params: limit ? { limit } : undefined
+      }
+    );
     return response.data.data;
   },
 
