@@ -224,7 +224,7 @@ import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
-import type { Mapping } from '@/types/wiremock';
+import type { Mapping } from '@wiremock-hub/shared';
 import { toMapping } from '@/utils/wiremock';
 import JsonEditor from '@/components/mapping/JsonEditor.vue';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';

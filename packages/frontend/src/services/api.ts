@@ -4,7 +4,7 @@ import type {
   StubTestResponse,
   MappingsResponse,
   RequestsResponse
-} from '@/types/wiremock';
+} from '@wiremock-hub/shared';
 
 // Use relative path for API calls to work with nginx proxy in all-in-one mode
 // In development: proxied by Vite to localhost:3000
@@ -160,14 +160,14 @@ export const wiremockInstanceApi = {
     return response.data.data!;
   },
 
-  async getRequests(id: string, limit?: number): Promise<RequestsResponse | undefined> {
+  async getRequests(id: string, limit?: number): Promise<RequestsResponse> {
     const response = await apiClient.get<ApiResponse<RequestsResponse>>(
       `/wiremock-instances/${id}/requests`,
       {
         params: limit ? { limit } : undefined
       }
     );
-    return response.data.data;
+    return response.data.data!;
   },
 
   async clearRequests(id: string): Promise<void> {

@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useMappingStore } from '@/stores/mapping';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { stubApi, type Stub } from '@/services/api';
-import type { Mapping } from '@/types/wiremock';
+import type { Mapping } from '@wiremock-hub/shared';
 import { toMapping } from '@/utils/wiremock';
 
 export { toMapping };

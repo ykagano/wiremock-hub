@@ -73,7 +73,7 @@ import { useProjectStore } from '@/stores/project';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import RequestTable from '@/components/request/RequestTable.vue';
 import RequestFilter, { type FilterState } from '@/components/request/RequestFilter.vue';
-import type { LoggedRequest } from '@/types/wiremock';
+import type { LoggedRequest } from '@wiremock-hub/shared';
 import { useResponsive } from '@/composables/useResponsive';
 
 const { t } = useI18n();

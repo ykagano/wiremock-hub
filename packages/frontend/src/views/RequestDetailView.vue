@@ -141,7 +141,7 @@ import { useI18n } from 'vue-i18n';
 import { ElMessage } from 'element-plus';
 import { ArrowLeft } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
-import type { LoggedRequest } from '@/types/wiremock';
+import type { LoggedRequest } from '@wiremock-hub/shared';
 import { getMethodTagType, getStatusTagType } from '@/utils/wiremock';
 import api from '@/services/api';
 import ImportStubDialog from '@/components/request/ImportStubDialog.vue';
@@ -164,7 +164,7 @@ const requestHeaders = computed(() => {
   if (!request.value?.request.headers) return [];
   return Object.entries(request.value.request.headers).map(([name, value]) => ({
     name,
-    value: typeof value === 'object' ? JSON.stringify(value) : String(value)
+    value: Array.isArray(value) ? value.join(', ') : String(value)
   }));
 });
 
@@ -173,7 +173,7 @@ const responseHeaders = computed(() => {
   if (!headers) return [];
   return Object.entries(headers).map(([name, value]) => ({
     name,
-    value: typeof value === 'object' ? JSON.stringify(value) : String(value)
+    value: Array.isArray(value) ? value.join(', ') : String(value)
   }));
 });
 
@@ -181,7 +181,7 @@ const queryParams = computed(() => {
   if (!request.value?.request.queryParams) return [];
   return Object.entries(request.value.request.queryParams).map(([name, value]) => ({
     name,
-    value: String(value)
+    value: Array.isArray(value?.values) ? value.values.join(', ') : String(value)
   }));
 });
 

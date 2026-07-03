@@ -170,11 +170,14 @@
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { extractEqualToValues, generateSampleBody } from '@wiremock-hub/shared';
+import {
+  extractEqualToValues,
+  generateSampleBody,
+  type StubTestRequest
+} from '@wiremock-hub/shared';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
 import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
-import type { StubTestRequest } from '@/types/wiremock';
 import { getMethodTagType, toMapping } from '@/utils/wiremock';
 
 const { t } = useI18n();

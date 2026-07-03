@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import type { Mapping, MappingsResponse, RequestsResponse } from '@/types/wiremock';
+import type { Mapping, MappingsResponse, RequestsResponse } from '@wiremock-hub/shared';
 
 export class WireMockAPI {
   private client: AxiosInstance;

@@ -888,11 +888,14 @@ function generateMapping(
 
   // Header matching
   if (options.matchHeaders.length > 0) {
-    const headers: Record<string, { equalTo: string }> = {};
+    const headers: Record<string, { equalTo: string } | { hasExactly: { equalTo: string }[] }> = {};
     for (const header of options.matchHeaders) {
       const headerValue = wiremockRequest.request.headers[header];
       if (typeof headerValue === 'string' && headerValue) {
         headers[header] = { equalTo: headerValue };
+      } else if (Array.isArray(headerValue) && headerValue.length > 0) {
+        // Multi-value headers arrive as arrays; match all values with hasExactly
+        headers[header] = { hasExactly: headerValue.map((value) => ({ equalTo: value })) };
       }
     }
     if (Object.keys(headers).length > 0) {
@@ -927,7 +930,8 @@ function generateMapping(
   const sourceHeaders =
     wiremockRequest.response?.headers || wiremockRequest.responseDefinition?.headers;
   if (options.responseHeaders.length > 0 && sourceHeaders) {
-    const headers: Record<string, string> = {};
+    // WireMock accepts string arrays for multi-value response headers (e.g. Set-Cookie)
+    const headers: Record<string, string | string[]> = {};
     for (const header of options.responseHeaders) {
       if (sourceHeaders[header]) {
         headers[header] = sourceHeaders[header];

@@ -132,7 +132,7 @@ import { storeToRefs } from 'pinia';
 import { useProjectStore } from '@/stores/project';
 import { wiremockInstanceApi } from '@/services/api';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { Mapping } from '@/types/wiremock';
+import type { Mapping } from '@wiremock-hub/shared';
 import { getMethodTagType, getUrl } from '@/utils/wiremock';
 import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';

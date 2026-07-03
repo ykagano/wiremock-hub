@@ -58,6 +58,12 @@ export interface BodyPattern {
   binaryEqualTo?: string;
 }
 
+/** Multi-value parameter as serialized in the WireMock request journal */
+export interface MultiValue {
+  key: string;
+  values: string[];
+}
+
 export interface LoggedRequest {
   id: string;
   request: {
@@ -65,23 +71,24 @@ export interface LoggedRequest {
     absoluteUrl: string;
     method: string;
     clientIp?: string;
-    headers: Record<string, unknown>;
+    // Multi-value headers are serialized as string arrays in the journal
+    headers: Record<string, string | string[]>;
     cookies?: Record<string, unknown>;
     body?: string;
     bodyAsBase64?: string;
     loggedDate: number;
     loggedDateString: string;
-    queryParams?: Record<string, string>;
-    formParams?: Record<string, string>;
+    queryParams?: Record<string, MultiValue>;
+    formParams?: Record<string, MultiValue>;
   };
   responseDefinition?: {
     status: number;
     body?: string;
-    headers?: Record<string, string>;
+    headers?: Record<string, string | string[]>;
   };
   response?: {
     status: number;
-    headers?: Record<string, string>;
+    headers?: Record<string, string | string[]>;
     body?: string;
     bodyAsBase64?: string;
   };

@@ -1056,6 +1056,49 @@ describe('WireMock Instances API', () => {
     });
   });
 
+  describe('POST /api/wiremock-instances/:id/requests/:requestId/import (success)', () => {
+    it('should preserve single and multi-value header matches in the generated stub', async () => {
+      const app = await getTestApp();
+      const instanceId = await createInstance(projectId);
+
+      const mockRequest = {
+        id: 'req-1',
+        request: {
+          method: 'GET',
+          url: '/multi',
+          headers: {
+            'X-Single': 'one',
+            'X-Multi': ['a', 'b']
+          }
+        },
+        response: { status: 200 }
+      };
+      vi.spyOn(axios, 'get').mockResolvedValueOnce({ status: 200, data: mockRequest });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/wiremock-instances/${instanceId}/requests/req-1/import`,
+        payload: {
+          projectId,
+          name: 'Imported Stub',
+          urlMatchType: 'url',
+          urlPattern: '/multi',
+          matchHeaders: ['X-Single', 'X-Multi']
+        }
+      });
+
+      expect(response.statusCode).toBe(201);
+      const result = response.json();
+      expect(result.success).toBe(true);
+      expect(result.data.mapping.request.headers['X-Single']).toEqual({ equalTo: 'one' });
+      expect(result.data.mapping.request.headers['X-Multi']).toEqual({
+        hasExactly: [{ equalTo: 'a' }, { equalTo: 'b' }]
+      });
+
+      vi.restoreAllMocks();
+    });
+  });
+
   describe('DELETE /api/wiremock-instances/:id/requests (success)', () => {
     it('should clear request log on WireMock', async () => {
       const app = await getTestApp();
