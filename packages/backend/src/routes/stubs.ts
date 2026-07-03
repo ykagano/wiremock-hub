@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
 import { parse as parseYaml } from 'yaml';
-import type { Mapping } from '@wiremock-hub/shared';
+import { extractEqualToValues, generateSampleBody, type Mapping } from '@wiremock-hub/shared';
 import { detectFormat, buildMappingFromOperation } from '../utils/openapi-parser.js';
 import { injectHubMetadata, syncStubsToInstance } from '../utils/wiremock-sync.js';
 
@@ -334,42 +334,17 @@ export async function stubRoutes(fastify: FastifyInstance) {
       return { error: 'No URL could be determined from the stub mapping' };
     }
 
-    const headers: Record<string, string> = {};
-    if (mapping.request.headers) {
-      for (const [key, value] of Object.entries(mapping.request.headers)) {
-        if (typeof value === 'object' && value !== null && 'equalTo' in value) {
-          headers[key] = (value as { equalTo: string }).equalTo;
-        }
-      }
-    }
-    if (overrides?.headers) {
-      Object.assign(headers, overrides.headers);
-    }
+    // Overrides replace the mapping-derived values entirely, so that
+    // headers/params removed in the UI are not re-added from the mapping
+    const headers = overrides?.headers
+      ? { ...overrides.headers }
+      : extractEqualToValues(mapping.request.headers);
 
-    const queryParameters: Record<string, string> = {};
-    if (mapping.request.queryParameters) {
-      for (const [key, value] of Object.entries(mapping.request.queryParameters)) {
-        if (typeof value === 'object' && value !== null && 'equalTo' in value) {
-          queryParameters[key] = (value as { equalTo: string }).equalTo;
-        }
-      }
-    }
-    if (overrides?.queryParameters) {
-      Object.assign(queryParameters, overrides.queryParameters);
-    }
+    const queryParameters = overrides?.queryParameters
+      ? { ...overrides.queryParameters }
+      : extractEqualToValues(mapping.request.queryParameters);
 
-    let body: string | undefined;
-    if (mapping.request.bodyPatterns && mapping.request.bodyPatterns.length > 0) {
-      const firstPattern = mapping.request.bodyPatterns[0];
-      if (firstPattern.equalToJson) {
-        body =
-          typeof firstPattern.equalToJson === 'string'
-            ? firstPattern.equalToJson
-            : JSON.stringify(firstPattern.equalToJson);
-      } else if (firstPattern.equalTo) {
-        body = firstPattern.equalTo;
-      }
-    }
+    let body = generateSampleBody(mapping.request.bodyPatterns).body;
     if (overrides?.body !== undefined) {
       body = overrides.body;
     }
@@ -509,6 +484,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
               method: testRequest.method,
               url: testRequest.url,
               headers: testRequest.headers,
+              queryParameters: testRequest.queryParameters,
               body: testRequest.body
             },
             results: instanceResults,

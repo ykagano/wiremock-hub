@@ -95,14 +95,23 @@
 
             <!-- Body -->
             <el-form-item :label="t('editor.requestBody')" data-testid="request-body">
-              <el-tabs type="border-card">
-                <el-tab-pane :label="t('editor.text')">
-                  <MonacoEditor v-model="requestBodyText" language="json" height="300px" />
-                </el-tab-pane>
-                <el-tab-pane :label="t('editor.bodyPatterns')">
-                  <BodyPatternsEditor v-model="formData.request.bodyPatterns" />
-                </el-tab-pane>
-              </el-tabs>
+              <div style="width: 100%">
+                <el-tabs v-model="requestBodyTab" type="border-card">
+                  <el-tab-pane
+                    :label="t('editor.text')"
+                    name="text"
+                    :disabled="hasNonExactBodyPattern"
+                  >
+                    <MonacoEditor v-model="requestBodyText" language="json" height="300px" />
+                  </el-tab-pane>
+                  <el-tab-pane :label="t('editor.bodyPatterns')" name="patterns">
+                    <BodyPatternsEditor v-model="formData.request.bodyPatterns" />
+                  </el-tab-pane>
+                </el-tabs>
+                <div v-if="hasNonExactBodyPattern" class="body-text-disabled-hint">
+                  {{ t('editor.bodyTextTabDisabled') }}
+                </div>
+              </div>
             </el-form-item>
           </el-form>
         </el-card>
@@ -237,6 +246,25 @@ const urlType = ref<'url' | 'urlPattern' | 'urlPath' | 'urlPathPattern'>('url');
 const urlValue = ref('');
 const requestBodyText = ref('');
 const requestBodyMatchType = ref<'equalTo' | 'equalToJson'>('equalTo');
+const requestBodyTab = ref('text');
+
+// Patterns the text helper cannot represent (matchesJsonPath, contains, matches, ...)
+// are managed via the Body Patterns / JSON editors; the Text tab is disabled for them
+const hasNonExactBodyPattern = computed(() =>
+  (formData.request?.bodyPatterns ?? []).some(
+    (p) => p.equalTo === undefined && p.equalToJson === undefined
+  )
+);
+
+watch(
+  hasNonExactBodyPattern,
+  (disabled) => {
+    if (disabled && requestBodyTab.value === 'text') {
+      requestBodyTab.value = 'patterns';
+    }
+  },
+  { immediate: true }
+);
 
 const isNew = computed(() => route.name === 'mapping-new');
 
@@ -392,11 +420,14 @@ async function handleSave() {
 
   saving.value = true;
   try {
-    // Sync request body text to bodyPatterns (preserve match type)
-    if (requestBodyText.value) {
-      formData.request.bodyPatterns = [{ [requestBodyMatchType.value]: requestBodyText.value }];
-    } else {
-      delete formData.request.bodyPatterns;
+    // Sync request body text to bodyPatterns (preserve match type).
+    // Non-exact patterns are kept as-is; their Text tab is disabled in the UI.
+    if (!hasNonExactBodyPattern.value) {
+      if (requestBodyText.value) {
+        formData.request.bodyPatterns = [{ [requestBodyMatchType.value]: requestBodyText.value }];
+      } else {
+        delete formData.request.bodyPatterns;
+      }
     }
 
     if (isNew.value) {
@@ -478,5 +509,11 @@ function openTestDialog() {
 /* Make border-card tabs fill the full form-item width */
 :deep(.el-form-item__content > .el-tabs--border-card) {
   width: 100%;
+}
+
+.body-text-disabled-hint {
+  color: var(--el-color-warning);
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

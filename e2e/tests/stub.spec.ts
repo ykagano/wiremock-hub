@@ -1448,8 +1448,34 @@ test.describe('Stub Test Feature', () => {
     // Close dialog
     await page.locator('.el-dialog__headerbtn').click();
 
-    // Go back
-    await page.getByRole('button', { name: /戻る|Back/ }).click();
+    // ========== Change URL to a path pattern via JSON tab ==========
+    await page.getByRole('tab', { name: 'JSON' }).click();
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+
+    const currentJson = await getMonacoEditorValue(page, '.json-editor');
+    const parsed = JSON.parse(currentJson);
+    delete parsed.request.url;
+    parsed.request.urlPathPattern = '/api/test-ui/.*';
+    await fillMonacoEditor(page, JSON.stringify(parsed, null, 2), '.json-editor');
+
+    await page.getByRole('button', { name: /保存|Save/ }).click();
+    await expect(page.locator('.el-table__row', { hasText: '/api/test-ui' })).toBeVisible({
+      timeout: 10000
+    });
+
+    // ========== Verify the pattern is prefilled in the test dialog ==========
+    await page
+      .locator('.el-table__row', { hasText: '/api/test-ui' })
+      .locator('.el-button--success')
+      .click();
+    await expect(page.locator('.el-dialog', { hasText: /スタブテスト|Stub Test/ })).toBeVisible();
+
+    const patternUrlField = page.locator('.el-dialog').locator('.el-input input').first();
+    await expect(patternUrlField).toHaveValue('/api/test-ui/.*');
+    await expect(page.locator('.el-dialog').getByText(/編集してください|edit it to/)).toBeVisible();
+
+    // Close dialog
+    await page.locator('.el-dialog__headerbtn').click();
 
     // Clean up
     await cleanupProject(page, testProjectName);
@@ -1751,6 +1777,135 @@ test.describe('Stub Test Feature', () => {
     await expect(page.locator('.el-dialog').locator('.el-alert--error')).toContainText(
       /instance|インスタンス/i
     );
+
+    // Close dialog
+    await page.locator('.el-dialog__headerbtn').click();
+
+    // Clean up
+    await cleanupProject(page, testProjectName);
+  });
+
+  test('should allow editing request body and headers in test dialog', async ({ page }) => {
+    const testProjectName = `Edit Request Test ${Date.now()}`;
+
+    // Create project
+    await page
+      .locator('.page-header')
+      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .click();
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
+
+    // Add WireMock instance
+    await page
+      .locator('.section-header')
+      .getByRole('button', { name: /インスタンス追加|Add Instance/ })
+      .click();
+    await page
+      .locator('.el-dialog')
+      .getByLabel(/インスタンス名|Name/)
+      .fill('Instance 1');
+    await page.locator('.el-dialog').getByLabel(/URL/).fill(WIREMOCK_1_URL);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Navigate to stubs and create a stub
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
+    await page.waitForTimeout(500);
+
+    await page
+      .getByRole('button', { name: /新規作成|Create New/ })
+      .first()
+      .click();
+    await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
+    const urlInput = page.getByPlaceholder('e.g. /api/users');
+    await urlInput.fill('/api/edit-request-test');
+
+    await page.getByRole('button', { name: /保存|Save/ }).click();
+    await expect(page.locator('.el-table__row', { hasText: '/api/edit-request-test' })).toBeVisible(
+      {
+        timeout: 10000
+      }
+    );
+
+    // Open stub editor and set a matchesJsonPath body pattern + required header via JSON tab
+    await page.locator('.el-table__row', { hasText: '/api/edit-request-test' }).click();
+    await page.getByRole('tab', { name: 'JSON' }).click();
+    await page.waitForSelector('.json-editor .monaco-editor', { timeout: 10000 });
+
+    const currentJson = await getMonacoEditorValue(page, '.json-editor');
+    const parsed = JSON.parse(currentJson);
+    parsed.request.method = 'POST';
+    parsed.request.headers = { 'X-Api-Key': { equalTo: 'secret' } };
+    parsed.request.bodyPatterns = [{ matchesJsonPath: '$.orderId' }];
+    parsed.response.status = 200;
+    parsed.response.body = '{"ok": true}';
+    delete parsed.response.jsonBody;
+
+    await fillMonacoEditor(page, JSON.stringify(parsed, null, 2), '.json-editor');
+
+    await page.getByRole('button', { name: /保存|Save/ }).click();
+    await expect(page.locator('.el-table__row', { hasText: '/api/edit-request-test' })).toBeVisible(
+      {
+        timeout: 10000
+      }
+    );
+
+    // Sync all instances
+    await page.getByRole('button', { name: /全インスタンスに同期|Sync All/ }).click();
+    await page
+      .locator('.el-message-box')
+      .getByRole('button', { name: /はい|Yes/ })
+      .click();
+    await expect(page.getByText(/同期完了|synced/i).first()).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+
+    // Open the test dialog
+    const row = page.locator('.el-table__row', { hasText: '/api/edit-request-test' });
+    await row.locator('.el-button--success').click();
+    const dialog = page.locator('.el-dialog', { hasText: /スタブテスト|Stub Test/ });
+    await expect(dialog).toBeVisible();
+
+    // ========== Prefill: sample body generated from matchesJsonPath ==========
+    const bodyInput = dialog.locator('[data-testid="stub-test-body"]');
+    await expect(bodyInput).toBeVisible();
+    await expect(bodyInput).toHaveValue(/"orderId": "value"/);
+
+    // Prefill: header row extracted from the mapping
+    const headersItem = dialog.locator('.el-form-item', { hasText: /ヘッダー|Headers/ });
+    await expect(headersItem.locator('.kv-row')).toHaveCount(1);
+    await expect(headersItem.locator('.kv-row input').first()).toHaveValue('X-Api-Key');
+    await expect(headersItem.locator('.kv-row input').nth(1)).toHaveValue('secret');
+
+    // Send with the prefilled request: should pass (1/1)
+    await dialog.getByRole('button', { name: /テスト送信|Send Test/ }).click();
+    await expect(dialog.locator('.el-alert', { hasText: '1/1' })).toBeVisible({ timeout: 15000 });
+
+    // ========== Delete the required header row: should fail (0/1) ==========
+    await headersItem.locator('.kv-row .el-button').click();
+    await expect(headersItem.locator('.kv-row')).toHaveCount(0);
+
+    await dialog.getByRole('button', { name: /テスト送信|Send Test/ }).click();
+    await expect(dialog.locator('.el-alert', { hasText: '0/1' })).toBeVisible({ timeout: 15000 });
+
+    // ========== Re-add the header manually and edit the body: should pass again ==========
+    await headersItem.getByRole('button', { name: /追加|Add/ }).click();
+    await headersItem.locator('.kv-row input').first().fill('X-Api-Key');
+    await headersItem.locator('.kv-row input').nth(1).fill('secret');
+
+    await bodyInput.fill('{"orderId": "edited-123", "extra": true}');
+
+    await dialog.getByRole('button', { name: /テスト送信|Send Test/ }).click();
+    await expect(dialog.locator('.el-alert', { hasText: '1/1' })).toBeVisible({ timeout: 15000 });
 
     // Close dialog
     await page.locator('.el-dialog__headerbtn').click();

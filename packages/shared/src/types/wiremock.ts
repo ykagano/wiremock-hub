@@ -128,6 +128,7 @@ export interface StubTestResponse {
     method: string;
     url: string;
     headers?: Record<string, string>;
+    queryParameters?: Record<string, string>;
     body?: string;
   };
   results: StubTestInstanceResult[];
