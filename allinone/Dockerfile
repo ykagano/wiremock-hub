@@ -108,7 +108,9 @@ RUN corepack enable && corepack install
 RUN pnpm install --frozen-lockfile --prod && \
     apk del python3 make g++
 
-# Copy backend build (includes generated Prisma client in dist/)
+# Copy built files (includes generated Prisma client in dist/)
+# shared/dist is required at runtime because backend imports @wiremock-hub/shared
+COPY --from=backend-builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=backend-builder /app/packages/backend/prisma ./packages/backend/prisma
 
