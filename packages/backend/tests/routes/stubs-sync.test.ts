@@ -385,7 +385,8 @@ describe('Stubs API - Sync & Test', () => {
       expect(result.data.request.url).toBe('/api/data');
       expect(result.data.request.headers['Content-Type']).toBe('application/json');
       expect(result.data.request.headers['Authorization']).toBe('Bearer token123');
-      expect(result.data.request.body).toBe('{"key":"value"}');
+      // Body is generated from equalToJson and pretty-printed; compare as JSON
+      expect(JSON.parse(result.data.request.body)).toEqual({ key: 'value' });
     });
 
     it('should use GET as default method when not specified', async () => {
@@ -662,6 +663,101 @@ describe('Stubs API - Sync & Test', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json().data.request.url).toBe('/api/users/42');
+    });
+
+    it('should replace mapping headers entirely when headers override is given', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      const stubId = await createStub(projectId, {
+        request: {
+          method: 'POST',
+          url: '/api/data',
+          headers: {
+            'Content-Type': { equalTo: 'application/json' },
+            'X-Removed': { equalTo: 'should-not-appear' }
+          }
+        },
+        response: { status: 200 }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: { headers: { 'X-Custom': 'custom-value' } }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data.request.headers).toEqual({ 'X-Custom': 'custom-value' });
+    });
+
+    it('should replace mapping query parameters entirely when override is given', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      const stubId = await createStub(projectId, {
+        request: {
+          method: 'GET',
+          url: '/api/search',
+          queryParameters: { q: { equalTo: 'original' }, page: { equalTo: '1' } }
+        },
+        response: { status: 200 }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: { queryParameters: { q: 'overridden' } }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const echoedRequest = response.json().data.request;
+      expect(echoedRequest.url).toBe('/api/search');
+      // Replacement semantics: mapping-derived params (page) must not be merged back in
+      expect(echoedRequest.queryParameters).toEqual({ q: 'overridden' });
+    });
+
+    it('should use body override over the generated sample', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      const stubId = await createStub(projectId, {
+        request: {
+          method: 'POST',
+          url: '/api/data',
+          bodyPatterns: [{ equalToJson: '{"key":"value"}' }]
+        },
+        response: { status: 200 }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: { body: '{"key":"edited"}' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data.request.body).toBe('{"key":"edited"}');
+    });
+
+    it('should generate a sample body from matchesJsonPath patterns', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      const stubId = await createStub(projectId, {
+        request: {
+          method: 'POST',
+          url: '/api/orders',
+          bodyPatterns: [{ matchesJsonPath: '$.orderId' }, { matchesJsonPath: '$.user.name' }]
+        },
+        response: { status: 201 }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.json().data.request.body);
+      expect(body).toEqual({ orderId: 'value', user: { name: 'value' } });
     });
   });
 });

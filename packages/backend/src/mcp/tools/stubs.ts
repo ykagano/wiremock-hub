@@ -98,16 +98,21 @@ export function registerStubTools(server: McpServer, fastify: FastifyInstance): 
       description:
         'Send a request derived from a stub mapping to every active WireMock instance in its ' +
         'project and report whether the response matches. Optional overrides let you supply a ' +
-        'URL (required for pattern-based matchers), headers, body, or query parameters.',
+        'URL (required for pattern-based matchers), headers, body, or query parameters. ' +
+        'Header and query parameter overrides REPLACE the values derived from the stub ' +
+        '(they are not merged), so pass the complete set you want to send.',
       inputSchema: {
         id: z.string().describe('Stub ID'),
         url: z.string().optional().describe('Override request URL (required for urlPattern stubs)'),
-        headers: z.record(z.string(), z.string()).optional().describe('Override request headers'),
+        headers: z
+          .record(z.string(), z.string())
+          .optional()
+          .describe('Replace request headers entirely (stub-derived headers are not merged in)'),
         body: z.string().optional().describe('Override request body'),
         queryParameters: z
           .record(z.string(), z.string())
           .optional()
-          .describe('Override query parameters')
+          .describe('Replace query parameters entirely (stub-derived params are not merged in)')
       },
       annotations: { readOnlyHint: false, openWorldHint: true }
     },

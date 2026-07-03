@@ -244,7 +244,7 @@ Monorepo structure (pnpm workspace):
 
 - `packages/frontend` - Vue 3 frontend
 - `packages/backend` - Fastify + Prisma API server
-- `packages/shared` - Shared type definitions
+- `packages/shared` - Shared type definitions and utilities
 - `e2e` - Playwright E2E tests
 
 ## Lint & Format
@@ -350,7 +350,9 @@ packages/
 │       ├── routes/         # API routes (projects, stubs, wiremock-instances)
 │       └── index.ts        # Entry point
 └── shared/
-    └── src/types/          # Shared type definitions
+    └── src/
+        ├── types/          # Shared type definitions
+        └── utils/          # Shared utilities (sample body generation, matcher value extraction)
 ```
 
 ## API Endpoints

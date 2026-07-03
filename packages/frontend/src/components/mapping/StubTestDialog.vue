@@ -30,27 +30,26 @@
         </div>
       </el-form-item>
 
-      <el-form-item v-if="Object.keys(requestHeaders).length > 0" :label="t('stubTest.headers')">
-        <div class="headers-display">
-          <div v-for="(value, key) in requestHeaders" :key="key" class="header-row">
-            <code>{{ key }}: {{ value }}</code>
-          </div>
-        </div>
+      <el-form-item :label="t('stubTest.headers')">
+        <KeyValueEditor v-model="requestHeaders" />
       </el-form-item>
 
-      <el-form-item
-        v-if="Object.keys(requestQueryParams).length > 0"
-        :label="t('stubTest.queryParameters')"
-      >
-        <div class="headers-display">
-          <div v-for="(value, key) in requestQueryParams" :key="key" class="header-row">
-            <code>{{ key }}={{ value }}</code>
-          </div>
-        </div>
+      <el-form-item :label="t('stubTest.queryParameters')">
+        <KeyValueEditor v-model="requestQueryParams" />
       </el-form-item>
 
-      <el-form-item v-if="requestBody" :label="t('stubTest.body')">
-        <el-input v-model="requestBody" type="textarea" :rows="4" style="font-family: monospace" />
+      <el-form-item :label="t('stubTest.body')">
+        <el-input
+          v-model="requestBody"
+          type="textarea"
+          :rows="6"
+          :placeholder="t('stubTest.bodyPlaceholder')"
+          data-testid="stub-test-body"
+          style="font-family: monospace"
+        />
+        <div v-if="bodyHints.length > 0" class="body-hint">
+          {{ t('stubTest.bodyHint', { patterns: bodyHints.join(', ') }) }}
+        </div>
       </el-form-item>
     </el-form>
 
@@ -171,6 +170,8 @@
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { extractEqualToValues, generateSampleBody } from '@wiremock-hub/shared';
+import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
 import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
 import type { StubTestRequest } from '@/types/wiremock';
@@ -178,16 +179,6 @@ import { getMethodTagType, toMapping } from '@/utils/wiremock';
 
 const { t } = useI18n();
 const { isMobile } = useResponsive();
-
-// Type guard for WireMock matcher objects with equalTo field
-function isMatcherWithEqualTo(value: unknown): value is { equalTo: string } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'equalTo' in value &&
-    typeof (value as Record<string, unknown>).equalTo === 'string'
-  );
-}
 
 const props = defineProps<{
   modelValue: boolean;
@@ -204,9 +195,10 @@ const { testResult, testError, testing } = storeToRefs(mappingStore);
 const stubName = ref('');
 const requestMethod = ref('GET');
 const requestUrl = ref('');
-const requestHeaders = ref<Record<string, string>>({});
-const requestQueryParams = ref<Record<string, string>>({});
+const requestHeaders = ref<Record<string, string> | undefined>({});
+const requestQueryParams = ref<Record<string, string> | undefined>({});
 const requestBody = ref('');
+const bodyHints = ref<string[]>([]);
 const isPatternUrl = ref(false);
 
 // Build request from mapping when dialog opens
@@ -240,58 +232,33 @@ function buildRequestFromMapping() {
   } else if (mapping.request.urlPath) {
     requestUrl.value = mapping.request.urlPath;
   } else if (mapping.request.urlPattern || mapping.request.urlPathPattern) {
+    // Prefill the pattern itself as a starting point; the user edits it into a concrete URL
     isPatternUrl.value = true;
-    requestUrl.value = '';
+    requestUrl.value = mapping.request.urlPattern || mapping.request.urlPathPattern || '';
   } else {
     requestUrl.value = '/';
   }
 
-  // Headers (extract equalTo values)
-  const headers: Record<string, string> = {};
-  if (mapping.request.headers) {
-    for (const [key, value] of Object.entries(mapping.request.headers)) {
-      if (isMatcherWithEqualTo(value)) {
-        headers[key] = value.equalTo;
-      }
-    }
-  }
-  requestHeaders.value = headers;
+  // Headers / query parameters (extract equalTo values)
+  requestHeaders.value = extractEqualToValues(mapping.request.headers);
+  requestQueryParams.value = extractEqualToValues(mapping.request.queryParameters);
 
-  // Query parameters (extract equalTo values)
-  const queryParams: Record<string, string> = {};
-  if (mapping.request.queryParameters) {
-    for (const [key, value] of Object.entries(mapping.request.queryParameters)) {
-      if (isMatcherWithEqualTo(value)) {
-        queryParams[key] = value.equalTo;
-      }
-    }
-  }
-  requestQueryParams.value = queryParams;
-
-  // Body (first equalTo/equalToJson)
-  requestBody.value = '';
-  if (mapping.request.bodyPatterns && mapping.request.bodyPatterns.length > 0) {
-    const firstPattern = mapping.request.bodyPatterns[0];
-    if (firstPattern.equalToJson) {
-      requestBody.value =
-        typeof firstPattern.equalToJson === 'string'
-          ? firstPattern.equalToJson
-          : JSON.stringify(firstPattern.equalToJson);
-    } else if (firstPattern.equalTo) {
-      requestBody.value = firstPattern.equalTo;
-    }
-  }
+  // Body: generate a sample that satisfies the stub's body patterns
+  const sample = generateSampleBody(mapping.request.bodyPatterns);
+  requestBody.value = sample.body ?? '';
+  bodyHints.value = sample.hints;
 }
 
 async function handleSendTest() {
-  const overrides: StubTestRequest = {};
+  // Send the full edited request; the backend uses these as-is instead of the stub's values
+  const overrides: StubTestRequest = {
+    headers: requestHeaders.value ?? {},
+    queryParameters: requestQueryParams.value ?? {},
+    body: requestBody.value
+  };
 
   if (requestUrl.value) {
     overrides.url = requestUrl.value;
-  }
-
-  if (requestBody.value) {
-    overrides.body = requestBody.value;
   }
 
   await mappingStore.testStub(props.stubId, overrides);
@@ -371,17 +338,10 @@ function formatBody(body?: string): string {
 </script>
 
 <style scoped>
-.headers-display {
-  width: 100%;
-}
-
-.header-row {
-  padding: 2px 0;
-}
-
-.header-row code {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+.body-hint {
+  color: var(--el-color-warning);
   font-size: 12px;
+  margin-top: 4px;
 }
 
 .expand-detail {
