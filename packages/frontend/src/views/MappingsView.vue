@@ -163,18 +163,7 @@
 
       <el-table-column :label="t('mappings.status')" width="100" align="center">
         <template #default="{ row }">
-          <el-tooltip
-            v-if="statusTag(row.response).tooltip"
-            :content="statusTag(row.response).tooltip"
-            placement="top"
-          >
-            <el-tag :type="statusTag(row.response).type">{{
-              statusTag(row.response).label
-            }}</el-tag>
-          </el-tooltip>
-          <el-tag v-else :type="statusTag(row.response).type">
-            {{ statusTag(row.response).label }}
-          </el-tag>
+          <StatusTag :response="row.response" />
         </template>
       </el-table-column>
 
@@ -252,9 +241,10 @@ import { useSyncAllInstances } from '@/composables/useSyncAllInstances';
 import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
+import StatusTag from '@/components/mapping/StatusTag.vue';
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus';
 import { isFaultOrProxyResponse, type Mapping, type MappingRequest } from '@wiremock-hub/shared';
-import { getMethodTagType, getUrl, statusTag } from '@/utils/wiremock';
+import { getMethodTagType, getUrl } from '@/utils/wiremock';
 
 const { t } = useI18n();
 const router = useRouter();

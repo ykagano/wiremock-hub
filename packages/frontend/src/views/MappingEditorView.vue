@@ -7,10 +7,23 @@
           <el-icon><Back /></el-icon>
           {{ t('common.back') }}
         </el-button>
-        <el-button v-if="!isNew" type="success" @click="openTestDialog">
-          <el-icon><CaretRight /></el-icon>
-          {{ t('stubTest.testButton') }}
-        </el-button>
+        <el-tooltip
+          v-if="!isNew"
+          :disabled="!isFaultOrProxyResponse(formData.response)"
+          :content="t('mappings.testDisabledFaultProxy')"
+          placement="bottom"
+        >
+          <span>
+            <el-button
+              type="success"
+              :disabled="isFaultOrProxyResponse(formData.response)"
+              @click="openTestDialog"
+            >
+              <el-icon><CaretRight /></el-icon>
+              {{ t('stubTest.testButton') }}
+            </el-button>
+          </span>
+        </el-tooltip>
         <el-button type="primary" @click="handleSave" :loading="saving">
           <el-icon><Check /></el-icon>
           {{ t('common.save') }}
