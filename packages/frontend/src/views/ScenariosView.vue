@@ -147,12 +147,7 @@
                       </el-tag>
                       <code class="step-url">{{ getUrl(getMapping(step).request) }}</code>
                       <span class="step-arrow-inline">&rarr;</span>
-                      <el-tag
-                        :type="getStatusTagType(getMapping(step).response?.status)"
-                        size="small"
-                      >
-                        {{ getMapping(step).response?.status }}
-                      </el-tag>
+                      <StatusTag :response="getMapping(step).response" size="small" />
                     </div>
 
                     <!-- New state footer -->
@@ -317,7 +312,8 @@ import { ElMessage } from 'element-plus';
 import { Close, EditPen, Plus } from '@element-plus/icons-vue';
 import draggable from 'vuedraggable';
 import type { Stub } from '@/services/api';
-import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock';
+import { getMethodTagType, getUrl } from '@/utils/wiremock';
+import StatusTag from '@/components/mapping/StatusTag.vue';
 
 const { t } = useI18n();
 const router = useRouter();

@@ -237,6 +237,59 @@ describe('Stubs API - Sync & Test', () => {
       expect(response.json().error).toBe('No active WireMock instances found in this project');
     });
 
+    it.each([
+      { label: 'fault stub', response: { fault: 'CONNECTION_RESET_BY_PEER' } },
+      // fault takes precedence in WireMock even when a status is present
+      { label: 'fault stub with a status', response: { status: 200, fault: 'EMPTY_RESPONSE' } },
+      { label: 'proxy stub', response: { proxyBaseUrl: 'http://upstream.example.com' } }
+    ])('should return 400 for a $label (no fixed response status)', async ({ response }) => {
+      const app = await getTestApp();
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Fault/Proxy Stub',
+          mapping: { request: { method: 'GET', url: '/api/fp' }, response }
+        }
+      });
+      const stubId = createResponse.json().data.id;
+
+      const testResponse = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      });
+      expect(testResponse.statusCode).toBe(400);
+      expect(testResponse.json().error).toBe(
+        'Stub has no fixed response status (fault or proxy stub) and cannot be tested'
+      );
+    });
+
+    it('should treat a status-less (body-only) stub as testable, not a fault/proxy stub', async () => {
+      const app = await getTestApp();
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Body-only Stub',
+          mapping: { request: { method: 'GET', url: '/api/body-only' }, response: { body: 'ok' } }
+        }
+      });
+      const stubId = createResponse.json().data.id;
+
+      // No active instances in this project, so the request passes the fault/proxy
+      // guard (WireMock defaults to 200) and fails later on the instance check
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json().error).toBe('No active WireMock instances found in this project');
+    });
+
     it('should return 400 for urlPattern without URL override', async () => {
       const app = await getTestApp();
       const createResponse = await app.inject({

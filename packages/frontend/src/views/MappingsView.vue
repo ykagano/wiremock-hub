@@ -163,9 +163,7 @@
 
       <el-table-column :label="t('mappings.status')" width="100" align="center">
         <template #default="{ row }">
-          <el-tag :type="getStatusTagType(row.response.status)">
-            {{ row.response.status }}
-          </el-tag>
+          <StatusTag :response="row.response" />
         </template>
       </el-table-column>
 
@@ -187,9 +185,22 @@
       <el-table-column :label="t('common.actions')" :width="isMobile ? 150 : 220" fixed="right">
         <template #default="{ row }">
           <el-button-group>
-            <el-button size="small" type="success" @click.stop="openTestDialog(row)">
-              <el-icon><CaretRight /></el-icon>
-            </el-button>
+            <el-tooltip
+              :disabled="!isFaultOrProxyResponse(row.response)"
+              :content="t('mappings.testDisabledFaultProxy')"
+              placement="top"
+            >
+              <span>
+                <el-button
+                  size="small"
+                  type="success"
+                  :disabled="isFaultOrProxyResponse(row.response)"
+                  @click.stop="openTestDialog(row)"
+                >
+                  <el-icon><CaretRight /></el-icon>
+                </el-button>
+              </span>
+            </el-tooltip>
             <el-button size="small" @click.stop="editMapping(row)">
               <el-icon><Edit /></el-icon>
             </el-button>
@@ -230,9 +241,10 @@ import { useSyncAllInstances } from '@/composables/useSyncAllInstances';
 import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
+import StatusTag from '@/components/mapping/StatusTag.vue';
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus';
-import type { Mapping, MappingRequest } from '@wiremock-hub/shared';
-import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock';
+import { isFaultOrProxyResponse, type Mapping, type MappingRequest } from '@wiremock-hub/shared';
+import { getMethodTagType, getUrl } from '@/utils/wiremock';
 
 const { t } = useI18n();
 const router = useRouter();

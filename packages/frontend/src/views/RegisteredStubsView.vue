@@ -89,7 +89,7 @@
           </el-table-column>
           <el-table-column :label="t('registeredStubs.status')" width="80">
             <template #default="{ row }">
-              {{ row.response?.status || '—' }}
+              <StatusTag :response="row.response" size="small" />
             </template>
           </el-table-column>
           <el-table-column v-if="!isMobile" :label="t('registeredStubs.priority')" width="80">
@@ -134,6 +134,7 @@ import { wiremockInstanceApi } from '@/services/api';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { Mapping } from '@wiremock-hub/shared';
 import { getMethodTagType, getUrl } from '@/utils/wiremock';
+import StatusTag from '@/components/mapping/StatusTag.vue';
 import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';
 

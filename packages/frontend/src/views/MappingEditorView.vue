@@ -7,10 +7,23 @@
           <el-icon><Back /></el-icon>
           {{ t('common.back') }}
         </el-button>
-        <el-button v-if="!isNew" type="success" @click="openTestDialog">
-          <el-icon><CaretRight /></el-icon>
-          {{ t('stubTest.testButton') }}
-        </el-button>
+        <el-tooltip
+          v-if="!isNew"
+          :disabled="!isFaultOrProxyResponse(formData.response)"
+          :content="t('mappings.testDisabledFaultProxy')"
+          placement="bottom"
+        >
+          <span>
+            <el-button
+              type="success"
+              :disabled="isFaultOrProxyResponse(formData.response)"
+              @click="openTestDialog"
+            >
+              <el-icon><CaretRight /></el-icon>
+              {{ t('stubTest.testButton') }}
+            </el-button>
+          </span>
+        </el-tooltip>
         <el-button type="primary" @click="handleSave" :loading="saving">
           <el-icon><Check /></el-icon>
           {{ t('common.save') }}
@@ -126,7 +139,7 @@
             :label-position="isMobile ? 'top' : 'left'"
           >
             <!-- Status code -->
-            <el-form-item :label="t('editor.responseStatus')" required>
+            <el-form-item :label="t('editor.responseStatus')">
               <el-input-number v-model="formData.response.status" :min="100" :max="599" />
             </el-form-item>
 
@@ -224,7 +237,7 @@ import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
-import type { Mapping } from '@wiremock-hub/shared';
+import { isFaultOrProxyResponse, type Mapping } from '@wiremock-hub/shared';
 import { toMapping } from '@/utils/wiremock';
 import JsonEditor from '@/components/mapping/JsonEditor.vue';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
@@ -408,8 +421,8 @@ onMounted(async () => {
 });
 
 async function handleSave() {
-  // Validation
-  if (!formData.response.status) {
+  // Validation: fault/proxy responses have no fixed status (WireMock ignores it)
+  if (!formData.response.status && !isFaultOrProxyResponse(formData.response)) {
     ElMessage.error(t('messages.mapping.statusRequired'));
     return;
   }
@@ -417,6 +430,11 @@ async function handleSave() {
   if (!urlValue.value) {
     ElMessage.error(t('messages.mapping.urlRequired'));
     return;
+  }
+
+  // el-input-number emits null when cleared; drop it so no "status": null persists
+  if (formData.response.status == null) {
+    delete formData.response.status;
   }
 
   saving.value = true;
