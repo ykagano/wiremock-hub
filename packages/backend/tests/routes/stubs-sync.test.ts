@@ -768,6 +768,57 @@ describe('Stubs API - Sync & Test', () => {
       expect(echoedRequest.queryParameters).toEqual({ q: 'overridden' });
     });
 
+    it('should extract multi-value headers from hasExactly matchers', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      const stubId = await createStub(projectId, {
+        request: {
+          method: 'GET',
+          url: '/api/multi',
+          headers: {
+            'X-Single': { equalTo: 'one' },
+            'X-Multi': { hasExactly: [{ equalTo: 'a' }, { equalTo: 'b' }] }
+          }
+        },
+        response: { status: 200 }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data.request.headers).toEqual({
+        'X-Single': 'one',
+        'X-Multi': ['a', 'b']
+      });
+    });
+
+    it('should accept multi-value header and query parameter overrides', async () => {
+      const app = await getTestApp();
+      await createInstance(projectId);
+      const stubId = await createStub(projectId, {
+        request: { method: 'GET', url: '/api/multi' },
+        response: { status: 200 }
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {
+          headers: { 'X-Multi': ['a', 'b'] },
+          queryParameters: { tag: ['x', 'y'] }
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const echoedRequest = response.json().data.request;
+      expect(echoedRequest.headers).toEqual({ 'X-Multi': ['a', 'b'] });
+      expect(echoedRequest.queryParameters).toEqual({ tag: ['x', 'y'] });
+    });
+
     it('should use body override over the generated sample', async () => {
       const app = await getTestApp();
       await createInstance(projectId);

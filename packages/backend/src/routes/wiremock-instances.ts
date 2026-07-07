@@ -2,7 +2,12 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
 import { gunzipSync } from 'node:zlib';
-import type { LoggedRequest } from '@wiremock-hub/shared';
+import {
+  buildValueMatcher,
+  type LoggedRequest,
+  type MultiValueMap,
+  type ValueMatcher
+} from '@wiremock-hub/shared';
 
 const createInstanceSchema = z.object({
   projectId: z.string().uuid(),
@@ -888,14 +893,12 @@ function generateMapping(
 
   // Header matching
   if (options.matchHeaders.length > 0) {
-    const headers: Record<string, { equalTo: string } | { hasExactly: { equalTo: string }[] }> = {};
+    const headers: Record<string, ValueMatcher> = {};
     for (const header of options.matchHeaders) {
       const headerValue = wiremockRequest.request.headers[header];
-      if (typeof headerValue === 'string' && headerValue) {
-        headers[header] = { equalTo: headerValue };
-      } else if (Array.isArray(headerValue) && headerValue.length > 0) {
-        // Multi-value headers arrive as arrays; match all values with hasExactly
-        headers[header] = { hasExactly: headerValue.map((value) => ({ equalTo: value })) };
+      // Non-empty string or array; buildValueMatcher emits hasExactly for arrays
+      if (headerValue && headerValue.length > 0) {
+        headers[header] = buildValueMatcher(headerValue);
       }
     }
     if (Object.keys(headers).length > 0) {
@@ -931,7 +934,7 @@ function generateMapping(
     wiremockRequest.response?.headers || wiremockRequest.responseDefinition?.headers;
   if (options.responseHeaders.length > 0 && sourceHeaders) {
     // WireMock accepts string arrays for multi-value response headers (e.g. Set-Cookie)
-    const headers: Record<string, string | string[]> = {};
+    const headers: MultiValueMap = {};
     for (const header of options.responseHeaders) {
       if (sourceHeaders[header]) {
         headers[header] = sourceHeaders[header];

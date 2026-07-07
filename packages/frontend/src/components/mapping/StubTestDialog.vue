@@ -31,11 +31,11 @@
       </el-form-item>
 
       <el-form-item :label="t('stubTest.headers')">
-        <KeyValueEditor v-model="requestHeaders" />
+        <KeyValueEditor v-model="requestHeaders" multi-value />
       </el-form-item>
 
       <el-form-item :label="t('stubTest.queryParameters')">
-        <KeyValueEditor v-model="requestQueryParams" />
+        <KeyValueEditor v-model="requestQueryParams" multi-value />
       </el-form-item>
 
       <el-form-item :label="t('stubTest.body')">
@@ -173,6 +173,7 @@ import { storeToRefs } from 'pinia';
 import {
   extractEqualToValues,
   generateSampleBody,
+  type MultiValueMap,
   type StubTestRequest
 } from '@wiremock-hub/shared';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
@@ -198,8 +199,8 @@ const { testResult, testError, testing } = storeToRefs(mappingStore);
 const stubName = ref('');
 const requestMethod = ref('GET');
 const requestUrl = ref('');
-const requestHeaders = ref<Record<string, string> | undefined>({});
-const requestQueryParams = ref<Record<string, string> | undefined>({});
+const requestHeaders = ref<MultiValueMap | undefined>({});
+const requestQueryParams = ref<MultiValueMap | undefined>({});
 const requestBody = ref('');
 const bodyHints = ref<string[]>([]);
 const isPatternUrl = ref(false);

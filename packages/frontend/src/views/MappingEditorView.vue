@@ -145,7 +145,7 @@
 
             <!-- Response headers -->
             <el-form-item :label="t('editor.responseHeaders')">
-              <KeyValueEditor v-model="formData.response.headers" />
+              <KeyValueEditor v-model="formData.response.headers" multi-value />
             </el-form-item>
 
             <!-- Response body -->
@@ -237,7 +237,7 @@ import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
-import { isFaultOrProxyResponse, type Mapping } from '@wiremock-hub/shared';
+import { isFaultOrProxyResponse, joinMultiValue, type Mapping } from '@wiremock-hub/shared';
 import { toMapping } from '@/utils/wiremock';
 import JsonEditor from '@/components/mapping/JsonEditor.vue';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
@@ -278,7 +278,8 @@ const responseBody = computed({
       return;
     }
     // Try to parse as JSON and store as jsonBody if Content-Type is JSON
-    const contentType = formData.response.headers?.['Content-Type'] || '';
+    // (multi-value headers are arrays, so normalize before matching)
+    const contentType = joinMultiValue(formData.response.headers?.['Content-Type'] || '');
     if (contentType.includes('json')) {
       try {
         formData.response.jsonBody = JSON.parse(val);

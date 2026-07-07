@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, toRaw, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useResponsive } from '@/composables/useResponsive';
 
@@ -30,6 +30,13 @@ const { isMobile } = useResponsive();
 
 const props = defineProps<{
   modelValue?: Record<string, any>;
+  /**
+   * Treat values as raw strings where duplicate keys collapse into string arrays
+   * (multi-value headers/params). Leave off for WireMock matcher maps, where
+   * array values are invalid and object values (equalTo/hasExactly) round-trip
+   * through JSON strings instead.
+   */
+  multiValue?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -43,15 +50,32 @@ interface KeyValueItem {
 
 const items = ref<KeyValueItem[]>([]);
 
-// Initialization
+// Skip re-initialization when the change is our own emit echoed back via v-model,
+// so rows are not rebuilt (and reordered) while the user is typing
+const NOT_EMITTED = Symbol('not-emitted');
+let lastEmitted: Record<string, any> | undefined | typeof NOT_EMITTED = NOT_EMITTED;
+
+// Initialization: multi-value entries (string arrays) expand into one row per value
 watch(
   () => props.modelValue,
   (value) => {
+    if (lastEmitted !== NOT_EMITTED && (value === undefined ? value : toRaw(value)) === lastEmitted)
+      return;
+    // Record the accepted external value so a later reset to a different value
+    // (e.g. undefined) is not mistaken for an echo of our own emit
+    lastEmitted = value === undefined ? undefined : toRaw(value);
     if (value && typeof value === 'object') {
-      items.value = Object.entries(value).map(([key, val]) => ({
-        key,
-        value: typeof val === 'string' ? val : JSON.stringify(val)
-      }));
+      items.value = Object.entries(value).flatMap(([key, val]) => {
+        if (
+          props.multiValue &&
+          Array.isArray(val) &&
+          val.length > 0 &&
+          val.every((v) => typeof v === 'string')
+        ) {
+          return val.map((v: string) => ({ key, value: v }));
+        }
+        return [{ key, value: typeof val === 'string' ? val : JSON.stringify(val) }];
+      });
     } else {
       items.value = [];
     }
@@ -68,15 +92,36 @@ function removeItem(index: number) {
   updateValue();
 }
 
+// Matcher maps hold objects (equalTo/hasExactly) that are displayed as JSON
+// strings; parse them back so editing a row does not destroy the matcher
+function parseIfJson(value: string): unknown {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return value;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return value;
+  }
+}
+
 function updateValue() {
   const result: Record<string, any> = {};
   items.value.forEach((item) => {
-    if (item.key) {
-      result[item.key] = item.value;
+    if (!item.key) return;
+    if (props.multiValue && Object.hasOwn(result, item.key)) {
+      // Rows sharing a key collapse back into a string array (multi-value headers)
+      const existing = result[item.key];
+      result[item.key] = Array.isArray(existing)
+        ? [...existing, item.value]
+        : [existing, item.value];
+    } else {
+      // Matcher maps: last row wins for duplicate keys (arrays are invalid there)
+      result[item.key] = props.multiValue ? item.value : parseIfJson(item.value);
     }
   });
 
-  emit('update:modelValue', Object.keys(result).length > 0 ? result : undefined);
+  lastEmitted = Object.keys(result).length > 0 ? result : undefined;
+  emit('update:modelValue', lastEmitted);
 }
 </script>
 
