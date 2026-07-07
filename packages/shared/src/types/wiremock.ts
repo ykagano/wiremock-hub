@@ -32,14 +32,24 @@ export interface MappingRequest {
   bodyPatterns?: BodyPattern[];
 }
 
+/** WireMock fault types — when set, all other response attributes are ignored by WireMock */
+export type WireMockFault =
+  | 'CONNECTION_RESET_BY_PEER'
+  | 'EMPTY_RESPONSE'
+  | 'MALFORMED_RESPONSE_CHUNK'
+  | 'RANDOM_DATA_THEN_CLOSE';
+
 export interface MappingResponse {
-  status: number;
+  // Optional because fault/proxy responses have no fixed status
+  status?: number;
   statusMessage?: string;
   body?: string;
   jsonBody?: unknown;
   bodyFileName?: string;
   // Multi-value response headers (e.g. Set-Cookie) are represented as string arrays
   headers?: Record<string, string | string[]>;
+  fault?: WireMockFault;
+  proxyBaseUrl?: string;
   additionalProxyRequestHeaders?: Record<string, string>;
   fixedDelayMilliseconds?: number;
   delayDistribution?: unknown;

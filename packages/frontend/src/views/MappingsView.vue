@@ -163,8 +163,22 @@
 
       <el-table-column :label="t('mappings.status')" width="100" align="center">
         <template #default="{ row }">
-          <el-tag :type="getStatusTagType(row.response.status)">
-            {{ row.response.status }}
+          <el-tooltip
+            v-if="row.response.fault"
+            :content="t('mappings.faultTooltip', { fault: row.response.fault })"
+            placement="top"
+          >
+            <el-tag type="danger">FAULT</el-tag>
+          </el-tooltip>
+          <el-tooltip
+            v-else-if="row.response.proxyBaseUrl"
+            :content="t('mappings.proxyTooltip', { url: row.response.proxyBaseUrl })"
+            placement="top"
+          >
+            <el-tag type="info">PROXY</el-tag>
+          </el-tooltip>
+          <el-tag v-else :type="getStatusTagType(row.response.status)">
+            {{ row.response.status ?? '-' }}
           </el-tag>
         </template>
       </el-table-column>

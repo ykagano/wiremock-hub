@@ -382,6 +382,15 @@ export async function stubRoutes(fastify: FastifyInstance) {
           });
         }
 
+        const expectedStatus = mapping.response.status;
+        if (expectedStatus === undefined) {
+          // Fault/proxy stubs have no fixed response status to compare against
+          return reply.status(400).send({
+            success: false,
+            error: 'Stub has no fixed response status (fault or proxy stub) and cannot be tested'
+          });
+        }
+
         const instances = await fastify.prisma.wiremockInstance.findMany({
           where: {
             projectId: stub.projectId,
@@ -396,7 +405,6 @@ export async function stubRoutes(fastify: FastifyInstance) {
           });
         }
 
-        const expectedStatus = mapping.response.status;
         let expectedBody: string | undefined;
         if (mapping.response.body) {
           expectedBody = mapping.response.body;

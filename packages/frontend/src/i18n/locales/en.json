@@ -128,6 +128,8 @@
     "method": "Method",
     "url": "URL",
     "status": "Status",
+    "faultTooltip": "Fault type: {fault}",
+    "proxyTooltip": "Proxies to: {url}",
     "priority": "Priority",
     "name": "Name",
     "scenario": "Scenario",

@@ -24,7 +24,8 @@ export function getUrl(request?: MappingRequest): string {
   return request.url || request.urlPattern || request.urlPath || request.urlPathPattern || '/';
 }
 
-export function getStatusTagType(status: number): string {
+export function getStatusTagType(status?: number): string {
+  if (status === undefined) return 'info';
   if (status >= 200 && status < 300) return 'success';
   if (status >= 300 && status < 400) return 'info';
   if (status >= 400 && status < 500) return 'warning';

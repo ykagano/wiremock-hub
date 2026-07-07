@@ -408,8 +408,8 @@ onMounted(async () => {
 });
 
 async function handleSave() {
-  // Validation
-  if (!formData.response.status) {
+  // Validation: fault/proxy responses have no fixed status (WireMock ignores it)
+  if (!formData.response.status && !formData.response.fault && !formData.response.proxyBaseUrl) {
     ElMessage.error(t('messages.mapping.statusRequired'));
     return;
   }

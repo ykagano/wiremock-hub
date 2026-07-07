@@ -237,6 +237,60 @@ describe('Stubs API - Sync & Test', () => {
       expect(response.json().error).toBe('No active WireMock instances found in this project');
     });
 
+    it('should return 400 for a fault stub without a fixed response status', async () => {
+      const app = await getTestApp();
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Fault Stub',
+          mapping: {
+            request: { method: 'GET', url: '/api/fault' },
+            response: { fault: 'CONNECTION_RESET_BY_PEER' }
+          }
+        }
+      });
+      const stubId = createResponse.json().data.id;
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json().error).toBe(
+        'Stub has no fixed response status (fault or proxy stub) and cannot be tested'
+      );
+    });
+
+    it('should return 400 for a proxy stub without a fixed response status', async () => {
+      const app = await getTestApp();
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Proxy Stub',
+          mapping: {
+            request: { method: 'GET', url: '/api/proxied' },
+            response: { proxyBaseUrl: 'http://upstream.example.com' }
+          }
+        }
+      });
+      const stubId = createResponse.json().data.id;
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/stubs/${stubId}/test`,
+        payload: {}
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json().error).toBe(
+        'Stub has no fixed response status (fault or proxy stub) and cannot be tested'
+      );
+    });
+
     it('should return 400 for urlPattern without URL override', async () => {
       const app = await getTestApp();
       const createResponse = await app.inject({
