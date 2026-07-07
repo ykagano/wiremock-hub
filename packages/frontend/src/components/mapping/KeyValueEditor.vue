@@ -61,6 +61,9 @@ watch(
   (value) => {
     if (lastEmitted !== NOT_EMITTED && (value === undefined ? value : toRaw(value)) === lastEmitted)
       return;
+    // Record the accepted external value so a later reset to a different value
+    // (e.g. undefined) is not mistaken for an echo of our own emit
+    lastEmitted = value === undefined ? undefined : toRaw(value);
     if (value && typeof value === 'object') {
       items.value = Object.entries(value).flatMap(([key, val]) => {
         if (

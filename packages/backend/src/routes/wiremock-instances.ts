@@ -896,11 +896,8 @@ function generateMapping(
     const headers: Record<string, ValueMatcher> = {};
     for (const header of options.matchHeaders) {
       const headerValue = wiremockRequest.request.headers[header];
-      // Multi-value headers arrive as arrays; buildValueMatcher emits hasExactly for them
-      if (
-        (typeof headerValue === 'string' && headerValue) ||
-        (Array.isArray(headerValue) && headerValue.length > 0)
-      ) {
+      // Non-empty string or array; buildValueMatcher emits hasExactly for arrays
+      if (headerValue && headerValue.length > 0) {
         headers[header] = buildValueMatcher(headerValue);
       }
     }
