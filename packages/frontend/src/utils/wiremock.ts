@@ -1,4 +1,4 @@
-import type { Mapping, MappingRequest } from '@/types/wiremock';
+import type { Mapping, MappingRequest } from '@wiremock-hub/shared';
 import type { Stub } from '@/services/api';
 
 /** Extract typed Mapping from Stub's mapping field */

@@ -38,7 +38,7 @@
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useResponsive } from '@/composables/useResponsive';
-import type { BodyPattern } from '@/types/wiremock';
+import type { BodyPattern } from '@wiremock-hub/shared';
 
 const { t } = useI18n();
 const { isMobile } = useResponsive();

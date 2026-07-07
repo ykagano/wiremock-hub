@@ -4,7 +4,7 @@ import { stubApi, type Stub, type CreateStubInput, type UpdateStubInput } from '
 import { useProjectStore } from './project';
 import { ElMessage } from 'element-plus';
 import { t } from '@/i18n';
-import type { Mapping, StubTestRequest, StubTestResponse } from '@/types/wiremock';
+import type { Mapping, StubTestRequest, StubTestResponse } from '@wiremock-hub/shared';
 
 export const useMappingStore = defineStore('mapping', () => {
   const stubs = ref<Stub[]>([]);

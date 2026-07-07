@@ -38,7 +38,8 @@ export interface MappingResponse {
   body?: string;
   jsonBody?: unknown;
   bodyFileName?: string;
-  headers?: Record<string, string>;
+  // Multi-value response headers (e.g. Set-Cookie) are represented as string arrays
+  headers?: Record<string, string | string[]>;
   additionalProxyRequestHeaders?: Record<string, string>;
   fixedDelayMilliseconds?: number;
   delayDistribution?: unknown;
@@ -58,6 +59,12 @@ export interface BodyPattern {
   binaryEqualTo?: string;
 }
 
+/** Multi-value parameter as serialized in the WireMock request journal */
+export interface MultiValue {
+  key: string;
+  values: string[];
+}
+
 export interface LoggedRequest {
   id: string;
   request: {
@@ -65,19 +72,35 @@ export interface LoggedRequest {
     absoluteUrl: string;
     method: string;
     clientIp?: string;
-    headers: Record<string, unknown>;
+    // Multi-value headers are serialized as string arrays in the journal
+    headers: Record<string, string | string[]>;
     cookies?: Record<string, unknown>;
     body?: string;
     bodyAsBase64?: string;
     loggedDate: number;
     loggedDateString: string;
+    queryParams?: Record<string, MultiValue>;
+    formParams?: Record<string, MultiValue>;
   };
   responseDefinition?: {
     status: number;
     body?: string;
-    headers?: Record<string, string>;
+    headers?: Record<string, string | string[]>;
+  };
+  response?: {
+    status: number;
+    headers?: Record<string, string | string[]>;
+    body?: string;
+    bodyAsBase64?: string;
   };
   wasMatched: boolean;
+  timing?: {
+    addedDelay: number;
+    processTime: number;
+    responseSendTime: number;
+    serveTime: number;
+    totalTime: number;
+  };
   stubMapping?: Mapping;
 }
 
@@ -114,8 +137,8 @@ export interface StubTestInstanceResult {
   actualStatus: number;
   expectedBody?: string;
   actualBody?: string;
-  expectedHeaders?: Record<string, string>;
-  actualHeaders?: Record<string, string>;
+  expectedHeaders?: Record<string, string | string[]>;
+  actualHeaders?: Record<string, string | string[]>;
   error?: string;
   responseTimeMs?: number;
 }

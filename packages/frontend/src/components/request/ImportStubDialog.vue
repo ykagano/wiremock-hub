@@ -107,7 +107,7 @@ import { useProjectStore } from '@/stores/project';
 import { useResponsive } from '@/composables/useResponsive';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
-import type { LoggedRequest } from '@/types/wiremock';
+import type { LoggedRequest } from '@wiremock-hub/shared';
 
 const props = defineProps<{
   visible: boolean;

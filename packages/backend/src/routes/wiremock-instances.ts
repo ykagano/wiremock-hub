@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
 import { gunzipSync } from 'node:zlib';
+import type { LoggedRequest } from '@wiremock-hub/shared';
 
 const createInstanceSchema = z.object({
   projectId: z.string().uuid(),
@@ -867,28 +868,8 @@ interface ImportOptions {
   enableTemplating: boolean;
 }
 
-interface WireMockLoggedRequest {
-  request: {
-    method: string;
-    url: string;
-    headers: Record<string, string>;
-    body?: string;
-  };
-  response?: {
-    status: number;
-    headers?: Record<string, string>;
-    body?: string;
-    bodyAsBase64?: string;
-  };
-  responseDefinition?: {
-    status: number;
-    headers?: Record<string, string>;
-    body?: string;
-  };
-}
-
 function generateMapping(
-  wiremockRequest: WireMockLoggedRequest,
+  wiremockRequest: LoggedRequest,
   options: ImportOptions
 ): Record<string, unknown> {
   const mapping: Record<string, unknown> = {
@@ -907,11 +888,14 @@ function generateMapping(
 
   // Header matching
   if (options.matchHeaders.length > 0) {
-    const headers: Record<string, { equalTo: string }> = {};
+    const headers: Record<string, { equalTo: string } | { hasExactly: { equalTo: string }[] }> = {};
     for (const header of options.matchHeaders) {
       const headerValue = wiremockRequest.request.headers[header];
-      if (headerValue) {
+      if (typeof headerValue === 'string' && headerValue) {
         headers[header] = { equalTo: headerValue };
+      } else if (Array.isArray(headerValue) && headerValue.length > 0) {
+        // Multi-value headers arrive as arrays; match all values with hasExactly
+        headers[header] = { hasExactly: headerValue.map((value) => ({ equalTo: value })) };
       }
     }
     if (Object.keys(headers).length > 0) {
@@ -946,7 +930,8 @@ function generateMapping(
   const sourceHeaders =
     wiremockRequest.response?.headers || wiremockRequest.responseDefinition?.headers;
   if (options.responseHeaders.length > 0 && sourceHeaders) {
-    const headers: Record<string, string> = {};
+    // WireMock accepts string arrays for multi-value response headers (e.g. Set-Cookie)
+    const headers: Record<string, string | string[]> = {};
     for (const header of options.responseHeaders) {
       if (sourceHeaders[header]) {
         headers[header] = sourceHeaders[header];

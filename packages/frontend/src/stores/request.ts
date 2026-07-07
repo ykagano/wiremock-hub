@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { LoggedRequest } from '@/types/wiremock';
+import type { LoggedRequest } from '@wiremock-hub/shared';
 import { wiremockInstanceApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
 import { t } from '@/i18n';

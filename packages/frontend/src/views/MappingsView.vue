@@ -231,7 +231,7 @@ import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus';
-import type { Mapping, MappingRequest } from '@/types/wiremock';
+import type { Mapping, MappingRequest } from '@wiremock-hub/shared';
 import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock';
 
 const { t } = useI18n();
