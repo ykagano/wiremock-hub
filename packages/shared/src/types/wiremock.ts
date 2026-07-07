@@ -1,3 +1,9 @@
+/**
+ * Raw header/parameter value map where multi-value entries (e.g. repeated
+ * Set-Cookie headers) are represented as string arrays.
+ */
+export type MultiValueMap = Record<string, string | string[]>;
+
 export interface Mapping {
   id?: string;
   uuid?: string;
@@ -47,7 +53,7 @@ export interface MappingResponse {
   jsonBody?: unknown;
   bodyFileName?: string;
   // Multi-value response headers (e.g. Set-Cookie) are represented as string arrays
-  headers?: Record<string, string | string[]>;
+  headers?: MultiValueMap;
   fault?: WireMockFault;
   proxyBaseUrl?: string;
   additionalProxyRequestHeaders?: Record<string, string>;
@@ -83,7 +89,7 @@ export interface LoggedRequest {
     method: string;
     clientIp?: string;
     // Multi-value headers are serialized as string arrays in the journal
-    headers: Record<string, string | string[]>;
+    headers: MultiValueMap;
     cookies?: Record<string, unknown>;
     body?: string;
     bodyAsBase64?: string;
@@ -95,11 +101,11 @@ export interface LoggedRequest {
   responseDefinition?: {
     status: number;
     body?: string;
-    headers?: Record<string, string | string[]>;
+    headers?: MultiValueMap;
   };
   response?: {
     status: number;
-    headers?: Record<string, string | string[]>;
+    headers?: MultiValueMap;
     body?: string;
     bodyAsBase64?: string;
   };
@@ -131,9 +137,10 @@ export interface RequestsResponse {
 /** Test request overrides (fields the user can edit before sending) */
 export interface StubTestRequest {
   url?: string;
-  headers?: Record<string, string>;
+  // Multi-value headers/params (from hasExactly matchers) are sent as string arrays
+  headers?: MultiValueMap;
   body?: string;
-  queryParameters?: Record<string, string>;
+  queryParameters?: MultiValueMap;
 }
 
 /** Test result per instance */
@@ -147,8 +154,8 @@ export interface StubTestInstanceResult {
   actualStatus: number;
   expectedBody?: string;
   actualBody?: string;
-  expectedHeaders?: Record<string, string | string[]>;
-  actualHeaders?: Record<string, string | string[]>;
+  expectedHeaders?: MultiValueMap;
+  actualHeaders?: MultiValueMap;
   error?: string;
   responseTimeMs?: number;
 }
@@ -160,8 +167,8 @@ export interface StubTestResponse {
   request: {
     method: string;
     url: string;
-    headers?: Record<string, string>;
-    queryParameters?: Record<string, string>;
+    headers?: MultiValueMap;
+    queryParameters?: MultiValueMap;
     body?: string;
   };
   results: StubTestInstanceResult[];

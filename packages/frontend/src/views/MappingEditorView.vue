@@ -145,7 +145,7 @@
 
             <!-- Response headers -->
             <el-form-item :label="t('editor.responseHeaders')">
-              <KeyValueEditor v-model="formData.response.headers" />
+              <KeyValueEditor v-model="formData.response.headers" multi-value />
             </el-form-item>
 
             <!-- Response body -->
@@ -278,7 +278,9 @@ const responseBody = computed({
       return;
     }
     // Try to parse as JSON and store as jsonBody if Content-Type is JSON
-    const contentType = formData.response.headers?.['Content-Type'] || '';
+    // (multi-value headers are arrays, so normalize before matching)
+    const rawContentType = formData.response.headers?.['Content-Type'] || '';
+    const contentType = Array.isArray(rawContentType) ? rawContentType.join(',') : rawContentType;
     if (contentType.includes('json')) {
       try {
         formData.response.jsonBody = JSON.parse(val);

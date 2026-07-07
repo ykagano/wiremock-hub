@@ -6,7 +6,8 @@ import {
   extractEqualToValues,
   generateSampleBody,
   isFaultOrProxyResponse,
-  type Mapping
+  type Mapping,
+  type MultiValueMap
 } from '@wiremock-hub/shared';
 import { detectFormat, buildMappingFromOperation } from '../utils/openapi-parser.js';
 import { injectHubMetadata, syncStubsToInstance } from '../utils/wiremock-sync.js';
@@ -32,11 +33,18 @@ const syncStubSchema = z.object({
   instanceId: z.string().uuid()
 });
 
+// Raw value map for test requests (string or string[] for multi-value entries).
+// Exported so the MCP test_stub tool reuses the exact same shape.
+export const stubTestValueMapSchema = z.record(
+  z.string(),
+  z.union([z.string(), z.array(z.string())])
+);
+
 const stubTestSchema = z.object({
   url: z.string().optional(),
-  headers: z.record(z.string(), z.string()).optional(),
+  headers: stubTestValueMapSchema.optional(),
   body: z.string().optional(),
-  queryParameters: z.record(z.string(), z.string()).optional()
+  queryParameters: stubTestValueMapSchema.optional()
 });
 
 const importOpenApiSchema = z.object({
@@ -306,9 +314,9 @@ export async function stubRoutes(fastify: FastifyInstance) {
     mapping: Mapping,
     overrides?: {
       url?: string;
-      headers?: Record<string, string>;
+      headers?: MultiValueMap;
       body?: string;
-      queryParameters?: Record<string, string>;
+      queryParameters?: MultiValueMap;
     }
   ) {
     const method = mapping.request.method || 'GET';
@@ -425,7 +433,12 @@ export async function stubRoutes(fastify: FastifyInstance) {
             try {
               let requestUrl = `${instance.url}${testRequest.url}`;
               if (Object.keys(testRequest.queryParameters).length > 0) {
-                const params = new URLSearchParams(testRequest.queryParameters);
+                const params = new URLSearchParams();
+                for (const [key, value] of Object.entries(testRequest.queryParameters)) {
+                  for (const item of Array.isArray(value) ? value : [value]) {
+                    params.append(key, item);
+                  }
+                }
                 requestUrl += `?${params.toString()}`;
               }
 
@@ -453,7 +466,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
                 actualBody:
                   typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
                 expectedHeaders,
-                actualHeaders: response.headers as Record<string, string | string[]>,
+                actualHeaders: response.headers as MultiValueMap,
                 responseTimeMs
               };
             } catch (err: any) {

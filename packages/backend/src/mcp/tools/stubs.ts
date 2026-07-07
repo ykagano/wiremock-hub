@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { FastifyInstance } from 'fastify';
 import { callApi, toResult } from '../helpers.js';
+import { stubTestValueMapSchema } from '../../routes/stubs.js';
 
 // WireMock mapping JSON is arbitrary; accept any object shape.
 const mappingSchema = z.record(z.string(), z.any());
@@ -104,15 +105,19 @@ export function registerStubTools(server: McpServer, fastify: FastifyInstance): 
       inputSchema: {
         id: z.string().describe('Stub ID'),
         url: z.string().optional().describe('Override request URL (required for urlPattern stubs)'),
-        headers: z
-          .record(z.string(), z.string())
+        headers: stubTestValueMapSchema
           .optional()
-          .describe('Replace request headers entirely (stub-derived headers are not merged in)'),
+          .describe(
+            'Replace request headers entirely (stub-derived headers are not merged in); ' +
+              'use a string array for multi-value headers'
+          ),
         body: z.string().optional().describe('Override request body'),
-        queryParameters: z
-          .record(z.string(), z.string())
+        queryParameters: stubTestValueMapSchema
           .optional()
-          .describe('Replace query parameters entirely (stub-derived params are not merged in)')
+          .describe(
+            'Replace query parameters entirely (stub-derived params are not merged in); ' +
+              'use a string array for multi-value parameters'
+          )
       },
       annotations: { readOnlyHint: false, openWorldHint: true }
     },
