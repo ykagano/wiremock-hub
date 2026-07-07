@@ -130,6 +130,7 @@
     "status": "ステータス",
     "faultTooltip": "フォールト種別: {fault}",
     "proxyTooltip": "転送先: {url}",
+    "testDisabledFaultProxy": "フォールト/プロキシスタブは固定レスポンスがないためテストできません",
     "priority": "優先度",
     "name": "名前",
     "scenario": "シナリオ",

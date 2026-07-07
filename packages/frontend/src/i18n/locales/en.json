@@ -130,6 +130,7 @@
     "status": "Status",
     "faultTooltip": "Fault type: {fault}",
     "proxyTooltip": "Proxies to: {url}",
+    "testDisabledFaultProxy": "Fault/proxy stubs have no fixed response and cannot be tested",
     "priority": "Priority",
     "name": "Name",
     "scenario": "Scenario",

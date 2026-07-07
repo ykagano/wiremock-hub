@@ -2,7 +2,12 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import axios from 'axios';
 import { parse as parseYaml } from 'yaml';
-import { extractEqualToValues, generateSampleBody, type Mapping } from '@wiremock-hub/shared';
+import {
+  extractEqualToValues,
+  generateSampleBody,
+  isFaultOrProxyResponse,
+  type Mapping
+} from '@wiremock-hub/shared';
 import { detectFormat, buildMappingFromOperation } from '../utils/openapi-parser.js';
 import { injectHubMetadata, syncStubsToInstance } from '../utils/wiremock-sync.js';
 
@@ -382,14 +387,15 @@ export async function stubRoutes(fastify: FastifyInstance) {
           });
         }
 
-        const expectedStatus = mapping.response.status;
-        if (expectedStatus === undefined) {
-          // Fault/proxy stubs have no fixed response status to compare against
+        if (isFaultOrProxyResponse(mapping.response)) {
+          // Fault/proxy responses have no fixed status to compare against
           return reply.status(400).send({
             success: false,
             error: 'Stub has no fixed response status (fault or proxy stub) and cannot be tested'
           });
         }
+        // WireMock defaults to 200 when a stub omits an explicit status
+        const expectedStatus = mapping.response.status ?? 200;
 
         const instances = await fastify.prisma.wiremockInstance.findMany({
           where: {

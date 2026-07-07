@@ -147,11 +147,17 @@
                       </el-tag>
                       <code class="step-url">{{ getUrl(getMapping(step).request) }}</code>
                       <span class="step-arrow-inline">&rarr;</span>
-                      <el-tag
-                        :type="getStatusTagType(getMapping(step).response?.status)"
-                        size="small"
+                      <el-tooltip
+                        v-if="statusTag(getMapping(step).response).tooltip"
+                        :content="statusTag(getMapping(step).response).tooltip"
+                        placement="top"
                       >
-                        {{ getMapping(step).response?.status }}
+                        <el-tag :type="statusTag(getMapping(step).response).type" size="small">
+                          {{ statusTag(getMapping(step).response).label }}
+                        </el-tag>
+                      </el-tooltip>
+                      <el-tag v-else :type="statusTag(getMapping(step).response).type" size="small">
+                        {{ statusTag(getMapping(step).response).label }}
                       </el-tag>
                     </div>
 
@@ -317,7 +323,7 @@ import { ElMessage } from 'element-plus';
 import { Close, EditPen, Plus } from '@element-plus/icons-vue';
 import draggable from 'vuedraggable';
 import type { Stub } from '@/services/api';
-import { getMethodTagType, getUrl, getStatusTagType } from '@/utils/wiremock';
+import { getMethodTagType, getUrl, statusTag } from '@/utils/wiremock';
 
 const { t } = useI18n();
 const router = useRouter();

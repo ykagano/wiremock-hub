@@ -89,7 +89,18 @@
           </el-table-column>
           <el-table-column :label="t('registeredStubs.status')" width="80">
             <template #default="{ row }">
-              {{ row.response?.status || '—' }}
+              <el-tooltip
+                v-if="statusTag(row.response).tooltip"
+                :content="statusTag(row.response).tooltip"
+                placement="top"
+              >
+                <el-tag :type="statusTag(row.response).type" size="small">
+                  {{ statusTag(row.response).label }}
+                </el-tag>
+              </el-tooltip>
+              <el-tag v-else :type="statusTag(row.response).type" size="small">
+                {{ statusTag(row.response).label }}
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column v-if="!isMobile" :label="t('registeredStubs.priority')" width="80">
@@ -133,7 +144,7 @@ import { useProjectStore } from '@/stores/project';
 import { wiremockInstanceApi } from '@/services/api';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { Mapping } from '@wiremock-hub/shared';
-import { getMethodTagType, getUrl } from '@/utils/wiremock';
+import { getMethodTagType, getUrl, statusTag } from '@/utils/wiremock';
 import { useResponsive } from '@/composables/useResponsive';
 import { usePageSize } from '@/composables/usePageSize';
 
