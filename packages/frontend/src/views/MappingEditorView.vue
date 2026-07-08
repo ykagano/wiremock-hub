@@ -113,15 +113,20 @@
                   <el-tab-pane
                     :label="t('editor.text')"
                     name="text"
-                    :disabled="hasNonExactBodyPattern"
+                    :disabled="!bodyTextRepresentable"
                   >
-                    <MonacoEditor v-model="requestBodyText" language="json" height="300px" />
+                    <MonacoEditor
+                      :model-value="requestBodyText"
+                      language="json"
+                      height="300px"
+                      @update:model-value="onRequestBodyTextInput"
+                    />
                   </el-tab-pane>
                   <el-tab-pane :label="t('editor.bodyPatterns')" name="patterns">
                     <BodyPatternsEditor v-model="formData.request.bodyPatterns" />
                   </el-tab-pane>
                 </el-tabs>
-                <div v-if="hasNonExactBodyPattern" class="body-text-disabled-hint">
+                <div v-if="!bodyTextRepresentable" class="body-text-disabled-hint">
                   {{ t('editor.bodyTextTabDisabled') }}
                 </div>
               </div>
@@ -265,6 +270,15 @@ const urlValue = ref('');
 const requestBodyText = ref('');
 const requestBodyMatchType = ref<'equalTo' | 'equalToJson'>('equalTo');
 const requestBodyTab = ref('text');
+// True only after the user edits the Text field. Gates the Text -> bodyPatterns
+// flush so that merely viewing the Text tab never rewrites (and thus collapses or
+// strips) patterns the user built on the Body Patterns tab.
+const requestBodyTextDirty = ref(false);
+
+function onRequestBodyTextInput(value: string) {
+  requestBodyText.value = value;
+  requestBodyTextDirty.value = true;
+}
 
 const isNew = computed(() => route.name === 'mapping-new');
 
@@ -315,19 +329,29 @@ const formData = reactive<Mapping>({
   persistent: true
 });
 
-// Patterns the text helper cannot represent (matchesJsonPath, contains, matches, ...)
-// are managed via the Body Patterns / JSON editors; the Text tab is disabled for them.
+// The Text tab is a single-body helper that can only round-trip a lone, bare
+// equalTo / equalToJson string matcher. Anything it cannot represent faithfully —
+// non-exact matchers (contains, matches, ...), multiple patterns, sibling flags
+// (ignoreArrayOrder, ...), or a parsed-object equalToJson — is edited via the Body
+// Patterns / JSON tabs instead, so the Text tab is disabled for those.
 // NOTE: must be declared after formData — the immediate watch evaluates the computed during setup.
-const hasNonExactBodyPattern = computed(() =>
-  (formData.request?.bodyPatterns ?? []).some(
-    (p) => p.equalTo === undefined && p.equalToJson === undefined
-  )
-);
+const bodyTextRepresentable = computed(() => {
+  const bodyPatterns = formData.request?.bodyPatterns ?? [];
+  if (bodyPatterns.length === 0) return true;
+  if (bodyPatterns.length > 1) return false;
+  const bp = bodyPatterns[0] as Record<string, unknown>;
+  const keys = Object.keys(bp);
+  if (keys.length !== 1) return false;
+  return (
+    (keys[0] === 'equalTo' && typeof bp.equalTo === 'string') ||
+    (keys[0] === 'equalToJson' && typeof bp.equalToJson === 'string')
+  );
+});
 
 watch(
-  hasNonExactBodyPattern,
-  (disabled) => {
-    if (disabled && requestBodyTab.value === 'text') {
+  bodyTextRepresentable,
+  (representable) => {
+    if (!representable && requestBodyTab.value === 'text') {
       requestBodyTab.value = 'patterns';
     }
   },
@@ -382,35 +406,45 @@ function syncHelperRefsFromRequest(req: Mapping['request']) {
 }
 
 // Derive the Text-tab helper (requestBodyText / requestBodyMatchType) from the
-// first exact body pattern. Non-exact patterns leave the (disabled) Text tab empty.
+// first body pattern. Only bare equalTo / equalToJson string matchers reach the
+// Text tab (see bodyTextRepresentable); a non-string equalToJson is stringified
+// defensively so Monaco never receives a raw object. Loading resets the dirty flag.
 function syncBodyTextFromPatterns(bodyPatterns?: BodyPattern[]) {
   const bp = bodyPatterns?.[0];
-  if (bp?.equalToJson) {
-    requestBodyText.value = bp.equalToJson;
+  if (bp?.equalToJson !== undefined) {
+    requestBodyText.value =
+      typeof bp.equalToJson === 'string' ? bp.equalToJson : JSON.stringify(bp.equalToJson, null, 2);
     requestBodyMatchType.value = 'equalToJson';
   } else {
     requestBodyText.value = bp?.equalTo || '';
     requestBodyMatchType.value = 'equalTo';
   }
+  requestBodyTextDirty.value = false;
 }
 
-// Persist the Text-tab helper into formData.request.bodyPatterns. No-op when
-// non-exact patterns are present (the Text tab is disabled for them).
+// Persist the Text-tab helper into formData.request.bodyPatterns. Only runs when
+// the user actually edited the Text field and the body is text-representable, so
+// merely viewing the Text tab never collapses multi-pattern bodies, strips sibling
+// flags, or deletes an empty-body ({ equalTo: '' }) matcher.
 function flushBodyTextToPatterns() {
-  if (hasNonExactBodyPattern.value) return;
+  if (!requestBodyTextDirty.value || !bodyTextRepresentable.value) return;
   if (requestBodyText.value) {
     formData.request.bodyPatterns = [{ [requestBodyMatchType.value]: requestBodyText.value }];
   } else {
     delete formData.request.bodyPatterns;
   }
+  requestBodyTextDirty.value = false;
 }
 
 // Keep the two body editors consistent when switching tabs so the active tab
-// always reflects the current body ("what you see is what gets saved").
+// always reflects the current body ("what you see is what gets saved"). Tabs are
+// binary, so a fired watcher is always a real switch in one direction or the other.
 watch(requestBodyTab, (tab, prev) => {
-  if (tab === prev) return;
-  if (prev === 'text') flushBodyTextToPatterns();
-  if (tab === 'text') syncBodyTextFromPatterns(formData.request.bodyPatterns);
+  if (prev === 'text') {
+    flushBodyTextToPatterns();
+  } else if (tab === 'text') {
+    syncBodyTextFromPatterns(formData.request.bodyPatterns);
+  }
 });
 
 // Initialization
