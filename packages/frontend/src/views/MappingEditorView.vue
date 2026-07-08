@@ -237,7 +237,12 @@ import { useMappingStore } from '@/stores/mapping';
 import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
-import { isFaultOrProxyResponse, joinMultiValue, type Mapping } from '@wiremock-hub/shared';
+import {
+  isFaultOrProxyResponse,
+  joinMultiValue,
+  type BodyPattern,
+  type Mapping
+} from '@wiremock-hub/shared';
 import { toMapping } from '@/utils/wiremock';
 import JsonEditor from '@/components/mapping/JsonEditor.vue';
 import KeyValueEditor from '@/components/mapping/KeyValueEditor.vue';
@@ -373,20 +378,40 @@ function syncHelperRefsFromRequest(req: Mapping['request']) {
     urlValue.value = '';
   }
 
-  if (req.bodyPatterns && req.bodyPatterns[0]) {
-    const bp = req.bodyPatterns[0];
-    if (bp.equalToJson) {
-      requestBodyText.value = bp.equalToJson;
-      requestBodyMatchType.value = 'equalToJson';
-    } else {
-      requestBodyText.value = bp.equalTo || '';
-      requestBodyMatchType.value = 'equalTo';
-    }
+  syncBodyTextFromPatterns(req.bodyPatterns);
+}
+
+// Derive the Text-tab helper (requestBodyText / requestBodyMatchType) from the
+// first exact body pattern. Non-exact patterns leave the (disabled) Text tab empty.
+function syncBodyTextFromPatterns(bodyPatterns?: BodyPattern[]) {
+  const bp = bodyPatterns?.[0];
+  if (bp?.equalToJson) {
+    requestBodyText.value = bp.equalToJson;
+    requestBodyMatchType.value = 'equalToJson';
   } else {
-    requestBodyText.value = '';
+    requestBodyText.value = bp?.equalTo || '';
     requestBodyMatchType.value = 'equalTo';
   }
 }
+
+// Persist the Text-tab helper into formData.request.bodyPatterns. No-op when
+// non-exact patterns are present (the Text tab is disabled for them).
+function flushBodyTextToPatterns() {
+  if (hasNonExactBodyPattern.value) return;
+  if (requestBodyText.value) {
+    formData.request.bodyPatterns = [{ [requestBodyMatchType.value]: requestBodyText.value }];
+  } else {
+    delete formData.request.bodyPatterns;
+  }
+}
+
+// Keep the two body editors consistent when switching tabs so the active tab
+// always reflects the current body ("what you see is what gets saved").
+watch(requestBodyTab, (tab, prev) => {
+  if (tab === prev) return;
+  if (prev === 'text') flushBodyTextToPatterns();
+  if (tab === 'text') syncBodyTextFromPatterns(formData.request.bodyPatterns);
+});
 
 // Initialization
 onMounted(async () => {
@@ -440,14 +465,12 @@ async function handleSave() {
 
   saving.value = true;
   try {
-    // Sync request body text to bodyPatterns (preserve match type).
-    // Non-exact patterns are kept as-is; their Text tab is disabled in the UI.
-    if (!hasNonExactBodyPattern.value) {
-      if (requestBodyText.value) {
-        formData.request.bodyPatterns = [{ [requestBodyMatchType.value]: requestBodyText.value }];
-      } else {
-        delete formData.request.bodyPatterns;
-      }
+    // Sync the Text tab into bodyPatterns only when it is the active editor. On the
+    // Body Patterns tab, formData.request.bodyPatterns is already maintained by
+    // BodyPatternsEditor (v-model), so overwriting it from the empty/stale Text
+    // field would silently drop exact (equalTo / equalToJson) patterns.
+    if (requestBodyTab.value === 'text') {
+      flushBodyTextToPatterns();
     }
 
     if (isNew.value) {
