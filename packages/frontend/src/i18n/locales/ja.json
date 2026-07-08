@@ -161,7 +161,7 @@
     "queryParameters": "クエリパラメータ",
     "text": "テキスト",
     "bodyPatterns": "ボディパターン",
-    "bodyTextTabDisabled": "equalTo / equalToJson 以外のボディパターンが含まれるため、テキスト編集は無効です。ボディパターンまたはJSONタブで編集してください",
+    "bodyTextTabDisabled": "このボディはテキストとして編集できない形式のため、テキスト編集は無効です。ボディパターンまたはJSONタブで編集してください",
     "responseStatus": "ステータスコード",
     "responseBody": "レスポンスボディ",
     "responseHeaders": "レスポンスヘッダー",
