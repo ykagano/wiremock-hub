@@ -422,10 +422,13 @@ function syncBodyTextFromPatterns(bodyPatterns?: BodyPattern[]) {
   requestBodyTextDirty.value = false;
 }
 
-// Persist the Text-tab helper into formData.request.bodyPatterns. Only runs when
-// the user actually edited the Text field and the body is text-representable, so
-// merely viewing the Text tab never collapses multi-pattern bodies, strips sibling
-// flags, or deletes an empty-body ({ equalTo: '' }) matcher.
+// Persist the Text-tab helper into formData.request.bodyPatterns. Runs only when the
+// user actually edited the Text field (dirty) and the body is text-representable.
+// The dirty guard means merely viewing the Text tab never rewrites bodyPatterns, so a
+// lone { equalTo: '' } matcher survives a view — though explicitly clearing the field
+// still deletes it (the Text tab can't tell "no body" from "empty-string match").
+// Multi-pattern / sibling-flag / object-equalToJson bodies keep the Text tab disabled,
+// so they never reach this flush at all.
 function flushBodyTextToPatterns() {
   if (!requestBodyTextDirty.value || !bodyTextRepresentable.value) return;
   if (requestBodyText.value) {

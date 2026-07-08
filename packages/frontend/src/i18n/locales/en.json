@@ -161,7 +161,7 @@
     "queryParameters": "Query Parameters",
     "text": "Text",
     "bodyPatterns": "Body Patterns",
-    "bodyTextTabDisabled": "Text editing is disabled because this body cannot be represented as a single equalTo/equalToJson matcher. Edit it in the Body Patterns or JSON tab",
+    "bodyTextTabDisabled": "Text editing is disabled because this body cannot be edited as plain text. Edit it in the Body Patterns or JSON tab",
     "responseStatus": "Status Code",
     "responseBody": "Response Body",
     "responseHeaders": "Response Headers",
