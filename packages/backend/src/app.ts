@@ -1,6 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import Fastify, { FastifyInstance } from 'fastify';
+import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify';
 import cors from '@fastify/cors';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from './generated/prisma/client.js';
@@ -10,6 +10,7 @@ import { wiremockInstanceRoutes } from './routes/wiremock-instances.js';
 import { healthRoutes } from './routes/health.js';
 import { mcpRoutes } from './routes/mcp.js';
 import { getDatabaseUrl, migrateDatabase } from './utils/database.js';
+import { normalizeBasePath } from './utils/base-path.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,10 +18,16 @@ const __dirname = path.dirname(__filename);
 export interface BuildAppOptions {
   logger?: boolean;
   databaseUrl?: string;
+  basePath?: string;
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
-  const { logger = false, databaseUrl } = options;
+  const { logger = false, databaseUrl, basePath } = options;
+
+  // Serve the app under a sub-path (e.g. BASE_PATH=/hub) by stripping the
+  // prefix before routing. URLs without the prefix keep working, so the app
+  // stays reachable both directly and behind a prefix-stripping reverse proxy.
+  const base = normalizeBasePath(basePath ?? process.env.BASE_PATH);
 
   // Migrate database from old location if needed (for existing users upgrading)
   // From dist/app.js -> 3 levels up to project root
@@ -32,7 +39,24 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   });
   const prisma = new PrismaClient({ adapter });
 
-  const fastify = Fastify({ logger });
+  const serverOptions: FastifyServerOptions = { logger };
+  if (base) {
+    serverOptions.rewriteUrl = (req) => {
+      const url = req.url ?? '/';
+      if (url === base) {
+        return '/';
+      }
+      if (url.startsWith(`${base}/`)) {
+        return url.slice(base.length);
+      }
+      if (url.startsWith(`${base}?`)) {
+        return `/${url.slice(base.length)}`;
+      }
+      return url;
+    };
+  }
+
+  const fastify = Fastify(serverOptions);
 
   // Register plugins
   await fastify.register(cors, {

@@ -113,6 +113,30 @@ open http://localhost:3000
 
 Then register your existing WireMock instances via the UI.
 
+#### Serving the standalone Hub under a sub-path
+
+Set the `BASE_PATH` environment variable to serve the UI and API under a
+sub-path — the same layout as the All-in-One image, useful behind a reverse
+proxy that routes e.g. `/hub/` to the Hub:
+
+```bash
+docker run -d -p 3000:3000 -e BASE_PATH=/hub ghcr.io/ykagano/wiremock-hub-standalone:latest
+open http://localhost:3000/hub/
+```
+
+Requests are served both with and without the prefix (`/hub/api/...` and
+`/api/...`), so prefix-stripping reverse proxies keep working. The frontend
+assets are re-rendered for the configured base path at container start; to
+bake the base path into a derived image instead (e.g. when running with a
+read-only root filesystem), set the env var and run the render script at
+build time:
+
+```dockerfile
+FROM ghcr.io/ykagano/wiremock-hub-standalone:latest
+ENV BASE_PATH=/hub
+RUN /app/apply-base-path.sh
+```
+
 ### Docker Compose Examples
 
 ```bash

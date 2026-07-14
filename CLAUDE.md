@@ -149,6 +149,12 @@ docker run -d \
 
 Then register existing WireMock instances from the UI.
 
+**Sub-path deployment:** set `BASE_PATH` (e.g. `-e BASE_PATH=/hub`) to serve the UI and API
+under a sub-path like the All-in-One image. The frontend is built with a placeholder base path
+that `docker/apply-base-path.sh` renders at container start (or at build time in a derived image
+for read-only filesystems), and the backend strips the prefix via Fastify's `rewriteUrl`, so
+URLs work both with and without the prefix.
+
 ### Docker Compose
 
 ```bash

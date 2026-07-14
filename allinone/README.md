@@ -187,13 +187,13 @@ docker exec -it wiremock-hub-allinone supervisorctl restart wiremock-hub
 
 ## Comparison with Standard Version
 
-| Feature              | Standard Version    | All-in-One Version |
-| -------------------- | ------------------- | ------------------ |
-| Number of Containers | 2+ (Hub + WireMock) | 1                  |
-| Number of Ports      | 2 (3000 + 8080)     | 1 (3000)           |
-| Distributed WireMock | Supported           | Not Supported      |
-| ECS Optimization     | -                   | Supported          |
-| Hub UI Path          | `/`                 | `/hub/`            |
+| Feature              | Standard Version                   | All-in-One Version |
+| -------------------- | ---------------------------------- | ------------------ |
+| Number of Containers | 2+ (Hub + WireMock)                | 1                  |
+| Number of Ports      | 2 (3000 + 8080)                    | 1 (3000)           |
+| Distributed WireMock | Supported                          | Not Supported      |
+| ECS Optimization     | -                                  | Supported          |
+| Hub UI Path          | `/` (configurable via `BASE_PATH`) | `/hub/`            |
 
 ## License
 
