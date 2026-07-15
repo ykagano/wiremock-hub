@@ -23,7 +23,8 @@ PLACEHOLDER="/__WIREMOCK_HUB_BASE__"
 FRONTEND_DIR="/app/packages/frontend"
 DIST_DIR="$FRONTEND_DIR/dist"
 TEMPLATE="/app/frontend-dist-template.tar.gz"
-MARKER="$DIST_DIR/.base-path"
+# The marker lives outside dist/ so it is never served as a static file
+MARKER="$FRONTEND_DIR/.base-path"
 
 # When BASE_PATH is not set at all, keep whatever is currently rendered
 # (the root default, or a base path baked into a derived image at build time).
@@ -49,6 +50,7 @@ if [ -f "$MARKER" ] && [ "$(cat "$MARKER")" = "$BASE_PATH" ]; then
 fi
 
 echo "Rendering frontend for base path '${BASE_PATH:-/}'..."
+rm -f "$MARKER"
 rm -rf "$DIST_DIR"
 tar -xzf "$TEMPLATE" -C "$FRONTEND_DIR"
 find "$DIST_DIR" -type f \

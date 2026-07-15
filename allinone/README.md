@@ -123,6 +123,19 @@ For ECS/Fargate, mount an EFS volume to `/data` (see task definition example abo
 | `WIREMOCK_OPTS` | `--global-response-templating` | Extra WireMock CLI options                                       |
 | `BASE_PATH`     | `/hub`                         | Hub base path (baked at image build; `nginx.conf` must match it) |
 
+## Changing the Base Path
+
+The image keeps the pristine frontend template (`/app/frontend-dist-template.tar.gz`),
+so a derived image can re-bake a different base path. Provide an `nginx.conf`
+whose Hub location matches the new path:
+
+```dockerfile
+FROM ghcr.io/ykagano/wiremock-hub:latest
+ENV BASE_PATH=/mock
+RUN /app/apply-base-path.sh
+COPY my-nginx.conf /etc/nginx/http.d/default.conf
+```
+
 ## Project Configuration
 
 ### WireMock URL Settings
