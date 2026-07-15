@@ -33,8 +33,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 # Generate Prisma client first (required for TypeScript build)
 RUN cd packages/backend && pnpm exec prisma generate
 
-# Build all packages with version from tag
+# Build all packages with version from tag.
+# The frontend is built with a placeholder base path that is replaced at
+# container start (or image build) by docker/apply-base-path.sh, so the UI
+# can be served under a sub-path via the BASE_PATH env var without a rebuild.
 ENV VITE_APP_VERSION=${APP_VERSION}
+ENV VITE_BASE_PATH=/__WIREMOCK_HUB_BASE__/
 RUN pnpm run build
 
 # Production stage
@@ -74,6 +78,15 @@ COPY --from=builder /app/packages/frontend/dist ./packages/frontend/dist
 # Remove favicon.ico if exists (Vue default) - we use favicon.svg
 RUN rm -f ./packages/frontend/dist/favicon.ico
 
+# Base path support: keep a pristine copy of the frontend dist (with the
+# placeholder base path), then render the default root base path so the
+# image works out of the box without any filesystem writes at startup.
+# Set BASE_PATH (e.g. BASE_PATH=/hub) to serve the UI under a sub-path.
+COPY docker/apply-base-path.sh docker/entrypoint.sh /app/
+RUN chmod +x /app/apply-base-path.sh /app/entrypoint.sh && \
+    tar -czf /app/frontend-dist-template.tar.gz -C /app/packages/frontend dist && \
+    /app/apply-base-path.sh
+
 # Create data directories for SQLite (new path + old path for backward compatibility)
 RUN mkdir -p /data /app/packages/backend/data
 
@@ -90,17 +103,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/projects || exit 1
 
-# Start the application with database migration and initialization
+# Start the application with base path rendering, database migration and initialization
 WORKDIR /app/packages/backend
-CMD ["sh", "-c", "\
-  # Migrate from old path if exists (backward compatibility with v0.x) \n\
-  if [ -f /app/packages/backend/data/wiremock-hub.db ] && [ ! -f /data/wiremock-hub.db ]; then \
-    echo '[Migration] Copying database from old location...'; \
-    cp /app/packages/backend/data/wiremock-hub.db /data/wiremock-hub.db; \
-    echo '[Migration] Done. Update your volume mount to -v ./data:/data'; \
-  fi && \
-  # Initialize database if it doesn't exist \n\
-  if [ ! -f /data/wiremock-hub.db ]; then \
-    cat prisma/migrations/*/migration.sql | sqlite3 /data/wiremock-hub.db; \
-  fi && \
-  node dist/index.js"]
+CMD ["/app/entrypoint.sh"]

@@ -34,8 +34,10 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 # Build shared package first (frontend depends on it)
 RUN pnpm --filter @wiremock-hub/shared build
 
-# Build frontend with /hub base path and version from tag
-ENV VITE_BASE_PATH=/hub/
+# Build frontend with the placeholder base path (same build as the standalone
+# image); the /hub base path is baked in the runtime stage via
+# docker/apply-base-path.sh
+ENV VITE_BASE_PATH=/__WIREMOCK_HUB_BASE__/
 ENV VITE_APP_VERSION=${APP_VERSION}
 RUN pnpm run build:frontend
 
@@ -114,11 +116,21 @@ COPY --from=backend-builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=backend-builder /app/packages/backend/prisma ./packages/backend/prisma
 
-# Copy frontend build to backend's public directory
-COPY --from=frontend-builder /app/packages/frontend/dist ./packages/backend/public
+# Copy frontend build (served by the backend from packages/frontend/dist,
+# same layout as the standalone image)
+COPY --from=frontend-builder /app/packages/frontend/dist ./packages/frontend/dist
 
 # Remove favicon.ico if exists (Vue default) - we use favicon.svg
-RUN rm -f ./packages/backend/public/favicon.ico
+RUN rm -f ./packages/frontend/dist/favicon.ico
+
+# Bake the /hub base path into the frontend with the shared render script.
+# BASE_PATH stays set at runtime so the backend also strips the prefix.
+# Changing it requires a matching nginx.conf, so it is baked, not runtime-set.
+COPY docker/apply-base-path.sh /app/apply-base-path.sh
+ENV BASE_PATH=/hub
+RUN chmod +x /app/apply-base-path.sh && \
+    tar -czf /app/frontend-dist-template.tar.gz -C /app/packages/frontend dist && \
+    /app/apply-base-path.sh
 
 # Download WireMock standalone (version pinned for API stability)
 RUN wget -O /app/wiremock-standalone.jar \

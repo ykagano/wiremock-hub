@@ -114,13 +114,27 @@ For ECS/Fargate, mount an EFS volume to `/data` (see task definition example abo
 
 ## Environment Variables
 
-| Variable        | Default Value                  | Description                |
-| --------------- | ------------------------------ | -------------------------- |
-| `NODE_ENV`      | `production`                   | Runtime environment        |
-| `DATABASE_URL`  | `file:/data/wiremock-hub.db`   | Database connection URL    |
-| `PORT`          | `3001`                         | Hub API port (internal)    |
-| `WIREMOCK_PORT` | `8080`                         | WireMock port (internal)   |
-| `WIREMOCK_OPTS` | `--global-response-templating` | Extra WireMock CLI options |
+| Variable        | Default Value                  | Description                                                      |
+| --------------- | ------------------------------ | ---------------------------------------------------------------- |
+| `NODE_ENV`      | `production`                   | Runtime environment                                              |
+| `DATABASE_URL`  | `file:/data/wiremock-hub.db`   | Database connection URL                                          |
+| `PORT`          | `3001`                         | Hub API port (internal)                                          |
+| `WIREMOCK_PORT` | `8080`                         | WireMock port (internal)                                         |
+| `WIREMOCK_OPTS` | `--global-response-templating` | Extra WireMock CLI options                                       |
+| `BASE_PATH`     | `/hub`                         | Hub base path (baked at image build; `nginx.conf` must match it) |
+
+## Changing the Base Path
+
+The image keeps the pristine frontend template (`/app/frontend-dist-template.tar.gz`),
+so a derived image can re-bake a different base path. Provide an `nginx.conf`
+whose Hub location matches the new path:
+
+```dockerfile
+FROM ghcr.io/ykagano/wiremock-hub:latest
+ENV BASE_PATH=/mock
+RUN /app/apply-base-path.sh
+COPY my-nginx.conf /etc/nginx/http.d/default.conf
+```
 
 ## Project Configuration
 
@@ -187,13 +201,13 @@ docker exec -it wiremock-hub-allinone supervisorctl restart wiremock-hub
 
 ## Comparison with Standard Version
 
-| Feature              | Standard Version    | All-in-One Version |
-| -------------------- | ------------------- | ------------------ |
-| Number of Containers | 2+ (Hub + WireMock) | 1                  |
-| Number of Ports      | 2 (3000 + 8080)     | 1 (3000)           |
-| Distributed WireMock | Supported           | Not Supported      |
-| ECS Optimization     | -                   | Supported          |
-| Hub UI Path          | `/`                 | `/hub/`            |
+| Feature              | Standard Version                   | All-in-One Version |
+| -------------------- | ---------------------------------- | ------------------ |
+| Number of Containers | 2+ (Hub + WireMock)                | 1                  |
+| Number of Ports      | 2 (3000 + 8080)                    | 1 (3000)           |
+| Distributed WireMock | Supported                          | Not Supported      |
+| ECS Optimization     | -                                  | Supported          |
+| Hub UI Path          | `/` (configurable via `BASE_PATH`) | `/hub/`            |
 
 ## License
 
