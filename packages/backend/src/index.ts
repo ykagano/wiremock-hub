@@ -2,7 +2,6 @@ import 'dotenv/config';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
 import { buildApp } from './app.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,12 +11,9 @@ const fastify = await buildApp({ logger: true });
 
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
-  // __dirname is /app/packages/backend/dist
-  // Check for public directory first (Docker), then fall back to frontend/dist (local)
-  const publicPath = path.join(__dirname, '../public');
-  const frontendPath = path.join(__dirname, '../../frontend/dist');
-
-  const staticPath = existsSync(publicPath) ? publicPath : frontendPath;
+  // __dirname is /app/packages/backend/dist; both Docker images and local
+  // production runs serve the frontend from packages/frontend/dist
+  const staticPath = path.join(__dirname, '../../frontend/dist');
 
   await fastify.register(fastifyStatic, {
     root: staticPath,
