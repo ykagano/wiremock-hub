@@ -14,7 +14,7 @@
     "@wiremock-hub/shared": "workspace:*",
     "axios": "^1.18.1",
     "dayjs": "^1.11.21",
-    "element-plus": "^2.14.2",
+    "element-plus": "^2.14.3",
     "monaco-editor": "^0.55.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.39",
