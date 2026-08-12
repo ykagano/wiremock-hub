@@ -43,6 +43,7 @@ export interface Project {
   id: string;
   name: string;
   description?: string;
+  autoSync?: boolean;
   createdAt: string;
   updatedAt: string;
   wiremockInstances?: WiremockInstance[];
@@ -57,6 +58,7 @@ export interface CreateProjectInput {
 export interface UpdateProjectInput {
   name?: string;
   description?: string;
+  autoSync?: boolean;
 }
 
 // Project API

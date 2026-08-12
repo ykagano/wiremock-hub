@@ -862,4 +862,74 @@ describe('Projects API', () => {
       expect(deleteSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('autoSync field', () => {
+    it('should default to false on create', async () => {
+      const app = await getTestApp();
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'AutoSync Default' }
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.json().data.autoSync).toBe(false);
+    });
+
+    it('should accept autoSync on create', async () => {
+      const app = await getTestApp();
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'AutoSync On', autoSync: true }
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.json().data.autoSync).toBe(true);
+    });
+
+    it('should update autoSync', async () => {
+      const app = await getTestApp();
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'AutoSync Update' }
+      });
+      const projectId = createResponse.json().data.id;
+
+      const updateResponse = await app.inject({
+        method: 'PUT',
+        url: `/api/projects/${projectId}`,
+        payload: { autoSync: true }
+      });
+
+      expect(updateResponse.statusCode).toBe(200);
+      expect(updateResponse.json().data.autoSync).toBe(true);
+    });
+
+    it('should not copy autoSync on duplicate', async () => {
+      const app = await getTestApp();
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: { name: 'AutoSync Duplicate', autoSync: true }
+      });
+      const projectId = createResponse.json().data.id;
+
+      const duplicateResponse = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${projectId}/duplicate`,
+        payload: {}
+      });
+
+      expect(duplicateResponse.statusCode).toBe(201);
+      // The duplicate shares instance URLs with the original; copying autoSync
+      // would make two projects fight over the same WireMock on every restart
+      expect(duplicateResponse.json().data.autoSync).toBe(false);
+    });
+  });
 });

@@ -10,6 +10,7 @@ import { wiremockInstanceRoutes } from './routes/wiremock-instances.js';
 import { healthRoutes } from './routes/health.js';
 import { mcpRoutes } from './routes/mcp.js';
 import { getDatabaseUrl, migrateDatabase } from './utils/database.js';
+import { AutoSyncState } from './utils/auto-sync.js';
 import { normalizeBasePath } from './utils/base-path.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,6 +68,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   // Decorate fastify with prisma
   fastify.decorate('prisma', prisma);
 
+  // Per-app auto-sync stop flag (flipped on close to abort retry loops)
+  const autoSyncState: AutoSyncState = { stopped: false };
+  fastify.decorate('autoSyncState', autoSyncState);
+
   // Register routes
   await fastify.register(projectRoutes, { prefix: '/api/projects' });
   await fastify.register(stubRoutes, { prefix: '/api/stubs' });
@@ -76,6 +81,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   // Add hook for graceful shutdown
   fastify.addHook('onClose', async () => {
+    autoSyncState.stopped = true;
     await prisma.$disconnect();
   });
 
@@ -86,5 +92,6 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
+    autoSyncState: AutoSyncState;
   }
 }

@@ -19,6 +19,16 @@ export function injectHubMetadata(
   };
 }
 
+/** Single definition of "healthy": the Admin API answers GET /__admin/mappings */
+export async function isWiremockHealthy(instanceUrl: string): Promise<boolean> {
+  try {
+    const response = await axios.get(`${instanceUrl}/__admin/mappings`, { timeout: 5000 });
+    return response.status === 200;
+  } catch {
+    return false;
+  }
+}
+
 export interface SyncResult {
   success: number;
   failed: number;
@@ -68,7 +78,9 @@ export async function syncStubsToInstance(
       chunk.map(async (stub) => {
         const mapping = stub.mapping as unknown as Mapping;
         const mappingWithMetadata = injectHubMetadata(mapping, project, stub);
-        await axios.post(`${instanceUrl}/__admin/mappings`, mappingWithMetadata);
+        await axios.post(`${instanceUrl}/__admin/mappings`, mappingWithMetadata, {
+          timeout: 10000
+        });
         return stub.id;
       })
     );

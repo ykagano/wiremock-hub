@@ -573,14 +573,16 @@ describe('Stubs API - Sync & Test', () => {
         expect.objectContaining({
           request: { url: '/test1' },
           response: { status: 200 }
-        })
+        }),
+        expect.objectContaining({ timeout: expect.any(Number) })
       );
       expect(postSpy).toHaveBeenCalledWith(
         'http://wiremock-test:8080/__admin/mappings',
         expect.objectContaining({
           request: { url: '/test2' },
           response: { status: 201 }
-        })
+        }),
+        expect.objectContaining({ timeout: expect.any(Number) })
       );
 
       vi.restoreAllMocks();

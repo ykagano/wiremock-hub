@@ -57,3 +57,6 @@ tasks/
 
 # Claude Code
 .claude/
+
+# MCP server config (contains local tokens)
+.mcp.json

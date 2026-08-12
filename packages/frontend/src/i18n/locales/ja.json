@@ -108,7 +108,9 @@
     "stubs": "スタブ",
     "createdAt": "作成日時",
     "updatedAt": "更新日時",
-    "copyProjectId": "プロジェクトIDをコピーしました"
+    "copyProjectId": "プロジェクトIDをコピーしました",
+    "autoSync": "起動時に自動で同期する",
+    "autoSyncTooltip": "Hub 起動時・インスタンス登録時にヘルスチェックが通り次第、スタブを自動同期します（ONにした時点では同期されません）"
   },
   "mappings": {
     "title": "スタブマッピング",

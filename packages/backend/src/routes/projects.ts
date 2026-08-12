@@ -1,15 +1,18 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { syncStubsToInstance } from '../utils/wiremock-sync.js';
+import { autoSyncInstance } from '../utils/auto-sync.js';
 
 const createProjectSchema = z.object({
   name: z.string().min(1),
-  description: z.string().optional()
+  description: z.string().optional(),
+  autoSync: z.boolean().optional()
 });
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).optional(),
-  description: z.string().optional()
+  description: z.string().optional(),
+  autoSync: z.boolean().optional()
 });
 
 const duplicateProjectSchema = z.object({
@@ -206,6 +209,10 @@ export async function projectRoutes(fastify: FastifyInstance) {
           data: {
             name: `${existing.name} ${suffix}`,
             description: existing.description,
+            // autoSync is intentionally NOT copied: the duplicate shares the
+            // same instance URLs, and two autoSync projects would fight over
+            // the same WireMock on every Hub restart
+            autoSync: false,
             wiremockInstances: {
               create: existing.wiremockInstances.map((instance) => ({
                 name: instance.name,
@@ -314,6 +321,16 @@ export async function projectRoutes(fastify: FastifyInstance) {
           }
 
           result.syncResults = syncResults;
+        }
+
+        // Fire-and-forget: auto-sync once each instance becomes healthy
+        // (no-op unless the project has autoSync enabled).
+        // Skipped when syncStubs already synced above, to avoid a redundant
+        // reset+register right after the response.
+        if (!body.syncStubs) {
+          for (const instance of createdInstances) {
+            void autoSyncInstance(fastify, instance.id);
+          }
         }
 
         return reply.send({
