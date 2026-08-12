@@ -108,7 +108,9 @@
     "stubs": "Stubs",
     "createdAt": "Created At",
     "updatedAt": "Updated At",
-    "copyProjectId": "Project ID copied to clipboard"
+    "copyProjectId": "Project ID copied to clipboard",
+    "autoSync": "Auto-sync on startup",
+    "autoSyncTooltip": "Automatically syncs stubs once the health check passes, on Hub startup and instance registration (turning this on does not sync immediately)"
   },
   "mappings": {
     "title": "Stub Mappings",

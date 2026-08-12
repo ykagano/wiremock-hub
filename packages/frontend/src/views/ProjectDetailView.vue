@@ -49,6 +49,17 @@
     <!-- Instance list -->
     <div class="instances-section">
       <div class="section-header">
+        <div class="auto-sync-toggle">
+          <el-switch
+            :model-value="project?.autoSync ?? false"
+            :loading="savingAutoSync"
+            @change="handleAutoSyncChange"
+          />
+          <span class="auto-sync-label">{{ t('projectDetail.autoSync') }}</span>
+          <el-tooltip :content="t('projectDetail.autoSyncTooltip')" placement="top">
+            <el-icon class="auto-sync-help"><InfoFilled /></el-icon>
+          </el-tooltip>
+        </div>
         <el-button
           type="success"
           @click="handleSyncAll"
@@ -352,6 +363,22 @@ async function copyProjectId() {
   }
 }
 
+// Auto sync toggle
+const savingAutoSync = ref(false);
+
+async function handleAutoSyncChange(value: string | number | boolean) {
+  if (!project.value) return;
+  savingAutoSync.value = true;
+  try {
+    project.value = await projectApi.update(project.value.id, { autoSync: Boolean(value) });
+    ElMessage.success(t('common.success'));
+  } catch (error: any) {
+    ElMessage.error(error.message || t('common.error'));
+  } finally {
+    savingAutoSync.value = false;
+  }
+}
+
 // Project
 function editProject() {
   if (!project.value) return;
@@ -544,9 +571,29 @@ function closeInstanceDialog() {
 
 .section-header {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .auto-sync-toggle {
+    flex-basis: 100%;
+  }
+}
+
+.auto-sync-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.auto-sync-help {
+  color: var(--el-text-color-secondary);
+  cursor: help;
 }
 
 .instances-grid {

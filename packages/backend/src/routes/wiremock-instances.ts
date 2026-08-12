@@ -8,6 +8,8 @@ import {
   type MultiValueMap,
   type ValueMatcher
 } from '@wiremock-hub/shared';
+import { autoSyncInstance } from '../utils/auto-sync.js';
+import { isWiremockHealthy } from '../utils/wiremock-sync.js';
 
 const createInstanceSchema = z.object({
   projectId: z.string().uuid(),
@@ -115,15 +117,7 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
       }
 
       // Check WireMock health
-      let isHealthy = false;
-      try {
-        const response = await axios.get(`${instance.url}/__admin/mappings`, {
-          timeout: 5000
-        });
-        isHealthy = response.status === 200;
-      } catch {
-        isHealthy = false;
-      }
+      const isHealthy = await isWiremockHealthy(instance.url);
 
       return reply.send({
         success: true,
@@ -151,6 +145,10 @@ export async function wiremockInstanceRoutes(fastify: FastifyInstance) {
       const instance = await fastify.prisma.wiremockInstance.create({
         data: body
       });
+
+      // Fire-and-forget: auto-sync once the instance becomes healthy
+      // (no-op unless the project has autoSync enabled)
+      void autoSyncInstance(fastify, instance.id);
 
       return reply.status(201).send({
         success: true,

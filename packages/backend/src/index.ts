@@ -3,6 +3,7 @@ import fastifyStatic from '@fastify/static';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildApp } from './app.js';
+import { autoSyncAllRegistered } from './utils/auto-sync.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +49,11 @@ const start = async () => {
 
     await fastify.listen({ port, host });
     console.log(`Server is running on http://${host}:${port}`);
+
+    // Fire-and-forget: auto-sync stubs to instances of autoSync-enabled projects
+    autoSyncAllRegistered(fastify).catch((error) => {
+      fastify.log.error({ error }, 'Failed to start auto-sync');
+    });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
