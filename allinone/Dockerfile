@@ -127,8 +127,9 @@ RUN rm -f ./packages/frontend/dist/favicon.ico
 # BASE_PATH stays set at runtime so the backend also strips the prefix.
 # Changing it requires a matching nginx.conf, so it is baked, not runtime-set.
 COPY docker/apply-base-path.sh /app/apply-base-path.sh
+COPY docker/apply-migrations.sh /app/apply-migrations.sh
 ENV BASE_PATH=/hub
-RUN chmod +x /app/apply-base-path.sh && \
+RUN chmod +x /app/apply-base-path.sh /app/apply-migrations.sh && \
     tar -czf /app/frontend-dist-template.tar.gz -C /app/packages/frontend dist && \
     /app/apply-base-path.sh
 

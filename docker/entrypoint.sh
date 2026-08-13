@@ -13,9 +13,7 @@ if [ -f /app/packages/backend/data/wiremock-hub.db ] && [ ! -f /data/wiremock-hu
   echo '[Migration] Done. Update your volume mount to -v ./data:/data'
 fi
 
-# Initialize database if it doesn't exist
-if [ ! -f /data/wiremock-hub.db ]; then
-  cat prisma/migrations/*/migration.sql | sqlite3 /data/wiremock-hub.db
-fi
+# Apply pending schema migrations (also initializes a brand-new database)
+/app/apply-migrations.sh /data/wiremock-hub.db /app/packages/backend/prisma/migrations
 
 exec node dist/index.js
