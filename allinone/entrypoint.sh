@@ -23,11 +23,9 @@ if [ -f "$OLD_DB_PATH" ] && [ ! -f "$NEW_DB_PATH" ]; then
     echo "[Migration] Database migrated successfully. You can now update your volume mount to -v ./data:/data"
 fi
 
-# Initialize database if it doesn't exist (using sqlite3 instead of prisma CLI)
-if [ ! -f /data/wiremock-hub.db ]; then
-    echo "Initializing database with sqlite3..."
-    cat /app/packages/backend/prisma/migrations/*/migration.sql | sqlite3 /data/wiremock-hub.db
-fi
+# Apply pending schema migrations (also initializes a brand-new database).
+# Uses sqlite3 + a _hub_migrations tracking table instead of the prisma CLI.
+/app/apply-migrations.sh /data/wiremock-hub.db /app/packages/backend/prisma/migrations
 
 echo "Starting services with supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisord.conf

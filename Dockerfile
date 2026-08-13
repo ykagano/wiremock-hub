@@ -82,8 +82,8 @@ RUN rm -f ./packages/frontend/dist/favicon.ico
 # placeholder base path), then render the default root base path so the
 # image works out of the box without any filesystem writes at startup.
 # Set BASE_PATH (e.g. BASE_PATH=/hub) to serve the UI under a sub-path.
-COPY docker/apply-base-path.sh docker/entrypoint.sh /app/
-RUN chmod +x /app/apply-base-path.sh /app/entrypoint.sh && \
+COPY docker/apply-base-path.sh docker/apply-migrations.sh docker/entrypoint.sh /app/
+RUN chmod +x /app/apply-base-path.sh /app/apply-migrations.sh /app/entrypoint.sh && \
     tar -czf /app/frontend-dist-template.tar.gz -C /app/packages/frontend dist && \
     /app/apply-base-path.sh
 
