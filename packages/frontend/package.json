@@ -16,10 +16,10 @@
     "dayjs": "^1.11.23",
     "element-plus": "^2.14.3",
     "monaco-editor": "^0.56.0",
-    "pinia": "^3.0.4",
-    "vue": "^3.5.39",
-    "vue-i18n": "^11.4.6",
-    "vue-router": "^5.1.0",
+    "pinia": "^4.0.3",
+    "vue": "^3.5.43",
+    "vue-i18n": "^11.4.12",
+    "vue-router": "^5.3.1",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
