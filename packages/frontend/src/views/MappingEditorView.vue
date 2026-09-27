@@ -44,13 +44,30 @@
         </el-form-item>
 
         <!-- Description -->
-        <el-form-item :label="t('editor.stubDescription')" class="description-item">
+        <el-form-item :label="t('editor.stubDescription')">
           <el-input
             v-model="stubDescription"
             type="textarea"
             :rows="2"
             :placeholder="t('editor.placeholder.stubDescription')"
           />
+        </el-form-item>
+
+        <!-- Tags (stored in metadata.tags) -->
+        <el-form-item :label="t('editor.tags')" class="last-form-item">
+          <el-select
+            v-model="stubTags"
+            multiple
+            filterable
+            allow-create
+            default-first-option
+            :reserve-keyword="false"
+            :placeholder="t('editor.placeholder.tags')"
+            data-testid="stub-tags"
+            style="width: 100%"
+          >
+            <el-option v-for="tag in mappingStore.allTags" :key="tag" :label="tag" :value="tag" />
+          </el-select>
         </el-form-item>
       </el-form>
     </el-card>
@@ -243,8 +260,10 @@ import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
 import {
+  getTags,
   isFaultOrProxyResponse,
   joinMultiValue,
+  setTags,
   type BodyPattern,
   type Mapping
 } from '@wiremock-hub/shared';
@@ -327,6 +346,12 @@ const formData = reactive<Mapping>({
   },
   priority: 5,
   persistent: true
+});
+
+// Tags live in formData.metadata.tags, so the JSON tab stays in sync automatically
+const stubTags = computed({
+  get: () => getTags(formData),
+  set: (tags: string[]) => setTags(formData, tags)
 });
 
 // The Text tab is a single-body helper that can only round-trip a lone, bare
@@ -577,7 +602,7 @@ function openTestDialog() {
   margin-bottom: 16px;
 }
 
-.description-item {
+.last-form-item {
   margin-bottom: 0;
 }
 

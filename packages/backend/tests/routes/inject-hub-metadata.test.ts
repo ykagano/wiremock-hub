@@ -23,14 +23,14 @@ describe('injectHubMetadata', () => {
       request: { method: 'GET', url: '/api/test' },
       response: { status: 200 },
       metadata: {
-        'wiremock-gui': { folder: 'my-folder' },
+        tags: ['Orders'],
         custom_field: 'custom_value'
       }
     };
 
     const result = injectHubMetadata(mapping, project);
 
-    expect(result.metadata!['wiremock-gui']).toEqual({ folder: 'my-folder' });
+    expect(result.metadata!.tags).toEqual(['Orders']);
     expect(result.metadata!.custom_field).toBe('custom_value');
     expect(result.metadata!.hub_project_id).toBe('proj-uuid-123');
     expect(result.metadata!.hub_project_name).toBe('Test Project');

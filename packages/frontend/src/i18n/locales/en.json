@@ -136,6 +136,7 @@
     "priority": "Priority",
     "name": "Name",
     "scenario": "Scenario",
+    "tags": "Tags",
     "confirmReset": "Delete all stubs in this project? This action cannot be undone.",
     "confirmResetNote": "To also delete stubs on WireMock instances, run \"Sync All Instances\" after deletion.",
     "selectedCount": "{count} selected",
@@ -149,6 +150,7 @@
     "basicInfo": "Basic Info",
     "stubName": "Stub Name",
     "stubDescription": "Description",
+    "tags": "Tags",
     "request": "Request",
     "response": "Response",
     "advanced": "Advanced",
@@ -179,7 +181,8 @@
       "requiredState": "e.g. Started",
       "newState": "e.g. LoggedIn",
       "stubName": "e.g. External API",
-      "stubDescription": "Stub description (optional)"
+      "stubDescription": "Stub description (optional)",
+      "tags": "Select or type tags"
     }
   },
   "requests": {

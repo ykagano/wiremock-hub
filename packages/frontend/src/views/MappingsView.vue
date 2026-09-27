@@ -100,6 +100,18 @@
         <el-option label="PATCH" value="PATCH" />
         <el-option label="OPTIONS" value="OPTIONS" />
       </el-select>
+      <el-select
+        v-model="filterTags"
+        :placeholder="t('mappings.tags')"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        clearable
+        data-testid="tag-filter"
+        :style="{ width: isMobile ? '100%' : '240px' }"
+      >
+        <el-option v-for="tag in allTags" :key="tag" :label="tag" :value="tag" />
+      </el-select>
     </div>
 
     <!-- Loading -->
@@ -144,6 +156,12 @@
       <el-table-column :label="t('mappings.name')" min-width="150">
         <template #default="{ row }">
           {{ row.name || '-' }}
+          <!-- Tags sit under the name instead of in their own column to avoid horizontal scroll -->
+          <div v-if="getTags(row).length > 0" class="tag-list">
+            <el-tag v-for="tag in getTags(row)" :key="tag" size="small" type="info">
+              {{ tag }}
+            </el-tag>
+          </div>
         </template>
       </el-table-column>
 
@@ -155,7 +173,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="t('mappings.url')" min-width="300">
+      <el-table-column :label="t('mappings.url')" min-width="250">
         <template #default="{ row }">
           <code class="url-text">{{ getUrl(row.request) }}</code>
         </template>
@@ -243,19 +261,25 @@ import { usePageSize } from '@/composables/usePageSize';
 import StubTestDialog from '@/components/mapping/StubTestDialog.vue';
 import StatusTag from '@/components/mapping/StatusTag.vue';
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus';
-import { isFaultOrProxyResponse, type Mapping, type MappingRequest } from '@wiremock-hub/shared';
+import {
+  getTags,
+  isFaultOrProxyResponse,
+  type Mapping,
+  type MappingRequest
+} from '@wiremock-hub/shared';
 import { getMethodTagType, getUrl } from '@/utils/wiremock';
 
 const { t } = useI18n();
 const router = useRouter();
 const mappingStore = useMappingStore();
-const { mappings, loading } = storeToRefs(mappingStore);
+const { mappings, allTags, loading } = storeToRefs(mappingStore);
 const projectStore = useProjectStore();
 const { syncing, appending, confirmAndSyncAll, confirmAndAppendAll } = useSyncAllInstances();
 const { isMobile } = useResponsive();
 
 const searchQuery = ref('');
 const filterMethod = ref('');
+const filterTags = ref<string[]>([]);
 const currentPage = ref(1);
 const { pageSize, pageSizes } = usePageSize();
 const testDialogVisible = ref(false);
@@ -305,7 +329,7 @@ function confirmBulkDelete() {
 // Reset the selection whenever the filter/search context changes, so that
 // "Delete Selected" never targets rows hidden by the current filter.
 // Pagination is intentionally excluded to preserve cross-page selection.
-watch([searchQuery, filterMethod], () => {
+watch([searchQuery, filterMethod, filterTags], () => {
   if (hasSelection.value) clearSelection();
 });
 
@@ -316,6 +340,11 @@ const filteredMappings = computed(() => {
   // Method filter
   if (filterMethod.value) {
     result = result.filter((m) => m.request.method === filterMethod.value);
+  }
+
+  // Tag filter (OR: any of the selected tags)
+  if (filterTags.value.length > 0) {
+    result = result.filter((m) => getTags(m).some((tag) => filterTags.value.includes(tag)));
   }
 
   // Search query filter
@@ -330,7 +359,8 @@ const filteredMappings = computed(() => {
         url.includes(query) ||
         method.includes(query) ||
         scenario.includes(query) ||
-        name.includes(query)
+        name.includes(query) ||
+        getTags(m).some((tag) => tag.toLowerCase().includes(query))
       );
     });
   }
@@ -589,6 +619,13 @@ onMounted(() => {
 
 .mapping-table {
   margin-bottom: 20px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .mapping-table :deep(.el-table__row) {
