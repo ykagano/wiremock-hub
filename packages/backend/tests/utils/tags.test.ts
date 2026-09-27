@@ -6,10 +6,15 @@ describe('normalizeTags', () => {
     expect(normalizeTags([' Orders ', '', 'smoke', 'Orders', '  '])).toEqual(['Orders', 'smoke']);
   });
 
-  it('should ignore non-array input and non-string elements', () => {
-    expect(normalizeTags('Orders')).toEqual([]);
+  it('should treat a lone string as one tag and stringify numbers', () => {
+    expect(normalizeTags(' Orders ')).toEqual(['Orders']);
+    expect(normalizeTags(['Orders', 2024])).toEqual(['Orders', '2024']);
+  });
+
+  it('should ignore other input and elements', () => {
     expect(normalizeTags(undefined)).toEqual([]);
-    expect(normalizeTags(['Orders', 1, null, { a: 1 }])).toEqual(['Orders']);
+    expect(normalizeTags({ a: 1 })).toEqual([]);
+    expect(normalizeTags(['Orders', null, true, { a: 1 }])).toEqual(['Orders']);
   });
 });
 

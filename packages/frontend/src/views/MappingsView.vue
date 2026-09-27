@@ -333,6 +333,13 @@ watch([searchQuery, filterMethod, filterTags], () => {
   if (hasSelection.value) clearSelection();
 });
 
+// Drop filter tags that no longer exist (e.g. the last stub with that tag was
+// deleted), otherwise the list stays empty behind an orphaned filter value.
+watch(allTags, (tags) => {
+  const kept = filterTags.value.filter((tag) => tags.includes(tag));
+  if (kept.length !== filterTags.value.length) filterTags.value = kept;
+});
+
 // Filtering
 const filteredMappings = computed(() => {
   let result = mappings.value;

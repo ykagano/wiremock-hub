@@ -477,6 +477,10 @@ watch(requestBodyTab, (tab, prev) => {
 
 // Initialization
 onMounted(async () => {
+  // Load the project's stubs for tag suggestions (the store is empty on a direct
+  // load/reload of this page). Not awaited: the form doesn't depend on it.
+  mappingStore.fetchMappings();
+
   // Pre-fill scenarioName from query parameter (e.g. from ScenariosView "Create new stub")
   const queryScenarioName = route.query.scenarioName as string | undefined;
   if (isNew.value && queryScenarioName) {

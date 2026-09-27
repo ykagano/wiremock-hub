@@ -1,15 +1,17 @@
 import type { Mapping } from '../types/wiremock.js';
 
 /**
- * Normalize user/spec-provided tags: keep strings only, trim, drop empties and
- * duplicates (first occurrence wins). Non-array input yields no tags, so a
- * malformed `metadata.tags` written via the JSON editor reads as "untagged".
+ * Normalize user/spec-provided tags: trim, drop empties and duplicates (first
+ * occurrence wins). A lone string counts as one tag and numbers (e.g. unquoted
+ * YAML tags) are stringified, so hand-written `metadata.tags` isn't silently lost;
+ * other values are dropped.
  */
 export function normalizeTags(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  const tags = value
-    .filter((tag): tag is string => typeof tag === 'string')
-    .map((tag) => tag.trim())
+  const list = typeof value === 'string' ? [value] : value;
+  if (!Array.isArray(list)) return [];
+  const tags = list
+    .filter((tag) => typeof tag === 'string' || typeof tag === 'number')
+    .map((tag) => String(tag).trim())
     .filter(Boolean);
   return [...new Set(tags)];
 }

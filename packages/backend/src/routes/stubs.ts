@@ -6,6 +6,7 @@ import {
   extractEqualToValues,
   generateSampleBody,
   isFaultOrProxyResponse,
+  setTags,
   type Mapping,
   type MultiValueMap
 } from '@wiremock-hub/shared';
@@ -14,6 +15,17 @@ import { injectHubMetadata, syncStubsToInstance } from '../utils/wiremock-sync.j
 
 // Re-export for backward compatibility (used by tests)
 export { injectHubMetadata };
+
+/**
+ * Normalize `metadata.tags` in place before storing, so the DB, WireMock and exports
+ * hold the same tags the UI shows. Mappings without a `tags` key are left untouched.
+ */
+function normalizeMappingTags(mapping: unknown): void {
+  const metadata = (mapping as Mapping | null)?.metadata;
+  if (metadata && typeof metadata === 'object' && 'tags' in metadata) {
+    setTags(mapping as Mapping, metadata.tags);
+  }
+}
 
 const createStubSchema = z.object({
   projectId: z.string().uuid(),
@@ -132,6 +144,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
   fastify.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const body = createStubSchema.parse(request.body);
+      normalizeMappingTags(body.mapping);
 
       const project = await checkProjectExists(body.projectId);
       if (!project) {
@@ -173,6 +186,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
       try {
         const { id } = request.params;
         const body = updateStubSchema.parse(request.body);
+        normalizeMappingTags(body.mapping);
 
         const existing = await fastify.prisma.stub.findUnique({
           where: { id }
@@ -736,6 +750,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
               delete (cleanMapping.metadata as Record<string, unknown>).hub_description;
               delete (cleanMapping.metadata as Record<string, unknown>).hub_isActive;
             }
+            normalizeMappingTags(cleanMapping);
 
             await fastify.prisma.stub.create({
               data: {
@@ -767,6 +782,7 @@ export async function stubRoutes(fastify: FastifyInstance) {
               cleanMapping.metadata = { ...cleanMapping.metadata };
               delete cleanMapping.metadata.hub_description;
             }
+            normalizeMappingTags(cleanMapping);
 
             await fastify.prisma.stub.create({
               data: {
