@@ -1027,6 +1027,77 @@ test.describe('Stub', () => {
     await cleanupProject(page, testProjectName);
   });
 
+  test('should tag stubs and filter the list by tag', async ({ page }) => {
+    const testProjectName = `Stub Tag Filter Test ${Date.now()}`;
+
+    // Create project
+    await page
+      .locator('.page-header')
+      .getByRole('button', { name: /プロジェクト追加|Add Project/ })
+      .click();
+    await page.getByLabel(/プロジェクト名|Name/).fill(testProjectName);
+    await page
+      .locator('.el-dialog')
+      .getByRole('button', { name: /保存|Save/ })
+      .click();
+
+    // Go to project detail
+    const projectCard = page.locator('.el-card', { hasText: testProjectName });
+    await projectCard.getByRole('button', { name: /詳細|Detail/ }).click();
+    await page.waitForTimeout(1000);
+
+    // Navigate to stubs tab
+    await page.getByRole('menuitem', { name: /スタブマッピング|Stub Mappings/ }).click();
+    await page.waitForTimeout(500);
+
+    // Create a tagged stub and an untagged stub
+    for (const { path, tag } of [
+      { path: '/api/tagged', tag: 'e2e-orders' },
+      { path: '/api/untagged', tag: '' }
+    ]) {
+      await page
+        .getByRole('button', { name: /新規作成|Create New/ })
+        .first()
+        .click();
+      if (tag) {
+        // allow-create: type a new tag and confirm with Enter
+        await page.locator('[data-testid="stub-tags"]').click();
+        await page.keyboard.type(tag);
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('Escape');
+      }
+      await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
+      await page.getByPlaceholder('e.g. /api/users').fill(path);
+      await page.getByRole('button', { name: /保存|Save/ }).click();
+      await expect(page.locator('.el-table__row', { hasText: path })).toBeVisible({
+        timeout: 10000
+      });
+    }
+
+    // Tag column shows the tag
+    await expect(
+      page.locator('.el-table__row', { hasText: '/api/tagged' }).locator('.tag-list')
+    ).toContainText('e2e-orders');
+
+    // Select the untagged row -> selection bar appears
+    await page
+      .locator('.el-table__row', { hasText: '/api/untagged' })
+      .locator('.el-checkbox__inner')
+      .click();
+    await expect(page.locator('.selection-header')).toBeVisible();
+
+    // Filtering by tag shows only tagged stubs and clears the selection
+    await page.locator('[data-testid="tag-filter"]').click();
+    await page.locator('.el-select-dropdown__item:visible', { hasText: 'e2e-orders' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.el-table__row', { hasText: '/api/tagged' })).toBeVisible();
+    await expect(page.locator('.el-table__row', { hasText: '/api/untagged' })).not.toBeVisible();
+    await expect(page.locator('.selection-header')).not.toBeVisible();
+
+    // Clean up
+    await cleanupProject(page, testProjectName);
+  });
+
   test('should export and import stubs in unified WireMock-compatible format', async ({ page }) => {
     const testProjectName = `Export Import ${Date.now()}`;
 

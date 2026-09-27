@@ -16,9 +16,7 @@ export interface Mapping {
   newScenarioState?: string;
   persistent?: boolean;
   metadata?: {
-    'wiremock-gui'?: {
-      folder?: string;
-    };
+    tags?: string[];
     hub_project_id?: string;
     hub_project_name?: string;
     hub_description?: string;

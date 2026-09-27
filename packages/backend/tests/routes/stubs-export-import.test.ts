@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getTestApp } from '../setup.js';
-import { resetAndCreateProject } from '../helpers.js';
+import { createProject, resetAndCreateProject } from '../helpers.js';
 
 describe('Stubs API - Import & Export', () => {
   let projectId: string;
@@ -182,6 +182,95 @@ describe('Stubs API - Import & Export', () => {
       const stub2 = stubs.find((s: any) => s.name === 'Create User');
       expect(stub2).toBeDefined();
       expect(stub2.isActive).toBe(false);
+    });
+
+    it('should keep metadata.tags through export and re-import', async () => {
+      const app = await getTestApp();
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs',
+        payload: {
+          projectId,
+          name: 'Tagged Stub',
+          mapping: {
+            request: { url: '/tagged' },
+            response: { status: 200 },
+            metadata: { tags: ['Orders', 'smoke'] }
+          }
+        }
+      });
+
+      const exported = (
+        await app.inject({ method: 'GET', url: `/api/stubs/export?projectId=${projectId}` })
+      ).json();
+      expect(exported.mappings[0].metadata.tags).toEqual(['Orders', 'smoke']);
+
+      const otherProjectId = await createProject('Tags Import Target');
+      const importRes = await app.inject({
+        method: 'POST',
+        url: '/api/stubs/import',
+        payload: { projectId: otherProjectId, data: exported }
+      });
+      expect(importRes.json().data.imported).toBe(1);
+
+      const stubs = (
+        await app.inject({ method: 'GET', url: `/api/stubs?projectId=${otherProjectId}` })
+      ).json().data;
+      expect(stubs[0].mapping.metadata.tags).toEqual(['Orders', 'smoke']);
+    });
+
+    it('should normalize metadata.tags on create, update and import', async () => {
+      const app = await getTestApp();
+
+      const created = (
+        await app.inject({
+          method: 'POST',
+          url: '/api/stubs',
+          payload: {
+            projectId,
+            mapping: {
+              request: { url: '/messy' },
+              response: { status: 200 },
+              metadata: { tags: [' Orders', 'Orders', '', 2024] }
+            }
+          }
+        })
+      ).json().data;
+      expect(created.mapping.metadata.tags).toEqual(['Orders', '2024']);
+
+      const updated = (
+        await app.inject({
+          method: 'PUT',
+          url: `/api/stubs/${created.id}`,
+          payload: {
+            mapping: {
+              request: { url: '/messy' },
+              response: { status: 200 },
+              metadata: { tags: [], custom: 'x' }
+            }
+          }
+        })
+      ).json().data;
+      expect(updated.mapping.metadata).toEqual({ custom: 'x' });
+
+      const otherProjectId = await createProject('Tags Normalize Target');
+      await app.inject({
+        method: 'POST',
+        url: '/api/stubs/import',
+        payload: {
+          projectId: otherProjectId,
+          data: {
+            mappings: [
+              { request: { url: '/a' }, response: { status: 200 }, metadata: { tags: 'smoke' } }
+            ]
+          }
+        }
+      });
+      const imported = (
+        await app.inject({ method: 'GET', url: `/api/stubs?projectId=${otherProjectId}` })
+      ).json().data;
+      expect(imported[0].mapping.metadata.tags).toEqual(['smoke']);
     });
 
     it('should default isActive to true when hub_isActive is not present', async () => {

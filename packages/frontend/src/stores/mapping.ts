@@ -1,10 +1,15 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { stubApi, type Stub, type CreateStubInput, type UpdateStubInput } from '@/services/api';
 import { useProjectStore } from './project';
 import { ElMessage } from 'element-plus';
 import { t } from '@/i18n';
-import type { Mapping, StubTestRequest, StubTestResponse } from '@wiremock-hub/shared';
+import {
+  getTags,
+  type Mapping,
+  type StubTestRequest,
+  type StubTestResponse
+} from '@wiremock-hub/shared';
 
 export const useMappingStore = defineStore('mapping', () => {
   const stubs = ref<Stub[]>([]);
@@ -17,30 +22,46 @@ export const useMappingStore = defineStore('mapping', () => {
   // Expose mappings for backward compatibility (generated from stub's mapping field)
   const mappings = ref<Mapping[]>([]);
 
-  // Fetch stub list
-  async function fetchMappings() {
+  // Distinct tags across the project's stubs (filter options / editor suggestions)
+  const allTags = computed(() =>
+    [...new Set(mappings.value.flatMap((m) => getTags(m)))].sort((a, b) => a.localeCompare(b))
+  );
+
+  // Project whose stubs are currently loaded (lets callers skip a redundant fetch)
+  const loadedProjectId = ref<string | null>(null);
+  // Only the latest fetch may write, so a slow earlier response can't overwrite newer data
+  let fetchSeq = 0;
+
+  // Fetch stub list. `silent` suppresses the error toast for background fetches.
+  async function fetchMappings({ silent = false } = {}) {
     const projectStore = useProjectStore();
     if (!projectStore.currentProjectId) {
       error.value = t('messages.project.notSelected');
       return;
     }
 
+    const projectId = projectStore.currentProjectId;
+    const seq = ++fetchSeq;
     loading.value = true;
     error.value = null;
 
     try {
-      stubs.value = await stubApi.list(projectStore.currentProjectId);
+      const result = await stubApi.list(projectId);
+      if (seq !== fetchSeq) return;
+      stubs.value = result;
       // Generate mappings from stubs (for backward compatibility)
       mappings.value = stubs.value.map((s) => ({
         ...(s.mapping as Mapping),
         id: s.id,
         name: s.name ?? (s.mapping as any)?.name ?? undefined
       }));
+      loadedProjectId.value = projectId;
     } catch (e: any) {
+      if (seq !== fetchSeq) return;
       error.value = e.message || t('messages.stub.fetchFailed');
-      ElMessage.error(error.value!);
+      if (!silent) ElMessage.error(error.value!);
     } finally {
-      loading.value = false;
+      if (seq === fetchSeq) loading.value = false;
     }
   }
 
@@ -195,6 +216,7 @@ export const useMappingStore = defineStore('mapping', () => {
   function clearMappings() {
     stubs.value = [];
     mappings.value = [];
+    loadedProjectId.value = null;
   }
 
   // Get stub by ID
@@ -364,6 +386,8 @@ export const useMappingStore = defineStore('mapping', () => {
   return {
     stubs,
     mappings,
+    allTags,
+    loadedProjectId,
     loading,
     error,
     testResult,

@@ -1,4 +1,4 @@
-import type { Mapping } from '@wiremock-hub/shared';
+import { setTags, type Mapping } from '@wiremock-hub/shared';
 
 /** Minimal representation of an OpenAPI / Swagger spec (only the fields we use) */
 export interface OpenApiSpec {
@@ -51,6 +51,7 @@ export interface OpenApiOperation {
   produces?: string[];
   summary?: string;
   description?: string;
+  tags?: string[];
   [key: string]: unknown;
 }
 
@@ -319,5 +320,7 @@ export function buildMappingFromOperation(
     }
   }
 
-  return { request, response };
+  const mapping: Mapping = { request, response };
+  setTags(mapping, operation.tags);
+  return mapping;
 }

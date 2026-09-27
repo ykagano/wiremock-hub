@@ -44,13 +44,30 @@
         </el-form-item>
 
         <!-- Description -->
-        <el-form-item :label="t('editor.stubDescription')" class="description-item">
+        <el-form-item :label="t('editor.stubDescription')">
           <el-input
             v-model="stubDescription"
             type="textarea"
             :rows="2"
             :placeholder="t('editor.placeholder.stubDescription')"
           />
+        </el-form-item>
+
+        <!-- Tags (stored in metadata.tags) -->
+        <el-form-item :label="t('editor.tags')" class="last-form-item">
+          <el-select
+            v-model="stubTags"
+            multiple
+            filterable
+            allow-create
+            default-first-option
+            :reserve-keyword="false"
+            :placeholder="t('editor.placeholder.tags')"
+            data-testid="stub-tags"
+            style="width: 100%"
+          >
+            <el-option v-for="tag in mappingStore.allTags" :key="tag" :label="tag" :value="tag" />
+          </el-select>
         </el-form-item>
       </el-form>
     </el-card>
@@ -239,12 +256,15 @@ import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMappingStore } from '@/stores/mapping';
+import { useProjectStore } from '@/stores/project';
 import { useResponsive } from '@/composables/useResponsive';
 import { stubApi } from '@/services/api';
 import { ElMessage } from 'element-plus';
 import {
+  getTags,
   isFaultOrProxyResponse,
   joinMultiValue,
+  setTags,
   type BodyPattern,
   type Mapping
 } from '@wiremock-hub/shared';
@@ -260,6 +280,7 @@ const { isMobile } = useResponsive();
 const route = useRoute();
 const router = useRouter();
 const mappingStore = useMappingStore();
+const projectStore = useProjectStore();
 
 const activeTab = ref('request');
 const saving = ref(false);
@@ -327,6 +348,12 @@ const formData = reactive<Mapping>({
   },
   priority: 5,
   persistent: true
+});
+
+// Tags live in formData.metadata.tags, so the JSON tab stays in sync automatically
+const stubTags = computed({
+  get: () => getTags(formData),
+  set: (tags: string[]) => setTags(formData, tags)
 });
 
 // The Text tab is a single-body helper that can only round-trip a lone, bare
@@ -452,6 +479,13 @@ watch(requestBodyTab, (tab, prev) => {
 
 // Initialization
 onMounted(async () => {
+  // Load the project's stubs for tag suggestions only when the store doesn't hold them
+  // yet (direct load/reload of this page). Not awaited and silent: the form doesn't
+  // depend on it.
+  if (mappingStore.loadedProjectId !== projectStore.currentProjectId) {
+    mappingStore.fetchMappings({ silent: true });
+  }
+
   // Pre-fill scenarioName from query parameter (e.g. from ScenariosView "Create new stub")
   const queryScenarioName = route.query.scenarioName as string | undefined;
   if (isNew.value && queryScenarioName) {
@@ -577,7 +611,7 @@ function openTestDialog() {
   margin-bottom: 16px;
 }
 
-.description-item {
+.last-form-item {
   margin-bottom: 0;
 }
 

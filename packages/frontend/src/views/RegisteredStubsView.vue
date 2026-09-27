@@ -73,6 +73,11 @@
           <el-table-column :label="t('registeredStubs.name')" min-width="150">
             <template #default="{ row }">
               {{ row.name || '-' }}
+              <div v-if="getTags(row).length > 0" class="tag-list">
+                <el-tag v-for="tag in getTags(row)" :key="tag" size="small" type="info">
+                  {{ tag }}
+                </el-tag>
+              </div>
             </template>
           </el-table-column>
           <el-table-column :label="t('registeredStubs.method')" width="100">
@@ -132,7 +137,7 @@ import { storeToRefs } from 'pinia';
 import { useProjectStore } from '@/stores/project';
 import { wiremockInstanceApi } from '@/services/api';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { Mapping } from '@wiremock-hub/shared';
+import { getTags, type Mapping } from '@wiremock-hub/shared';
 import { getMethodTagType, getUrl } from '@/utils/wiremock';
 import StatusTag from '@/components/mapping/StatusTag.vue';
 import { useResponsive } from '@/composables/useResponsive';
@@ -277,6 +282,13 @@ watch(wiremockInstances, (instances) => {
 <style scoped>
 .registered-stubs {
   max-width: 100%;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .page-header {

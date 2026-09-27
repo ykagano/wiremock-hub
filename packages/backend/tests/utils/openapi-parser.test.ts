@@ -291,6 +291,26 @@ describe('openapi-parser', () => {
       expect(mapping.response.headers?.['Content-Type']).toBe('application/json');
     });
 
+    it('should copy operation tags into metadata.tags', () => {
+      const spec = { openapi: '3.0.0' };
+      const operation = { tags: ['Orders', 'Admin'], responses: { '200': {} } };
+      const mapping = buildMappingFromOperation(spec, '/orders', 'POST', operation);
+
+      expect(mapping.metadata).toEqual({ tags: ['Orders', 'Admin'] });
+    });
+
+    it('should not add metadata when operation has no tags', () => {
+      const spec = { openapi: '3.0.0' };
+      const untagged = buildMappingFromOperation(spec, '/a', 'GET', { responses: { '200': {} } });
+      const emptyTags = buildMappingFromOperation(spec, '/b', 'GET', {
+        tags: [],
+        responses: { '200': {} }
+      });
+
+      expect(untagged).not.toHaveProperty('metadata');
+      expect(emptyTags).not.toHaveProperty('metadata');
+    });
+
     it('should use urlPathPattern for paths with parameters', () => {
       const spec = { openapi: '3.0.0' };
       const operation = { responses: { '200': {} } };

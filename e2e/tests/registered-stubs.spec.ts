@@ -17,6 +17,7 @@ test.describe('Registered Stubs', () => {
     const ts = Date.now();
     const testProjectName = `Registered Stubs Test ${ts}`;
     const testUrl = `/api/reg-stubs-${ts}`;
+    const testTag = `reg-tag-${ts}`;
 
     // Create project
     await page
@@ -61,6 +62,11 @@ test.describe('Registered Stubs', () => {
       .getByRole('button', { name: /新規作成|Create New/ })
       .first()
       .click();
+    // Add a tag (metadata.tags is synced to WireMock as-is)
+    await page.locator('[data-testid="stub-tags"]').click();
+    await page.keyboard.type(testTag);
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Escape');
     await page.getByRole('tab', { name: /リクエスト|Request/ }).click();
     const urlInput = page.getByPlaceholder('e.g. /api/users');
     await expect(urlInput).toBeVisible();
@@ -110,6 +116,9 @@ test.describe('Registered Stubs', () => {
 
     // Verify the project name tag is displayed (from hub_project_name metadata)
     await expect(targetRow.locator('.el-tag', { hasText: testProjectName })).toBeVisible();
+
+    // Verify the stub's tags are displayed under the name (from metadata.tags)
+    await expect(targetRow.locator('.tag-list')).toContainText(testTag);
 
     // Verify pagination is displayed
     const pagination = page.locator('.el-pagination');
