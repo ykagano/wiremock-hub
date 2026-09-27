@@ -207,10 +207,8 @@ export function buildMappingFromOperation(
 ): Mapping {
   const responses = operation.responses || {};
   const status = findSuccessStatus(responses);
-  const responseObj = resolveSchema(spec, responses[String(status)] || responses['default']) as
-    | OpenApiResponse
-    | null
-    | undefined;
+  const rawResponse = responses[String(status)] || responses['default'];
+  const responseObj = resolveSchema(spec, rawResponse) as OpenApiResponse | null | undefined;
 
   const request: Mapping['request'] = { method };
 
@@ -291,10 +289,8 @@ export function buildMappingFromOperation(
 
     // OpenAPI 3.x: requestBody
     if (operation.requestBody) {
-      const reqBody = resolveSchema(spec, operation.requestBody as JsonSchema) as
-        | OpenApiRequestBody
-        | null
-        | undefined;
+      const rawReqBody = operation.requestBody as JsonSchema;
+      const reqBody = resolveSchema(spec, rawReqBody) as OpenApiRequestBody | null | undefined;
       if (reqBody?.content) {
         const mediaTypes = Object.keys(reqBody.content);
         const jsonType = mediaTypes.find((t) => t.includes('json'));
