@@ -181,7 +181,7 @@
       "requiredState": "例: Started",
       "newState": "例: LoggedIn",
       "stubName": "例: 外部API",
-      "stubDescription": "スタブの説明（任意）",
+      "stubDescription": "スタブの説明",
       "tags": "タグを選択または入力"
     }
   },
